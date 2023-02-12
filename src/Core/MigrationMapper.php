@@ -22,7 +22,7 @@ class MigrationMapper
     {
         $this->modelBlueprints = collect();
         ModelInfo::forAllModels()->each(function (ModelInfo $model) {
-            $this->modelBlueprints[$model->class] = new Blueprint($model->class);
+            $this->modelBlueprints[$model->class] = new Blueprint($model->tableName);
             $this->mapModel($model->class);
         });
     }
@@ -32,24 +32,24 @@ class MigrationMapper
         return new self();
     }
 
-    public function mapModel(string $model)
+    public function mapModel(string $modelName): self
     {
 
-        $properties = $this->setModelProperties(new ReflectionClass($model));
+        $properties = $this->setModelProperties(new ReflectionClass($modelName));
 
-        $properties->each(fn(ReflectionProperty $property) => $this->mapProperty($property, $model));
+        $properties->each(fn(ReflectionProperty $property) => $this->mapProperty($property, $modelName));
 
         return $this;
     }
 
-    public function setModelProperties(ReflectionClass $reflectionClass)
+    public function setModelProperties(ReflectionClass $reflectionClass): Collection
     {
         return collect($reflectionClass->getProperties())->filter(function ($property) {
             return $property->getAttributes('Eyadhamza\LaravelAutoMigration\Core\Attributes\Property');
         });
     }
 
-    private function mapProperty(ReflectionProperty $property,$modelName)
+    private function mapProperty(ReflectionProperty $property,$modelName): self
     {
         $property = $property
             ->getAttributes('Eyadhamza\LaravelAutoMigration\Core\Attributes\Property')[0]
@@ -64,7 +64,8 @@ class MigrationMapper
     public function setModelProperty(Property $property, string $modelName): self
     {
         $rules = $property->getRules();
-        $blueprint = $this->modelBlueprints[$modelName]->{$property->getPropertyType()}($property->getPropertyName());
+
+        $blueprint = $this->buildColumn($property, $modelName);
         $allowedRules = Rule::getRules();
 
         foreach ($rules as $rule => $value) {
@@ -78,6 +79,25 @@ class MigrationMapper
             $blueprint->{$rule}($value);
         }
         return $this;
+    }
+
+    private function buildColumn(Property $property, string $modelName)
+    {
+        $blueprint = $this->modelBlueprints[$modelName];
+
+        $columnType = $this->mapToColumn($property->getPropertyType());
+
+        $columnName = $property->getPropertyName();
+
+        return $blueprint->$columnType($columnName);
+    }
+
+    private function mapToColumn(string $propertyType)
+    {
+       return match ($propertyType){
+            'int' => 'integer',
+            'string' => 'string',
+       };
     }
 
 }

@@ -7,7 +7,6 @@ abstract class Rule
     const NULLABLE = 'nullable';
     const PRIMARY = 'primary';
     const DEFAULT = 'default';
-
     public static function getRules(): array
     {
         return [
