@@ -1,12 +1,12 @@
 <?php
 
-namespace VendorName\Skeleton\Commands;
+namespace Eyadhamza\LaravelAutoMigration\Commands;
 
 use Illuminate\Console\Command;
 
-class SkeletonCommand extends Command
+class LaravelAutoMigrationCommand extends Command
 {
-    public $signature = 'skeleton';
+    public $signature = 'laravel-auto-migration';
 
     public $description = 'My command';
 
