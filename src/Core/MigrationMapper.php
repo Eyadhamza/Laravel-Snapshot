@@ -2,19 +2,16 @@
 
 namespace Eyadhamza\LaravelAutoMigration\Core;
 
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Property;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Collection;
 use ReflectionClass;
 use ReflectionProperty;
-use Spatie\ModelInfo\ModelFinder;
 use Spatie\ModelInfo\ModelInfo;
 
 class MigrationMapper
 {
-    private Collection $models;
-    private ReflectionClass $reflectionClass;
-    private Collection $properties;
 
     /**
 
@@ -23,14 +20,11 @@ class MigrationMapper
     private Collection $modelBlueprints;
     public function __construct()
     {
-        $this->models = ModelInfo::forAllModels();
         $this->modelBlueprints = collect();
-        $this->models->each(function (ModelInfo $model) {
-            $this->reflectionClass = new ReflectionClass($model->class);
-            $this->modelBlueprints[$model->class] = new Blueprint($model->tableName);
+        ModelInfo::forAllModels()->each(function (ModelInfo $model) {
+            $this->modelBlueprints[$model->class] = new Blueprint($model->class);
+            $this->mapModel($model->class);
         });
-
-        $this->mapModels();
     }
 
     public static function make(): self
@@ -38,46 +32,41 @@ class MigrationMapper
         return new self();
     }
 
-    public function mapModels()
+    public function mapModel(string $model)
     {
 
-        $this->setModelProperties();
+        $properties = $this->setModelProperties(new ReflectionClass($model));
 
-        $this->properties
-            ->each(fn(ReflectionProperty $property) => $this->mapProperty($property));
-
-        dd($this->modelBlueprints);
-
-    }
-
-    public function setModelProperties()
-    {
-        $this->properties = collect($this->reflectionClass->getProperties())->filter(function ($property) {
-            return $property->getAttributes('App\Core\Property');
-        });
+        $properties->each(fn(ReflectionProperty $property) => $this->mapProperty($property, $model));
 
         return $this;
     }
 
-    private function mapProperty(ReflectionProperty $property)
+    public function setModelProperties(ReflectionClass $reflectionClass)
+    {
+        return collect($reflectionClass->getProperties())->filter(function ($property) {
+            return $property->getAttributes('Eyadhamza\LaravelAutoMigration\Core\Attributes\Property');
+        });
+    }
+
+    private function mapProperty(ReflectionProperty $property,$modelName)
     {
         $property = $property
-            ->getAttributes('App\Core\Property')[0]
+            ->getAttributes('Eyadhamza\LaravelAutoMigration\Core\Attributes\Property')[0]
             ->newInstance()
-            ->setBlueprint($this->modelBlueprints[$this->reflectionClass->name])
             ->setPropertyName($property->getName())
             ->setPropertyType($property->getType()->getName());
 
-        $this->setModelProperty($property);
-
+        $this->setModelProperty($property, $modelName);
         return $this;
     }
 
-    public function setModelProperty(Property $property): self
+    public function setModelProperty(Property $property, string $modelName): self
     {
         $rules = $property->getRules();
-        $blueprint = $this->modelBlueprints[$this->reflectionClass->name]->{$property->getPropertyType()}($property->getPropertyName());
+        $blueprint = $this->modelBlueprints[$modelName]->{$property->getPropertyType()}($property->getPropertyName());
         $allowedRules = Rule::getRules();
+
         foreach ($rules as $rule => $value) {
             if (is_int($rule)) {
                 $rule = $value;
