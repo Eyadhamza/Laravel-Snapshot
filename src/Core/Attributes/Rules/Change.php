@@ -5,7 +5,7 @@ namespace Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules;
 use Attribute;
 
 #[Attribute]
-class Change
+class Change extends Rule
 {
 
 }

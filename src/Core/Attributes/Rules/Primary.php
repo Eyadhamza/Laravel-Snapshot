@@ -5,7 +5,7 @@ namespace Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules;
 use Attribute;
 
 #[Attribute]
-class Primary
+class Primary extends Rule
 {
 
 }

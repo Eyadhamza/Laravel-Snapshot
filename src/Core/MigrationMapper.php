@@ -3,10 +3,12 @@
 namespace Eyadhamza\LaravelAutoMigration\Core;
 
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Property;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\Rule;
 use Eyadhamza\LaravelAutoMigration\Core\Constants\Name;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Collection;
+use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionProperty;
 use Spatie\ModelInfo\ModelInfo;
@@ -37,9 +39,13 @@ class MigrationMapper
     public function mapModel(string $modelName): self
     {
 
-        $properties = $this->setModelProperties(new ReflectionClass($modelName));
+        $properties = $this
+            ->setModelProperties(new ReflectionClass($modelName));
 
-        $properties->each(fn(ReflectionProperty $property) => $this->mapProperty($property, $modelName));
+        $modelProperties = $properties
+            ->map(fn(ReflectionProperty $property) => $this->mapProperty($property));
+
+        $this->modelBlueprints[$modelName] = ModelToBlueprintMapper::make($modelProperties)->build();
 
         return $this;
     }
@@ -47,63 +53,25 @@ class MigrationMapper
     public function setModelProperties(ReflectionClass $reflectionClass): Collection
     {
         return collect($reflectionClass->getProperties())->filter(function ($property) {
-            return $property->getAttributes('Eyadhamza\LaravelAutoMigration\Core\Attributes\Property');
+            return $property->getAttributes(Property::class);
         });
     }
 
-    private function mapProperty(ReflectionProperty $property, $modelName): self
+    private function mapProperty(ReflectionProperty $property): Property
     {
-        $property = $property
-            ->getAttributes('Eyadhamza\LaravelAutoMigration\Core\Attributes\Property')[0]
+        $attributes = collect($property->getAttributes());
+
+        $rules = $attributes
+            ->filter(fn(ReflectionAttribute $attribute) => is_subclass_of($attribute->getName(), Rule::class));
+
+        return $attributes
+            ->filter(fn(ReflectionAttribute $attribute) => $attribute->getName() === Property::class)
+            ->first()
             ->newInstance()
-            ->setPropertyName($property->getName())
-            ->setPropertyType($property->getType()->getName());
+            ->setName($property->getName())
+            ->setType($property->getType()->getName())
+            ->setRules($rules);
 
-        $this->setModelProperty($property, $modelName);
-        return $this;
-    }
-
-    public function setModelProperty(Property $property, string $modelName): self
-    {
-        $rules = $property->getRules();
-
-        $blueprint = $this->buildColumn($property, $modelName);
-        $allowedRules = Name::getRules();
-
-        foreach ($rules as $rule => $value) {
-            if (is_int($rule)) {
-                $rule = $value;
-                $blueprint->{$rule}();
-                return $this;
-            }
-
-            if (!array_key_exists($rule, $allowedRules)) {
-                throw new \Exception("Name {$rule} not found");
-            }
-
-            $blueprint->{$rule}($value);
-
-        }
-        return $this;
-    }
-
-    private function buildColumn(Property $property, string $modelName)
-    {
-        $blueprint = $this->modelBlueprints[$modelName];
-
-        $columnType = $this->mapToColumn($property->getPropertyType());
-
-        $columnName = $property->getPropertyName();
-
-        return $blueprint->$columnType($columnName);
-    }
-
-    private function mapToColumn(string $propertyType): string
-    {
-        return match ($propertyType) {
-            'int' => 'integer',
-            'string' => 'string',
-        };
     }
 
 }
