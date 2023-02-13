@@ -33,7 +33,8 @@
     "autoload": {
         "psr-4": {
             "Eyadhamza\\LaravelAutoMigration\\": "src",
-            "Eyadhamza\\LaravelAutoMigration\\Database\\Factories\\": "database/factories"
+            "Eyadhamza\\LaravelAutoMigration\\Database\\Factories\\": "database/factories",
+            "App\\": "app/"
         }
     },
     "autoload-dev": {

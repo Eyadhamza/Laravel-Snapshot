@@ -3,6 +3,7 @@
 namespace Eyadhamza\LaravelAutoMigration\Core;
 
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Property;
+use Eyadhamza\LaravelAutoMigration\Core\Constants\Name;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Collection;
@@ -14,14 +15,15 @@ class MigrationMapper
 {
 
     /**
-
      * @var Collection<Model, Blueprint>
      */
     private Collection $modelBlueprints;
+
     public function __construct()
     {
         $this->modelBlueprints = collect();
-        ModelInfo::forAllModels()->each(function (ModelInfo $model) {
+
+        ModelInfo::forAllModels('app', config('auto-migration.base_path') ?? app_path())->each(function (ModelInfo $model) {
             $this->modelBlueprints[$model->class] = new Blueprint($model->tableName);
             $this->mapModel($model->class);
         });
@@ -49,7 +51,7 @@ class MigrationMapper
         });
     }
 
-    private function mapProperty(ReflectionProperty $property,$modelName): self
+    private function mapProperty(ReflectionProperty $property, $modelName): self
     {
         $property = $property
             ->getAttributes('Eyadhamza\LaravelAutoMigration\Core\Attributes\Property')[0]
@@ -66,17 +68,21 @@ class MigrationMapper
         $rules = $property->getRules();
 
         $blueprint = $this->buildColumn($property, $modelName);
-        $allowedRules = Rule::getRules();
+        $allowedRules = Name::getRules();
 
         foreach ($rules as $rule => $value) {
             if (is_int($rule)) {
                 $rule = $value;
-                $value = null;
+                $blueprint->{$rule}();
+                return $this;
             }
-            if (! array_key_exists($rule, $allowedRules)){
-                throw new \Exception("Rule {$rule} not found");
+
+            if (!array_key_exists($rule, $allowedRules)) {
+                throw new \Exception("Name {$rule} not found");
             }
+
             $blueprint->{$rule}($value);
+
         }
         return $this;
     }
@@ -92,12 +98,12 @@ class MigrationMapper
         return $blueprint->$columnType($columnName);
     }
 
-    private function mapToColumn(string $propertyType)
+    private function mapToColumn(string $propertyType): string
     {
-       return match ($propertyType){
+        return match ($propertyType) {
             'int' => 'integer',
             'string' => 'string',
-       };
+        };
     }
 
 }
