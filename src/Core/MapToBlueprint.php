@@ -30,6 +30,9 @@ class MapToBlueprint
             $columnType = $modelProperty->getType();
             $columnName = $modelProperty->getName();
             $column = $this->blueprint->$columnType($columnName);
+            if (is_null($rules)){
+                return $this->blueprint;
+            }
             foreach ($rules as $rule) {
                 if (empty($rule->getArguments())) {
                     $column->{$rule->getName()}();

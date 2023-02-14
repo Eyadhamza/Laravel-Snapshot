@@ -37,11 +37,11 @@ class MapToMigration
     {
         foreach ($models as $model) {
 
-            $properties = $this
-                ->getPropertiesWhereHasColumnAttribute(new ReflectionClass($model->class));
+            $attributes = $this
+                ->getAttributesOfColumnType(new ReflectionClass($model->class));
 
-            $modelProperties = $properties
-                ->map(fn(ReflectionProperty $property) => $this->mapProperty($property));
+            $modelProperties = $attributes
+                ->map(fn(ReflectionAttribute $attribute) => $this->mapAttribute($attribute));
 
             $this->modelBlueprints->put($model->class, MapToBlueprint::make($modelProperties, new Blueprint($model->tableName)));
 
@@ -50,7 +50,7 @@ class MapToMigration
         return $this;
     }
 
-    public function getPropertiesWhereHasColumnAttribute(ReflectionClass $reflectionClass): Collection
+    public function getAttributesOfColumnType(ReflectionClass $reflectionClass): Collection
     {
 
         return collect($reflectionClass->getAttributes())
@@ -58,24 +58,18 @@ class MapToMigration
 
     }
 
-    private function mapProperty(ReflectionProperty $property): Column
+    private function mapAttribute(ReflectionAttribute $attribute): Column
     {
 
-        $attributes = collect($property->getAttributes());
-
-        $rules = $attributes
-            ->filter(fn(ReflectionAttribute $attribute) => is_subclass_of($attribute->getName(), Rule::class));
-
-        $propertyType = $attributes
-            ->filter(fn(ReflectionAttribute $attribute) => is_subclass_of($attribute->getName(), Column::class))
-            ->first()
-            ->getName();
-
-        return $attributes
-            ->filter(fn(ReflectionAttribute $attribute) => is_subclass_of($attribute->getName(), Column::class))
-            ->first()
+        $rules = $attribute
             ->newInstance()
-            ->setName($property->getName())
+            ->getRules();
+
+        $propertyType = $attribute->getName();
+
+        return $attribute
+            ->newInstance()
+            ->setName($attribute->getArguments()[0])
             ->setType($propertyType)
             ->setRules($rules);
 

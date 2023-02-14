@@ -29,8 +29,9 @@ it('can generate the right columns', function () {
 
     $blueprints = $mapper->getModelBlueprints();
     expect($blueprints->first()->getColumns())
-        ->toHaveCount(5);
+        ->toHaveCount(4);
     $idColumn = $blueprints->first()->getColumns()[0];
+    dd($idColumn);
         expect($idColumn)
             ->toBeInstanceOf(ColumnDefinition::class)
             ->and($idColumn->getAttributes())

@@ -35,15 +35,17 @@ class MapToBlueprintRule
 
     public static function map(array $rules): array
     {
+        $mappedRules = [];
         foreach ($rules as $rule => $value) {
-            if (!array_key_exists($rule->getName(), self::$rules)) {
-                throw new \Exception("Name {$rule} not found");
-            }
+
             if (is_int($rule)) {
                 $rule = $value;
-                return new self(self::$rules[$rule], $rule->getArguments());
+                $mappedRules[] = new self($rule, [$value]);
+                continue;
             }
+            $mappedRules[] = new self($rule, [$value]);
         }
+        return $mappedRules;
     }
 
     public function getName(): string

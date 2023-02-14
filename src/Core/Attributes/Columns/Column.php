@@ -39,13 +39,16 @@ class Column
         return $this->name;
     }
 
-    public function getRules(): Collection
+    public function getRules(): ?array
     {
         return $this->rules;
     }
 
-    public function setRules(Collection $rules): self
+    public function setRules(?array $rules): self
     {
+        if (is_null($rules))
+            return $this;
+
         $this->rules = MapToBlueprintRule::map($rules);
 
         return $this;
