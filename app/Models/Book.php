@@ -5,6 +5,7 @@ namespace App\Models;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Property;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\After;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\AutoIncrement;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\Index;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\Primary;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\Required;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\Unique;
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Book extends Model
 {
-    #[Property(Type::BIGINTEGER), Unique, Primary, Unsigned, AutoIncrement, After('email')]
+    #[Property(Type::BIGINTEGER), Unique, Primary, Unsigned, AutoIncrement, Index]
     protected int $id;
 
     #[Property]

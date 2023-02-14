@@ -40,5 +40,5 @@ it('can generate the right columns', function () {
             ->toHaveKey('unsigned', true)
             ->toHaveKey('unique', true)
             ->toHaveKey('primary', true)
-            ->toHaveKey('after', 'email');
+            ->toHaveKey('index', true);
 });
