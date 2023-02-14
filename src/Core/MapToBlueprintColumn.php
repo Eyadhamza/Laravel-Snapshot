@@ -1,7 +1,9 @@
 <?php
 
-namespace Eyadhamza\LaravelAutoMigration\Core\Mappers;
+namespace Eyadhamza\LaravelAutoMigration\Core;
 
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\AsFloat;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\AsString;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\BigIncrements;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\BigInteger;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Binary;
@@ -14,7 +16,6 @@ use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\DateTimeTz;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Decimal;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Double;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Enum;
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\AsFloat;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Foreign;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\ForeignId;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\ForeignIdFor;
@@ -53,7 +54,6 @@ use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\SmallIncrements;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\SmallInteger;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\SoftDeletes;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\SoftDeletesTz;
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\AsString;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Text;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Time;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Timestamp;
@@ -77,8 +77,9 @@ use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\UnsignedTinyInteger;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Uuid;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\UuidMorphs;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Year;
+use Illuminate\Support\Collection;
 
-class Column
+class MapToBlueprintColumn
 {
     private static array $columns = [
         Foreign::class => 'foreign',
@@ -159,10 +160,9 @@ class Column
     ];
 
 
-    public function __construct(
-        private array|AsString $rules,
-    )
+    public static function map(string $type)
     {
+        return self::$columns[$type] ?? $type;
     }
 
 }

@@ -2,41 +2,39 @@
 
 namespace Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns;
 
-use Attribute;;
-
 use Attribute;
-use Eyadhamza\LaravelAutoMigration\Core\Mappers\Rule;
+use Eyadhamza\LaravelAutoMigration\Core\MapToBlueprintColumn;
+use Eyadhamza\LaravelAutoMigration\Core\MapToBlueprintRule;
 use Illuminate\Support\Collection;
 
-#[Attribute]
-#[Attribute]
-class Column extends Column
+
+#[Attribute(Attribute::IS_REPEATABLE | Attribute::TARGET_CLASS)]
+class Column
 {
-    private AsString $name;
-    private Collection $rules;
 
     public function __construct(
-        private  ?AsString $type = null,
+        private string $name,
+        private ?array $rules = null,
     )
     {}
-    public function setType(AsString $type): self
+    public function setType(string $type): self
     {
-        $this->type = $type;
+        $this->type = MapToBlueprintColumn::map($type);
         return $this;
     }
 
-    public function setName(AsString $name): self
+    public function setName(string $name): self
     {
         $this->name = $name;
         return $this;
     }
 
-    public function getType(): AsString
+    public function getType(): string
     {
         return $this->type;
     }
 
-    public function getName(): AsString
+    public function getName(): string
     {
         return $this->name;
     }
@@ -48,7 +46,7 @@ class Column extends Column
 
     public function setRules(Collection $rules): self
     {
-        $this->rules = Rule::map($rules);
+        $this->rules = MapToBlueprintRule::map($rules);
 
         return $this;
     }

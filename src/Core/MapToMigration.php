@@ -38,7 +38,7 @@ class MapToMigration
         foreach ($models as $model) {
 
             $properties = $this
-                ->getProperties(new ReflectionClass($model->class));
+                ->getPropertiesWhereHasColumnAttribute(new ReflectionClass($model->class));
 
             $modelProperties = $properties
                 ->map(fn(ReflectionProperty $property) => $this->mapProperty($property));
@@ -50,26 +50,30 @@ class MapToMigration
         return $this;
     }
 
-    public function getProperties(ReflectionClass $reflectionClass): Collection
+    public function getPropertiesWhereHasColumnAttribute(ReflectionClass $reflectionClass): Collection
     {
-        return collect($reflectionClass->getProperties())->filter(function ($property) {
-            return $property->getAttributes(Column::class);
-        });
+        dd($reflectionClass->getAttributes());
+        return collect($reflectionClass->getProperties())
+            ->filter(fn($property) => collect($property->getAttributes())
+                ->contains(fn($attribute) => is_subclass_of($attribute->getName(), Column::class)));
+
     }
 
     private function mapProperty(ReflectionProperty $property): Column
     {
+
         $attributes = collect($property->getAttributes());
 
         $rules = $attributes
             ->filter(fn(ReflectionAttribute $attribute) => is_subclass_of($attribute->getName(), Rule::class));
+
         $propertyType = $attributes
-            ->filter(fn(ReflectionAttribute $attribute) => $attribute ->getName() === Column::class)
+            ->filter(fn(ReflectionAttribute $attribute) => is_subclass_of($attribute->getName(), Column::class))
             ->first()
-            ->getArguments()[0] ?? $property->getType()->getName();
+            ->getName();
 
         return $attributes
-            ->filter(fn(ReflectionAttribute $attribute) => $attribute->getName() === Column::class)
+            ->filter(fn(ReflectionAttribute $attribute) => is_subclass_of($attribute->getName(), Column::class))
             ->first()
             ->newInstance()
             ->setName($property->getName())

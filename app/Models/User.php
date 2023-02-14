@@ -2,35 +2,26 @@
 
 namespace App\Models;
 
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Column;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\AsString;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Id;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\AsDefault;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\Nullable;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\Primary;
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\Required;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\Unique;
-use Eyadhamza\LaravelAutoMigration\Core\Mappers\Column;
 use Illuminate\Database\Eloquent\Model;
 
+#[Id('id'), Unique, Primary]
+#[AsString('name'), Nullable, AsDefault('Eyad Hamza')]
+#[AsString('email'), Unique]
+#[AsString('password'), Unique]
 class User extends Model
 {
-    #[Column(Column::BIGINTEGER), Unique, Primary]
-    protected int $id;
-
-    #[Column, Nullable, AsDefault('Eyad Hamza')]
-    protected string $name;
-
-    #[Column, Unique]
-    protected string $email;
-
-    #[Column, Required]
-    protected string $password;
-
-
     /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
      */
+
     protected $fillable = [
         'name',
         'email',

@@ -1,9 +1,12 @@
 <?php
 
 
+use App\Models\User;
 use Eyadhamza\LaravelAutoMigration\Core\MapToMigration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Schema\ColumnDefinition;
+
+
 
 it('can create a new MapToMigration instance', function () {
     $mapper = MapToMigration::make();
@@ -38,4 +41,18 @@ it('can generate the right columns', function () {
             ->toHaveKey('unique', true)
             ->toHaveKey('primary', true)
             ->toHaveKey('index', true);
+});
+it('can do normal model operation', function () {
+    User::create([
+        'name' => 'Eyad',
+        'email' => 'Eyadhamza0@gmail.com',
+        'password' => 'password'
+    ]);
+
+    expect(User::all())
+        ->toHaveCount(1);
+
+    $user = User::first();
+    expect($user->name)
+        ->toBe('Eyad');
 });

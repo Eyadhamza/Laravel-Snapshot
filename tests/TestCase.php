@@ -13,8 +13,13 @@ class TestCase extends Orchestra
         parent::setUp();
 
         Factory::guessFactoryNamesUsing(
-            fn (string $modelName) => 'Eyadhamza\\LaravelAutoMigration\\Database\\Factories\\'.class_basename($modelName).'Factory'
+            fn(string $modelName) => 'Eyadhamza\\LaravelAutoMigration\\Database\\Factories\\' . class_basename($modelName) . 'Factory'
         );
+    }
+
+    protected function defineDatabaseMigrations()
+    {
+        $this->loadLaravelMigrations();
     }
 
     protected function getPackageProviders($app)
