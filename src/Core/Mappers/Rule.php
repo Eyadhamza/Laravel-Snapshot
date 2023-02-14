@@ -2,6 +2,7 @@
 
 namespace Eyadhamza\LaravelAutoMigration\Core\Mappers;
 
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\AsString;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\After;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\AsDefault;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\AutoIncrement;
@@ -12,7 +13,6 @@ use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\FullText;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\Index;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\Nullable;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\Primary;
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\Required;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\Unique;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\Unsigned;
 use Illuminate\Support\Collection;
@@ -34,11 +34,11 @@ class Rule
         FullText::class => 'fullText',
         AutoIncrement::class => 'autoIncrement',
     ];
-    private string $name;
+    private AsString $name;
 
     private array $arguments;
 
-    public function __construct(string $name, array $arguments)
+    public function __construct(AsString $name, array $arguments)
     {
         $this->name = $name;
         $this->arguments = $arguments;
@@ -56,7 +56,7 @@ class Rule
         });
     }
 
-    public function getName(): string
+    public function getName(): AsString
     {
         return $this->name;
     }

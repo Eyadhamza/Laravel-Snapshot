@@ -2,7 +2,7 @@
 
 namespace Eyadhamza\LaravelAutoMigration\Core;
 
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\Property;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Column;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\Rule;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
@@ -12,7 +12,7 @@ use ReflectionClass;
 use ReflectionProperty;
 use Spatie\ModelInfo\ModelInfo;
 
-class MigrationMapper
+class MapToMigration
 {
 
     /**
@@ -36,15 +36,14 @@ class MigrationMapper
     public function mapModels(Collection $models): self
     {
         foreach ($models as $model) {
-            $this->modelBlueprints[$model->class] = new Blueprint($model->tableName);
 
-            $modelName = $model->class;
             $properties = $this
-                ->getProperties(new ReflectionClass($modelName));
+                ->getProperties(new ReflectionClass($model->class));
 
             $modelProperties = $properties
                 ->map(fn(ReflectionProperty $property) => $this->mapProperty($property));
-            $this->modelBlueprints[$model->class] = ModelToBlueprintMapper::make($modelProperties, $this->modelBlueprints[$modelName])->ToBlueprint();
+
+            $this->modelBlueprints->put($model->class, MapToBlueprint::make($modelProperties, new Blueprint($model->tableName)));
 
         }
 
@@ -54,23 +53,23 @@ class MigrationMapper
     public function getProperties(ReflectionClass $reflectionClass): Collection
     {
         return collect($reflectionClass->getProperties())->filter(function ($property) {
-            return $property->getAttributes(Property::class);
+            return $property->getAttributes(Column::class);
         });
     }
 
-    private function mapProperty(ReflectionProperty $property): Property
+    private function mapProperty(ReflectionProperty $property): Column
     {
         $attributes = collect($property->getAttributes());
 
         $rules = $attributes
             ->filter(fn(ReflectionAttribute $attribute) => is_subclass_of($attribute->getName(), Rule::class));
         $propertyType = $attributes
-            ->filter(fn(ReflectionAttribute $attribute) => $attribute ->getName() === Property::class)
+            ->filter(fn(ReflectionAttribute $attribute) => $attribute ->getName() === Column::class)
             ->first()
             ->getArguments()[0] ?? $property->getType()->getName();
 
         return $attributes
-            ->filter(fn(ReflectionAttribute $attribute) => $attribute->getName() === Property::class)
+            ->filter(fn(ReflectionAttribute $attribute) => $attribute->getName() === Column::class)
             ->first()
             ->newInstance()
             ->setName($property->getName())

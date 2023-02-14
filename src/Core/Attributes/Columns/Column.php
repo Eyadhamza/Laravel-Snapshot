@@ -1,39 +1,42 @@
 <?php
 
-namespace Eyadhamza\LaravelAutoMigration\Core\Attributes;
+namespace Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns;
+
+use Attribute;;
 
 use Attribute;
 use Eyadhamza\LaravelAutoMigration\Core\Mappers\Rule;
 use Illuminate\Support\Collection;
 
 #[Attribute]
-class Property
+#[Attribute]
+class Column extends Column
 {
-    private string $name;
+    private AsString $name;
     private Collection $rules;
 
     public function __construct(
-        private  ?string $type = null,
+        private  ?AsString $type = null,
     )
     {}
-    public function setType(string $type): self
+    public function setType(AsString $type): self
     {
         $this->type = $type;
         return $this;
     }
 
-    public function setName(string $name): self
+    public function setName(AsString $name): self
     {
         $this->name = $name;
         return $this;
     }
 
-    public function getType(): string
+    public function getType(): AsString
     {
         return $this->type;
     }
 
-    public function getName(): string
+    public function getName(): AsString
     {
         return $this->name;
     }

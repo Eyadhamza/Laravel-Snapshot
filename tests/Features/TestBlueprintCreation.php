@@ -1,20 +1,17 @@
 <?php
 
 
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\Property;
-use Eyadhamza\LaravelAutoMigration\Core\MigrationMapper;
-use Eyadhamza\LaravelAutoMigration\Core\ModelToBlueprintMapper;
+use Eyadhamza\LaravelAutoMigration\Core\MapToMigration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Schema\ColumnDefinition;
-use Illuminate\Support\Collection;
 
-it('can create a new MigrationMapper instance', function () {
-    $mapper = MigrationMapper::make();
-    expect($mapper)->toBeInstanceOf(MigrationMapper::class);
+it('can create a new MapToMigration instance', function () {
+    $mapper = MapToMigration::make();
+    expect($mapper)->toBeInstanceOf(MapToMigration::class);
 });
 
 it('can map models to blueprints', function () {
-    $mapper = MigrationMapper::make();
+    $mapper = MapToMigration::make();
     $blueprints = $mapper->getModelBlueprints();
 
     $blueprint = $blueprints->first();
@@ -25,11 +22,11 @@ it('can map models to blueprints', function () {
 
 });
 it('can generate the right columns', function () {
-    $mapper = MigrationMapper::make();
+    $mapper = MapToMigration::make();
 
     $blueprints = $mapper->getModelBlueprints();
     expect($blueprints->first()->getColumns())
-        ->toHaveCount(4);
+        ->toHaveCount(5);
     $idColumn = $blueprints->first()->getColumns()[0];
         expect($idColumn)
             ->toBeInstanceOf(ColumnDefinition::class)

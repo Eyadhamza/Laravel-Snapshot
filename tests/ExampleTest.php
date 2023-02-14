@@ -1,10 +1,10 @@
 <?php
 
 
-use Eyadhamza\LaravelAutoMigration\Core\MigrationMapper;
+use Eyadhamza\LaravelAutoMigration\Core\MapToMigration;
 use Illuminate\Support\Str;
 
 it('can test', function () {
 
-    dd(MigrationMapper::make());
+    dd(MapToMigration::make());
 });

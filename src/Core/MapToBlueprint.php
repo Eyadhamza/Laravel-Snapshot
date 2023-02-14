@@ -2,13 +2,12 @@
 
 namespace Eyadhamza\LaravelAutoMigration\Core;
 
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\Property;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Column;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Collection;
 
-class ModelToBlueprintMapper
+class MapToBlueprint
 {
-
     private Blueprint $blueprint;
     private Collection $modelProperties;
 
@@ -18,20 +17,15 @@ class ModelToBlueprintMapper
         $this->blueprint = $blueprint;
     }
 
-    public static function make(Collection $modelProperties,Blueprint $blueprint): self
+    public static function make(Collection $modelProperties, Blueprint $blueprint): Blueprint
     {
-        return new self($modelProperties, $blueprint);
-    }
-
-    public function ToBlueprint(): Blueprint
-    {
-        return $this->buildColumns();
-
+        $mapper = new self($modelProperties, $blueprint);
+        return $mapper->buildColumns();
     }
 
     private function buildColumns(): Blueprint
     {
-        $this->modelProperties->each(function (Property $modelProperty) {
+        $this->modelProperties->each(function (Column $modelProperty) {
             $rules = $modelProperty->getRules();
             $columnType = $modelProperty->getType();
             $columnName = $modelProperty->getName();
@@ -42,22 +36,12 @@ class ModelToBlueprintMapper
                     $column->{$rule->getName()}();
                     continue;
                 }
-                foreach ($rule->getArguments() as $value){
+                foreach ($rule->getArguments() as $value) {
                     $column->{$rule->getName()}($value);
                 }
             }
         });
         return $this->blueprint;
     }
-    public function getBlueprint(): Blueprint
-    {
-        return $this->blueprint;
-    }
-
-    public function getModelProperties(): Collection
-    {
-        return $this->modelProperties;
-    }
-
 
 }

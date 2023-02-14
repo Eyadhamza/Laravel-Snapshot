@@ -2,27 +2,27 @@
 
 namespace App\Models;
 
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\Property;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Column;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\AsDefault;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\Nullable;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\Primary;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\Required;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\Unique;
-use Eyadhamza\LaravelAutoMigration\Core\Mappers\Type;
+use Eyadhamza\LaravelAutoMigration\Core\Mappers\Column;
 use Illuminate\Database\Eloquent\Model;
 
 class User extends Model
 {
-    #[Property(Type::BIGINTEGER), Unique, Primary]
+    #[Column(Column::BIGINTEGER), Unique, Primary]
     protected int $id;
 
-    #[Property, Nullable, AsDefault('Eyad Hamza')]
+    #[Column, Nullable, AsDefault('Eyad Hamza')]
     protected string $name;
 
-    #[Property, Unique]
+    #[Column, Unique]
     protected string $email;
 
-    #[Property, Required]
+    #[Column, Required]
     protected string $password;
 
 
