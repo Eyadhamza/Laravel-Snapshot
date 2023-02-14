@@ -3,7 +3,6 @@
 namespace Eyadhamza\LaravelAutoMigration\Core;
 
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Property;
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\Rule;
 use Eyadhamza\LaravelAutoMigration\Core\Constants\Name;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
@@ -25,10 +24,8 @@ class MigrationMapper
     {
         $this->modelBlueprints = collect();
 
-        ModelInfo::forAllModels('app', config('auto-migration.base_path') ?? app_path())->each(function (ModelInfo $model) {
-            $this->modelBlueprints[$model->class] = new Blueprint($model->tableName);
-            $this->mapModel($model->class);
-        });
+        $this->mapModels(ModelInfo::forAllModels('app', config('auto-migration.base_path') ?? app_path()));
+
     }
 
     public static function make(): self
@@ -36,21 +33,26 @@ class MigrationMapper
         return new self();
     }
 
-    public function mapModel(string $modelName): self
+    public function mapModels(Collection $models): self
     {
+        foreach ($models as $model) {
+            $this->modelBlueprints[$model->class] = new Blueprint($model->tableName);
 
-        $properties = $this
-            ->setModelProperties(new ReflectionClass($modelName));
+            $modelName = $model->class;
+            $properties = $this
+                ->getProperties(new ReflectionClass($modelName));
 
-        $modelProperties = $properties
-            ->map(fn(ReflectionProperty $property) => $this->mapProperty($property));
+            $modelProperties = $properties
+                ->map(fn(ReflectionProperty $property) => $this->mapProperty($property));
 
-        $this->modelBlueprints[$modelName] = ModelToBlueprintMapper::make($modelProperties)->build();
+            $this->modelBlueprints[$model->class] = ModelToBlueprintMapper::make($modelProperties, $this->modelBlueprints[$modelName])->build();
+        }
 
+        dd($this->modelBlueprints);
         return $this;
     }
 
-    public function setModelProperties(ReflectionClass $reflectionClass): Collection
+    public function getProperties(ReflectionClass $reflectionClass): Collection
     {
         return collect($reflectionClass->getProperties())->filter(function ($property) {
             return $property->getAttributes(Property::class);
@@ -64,12 +66,17 @@ class MigrationMapper
         $rules = $attributes
             ->filter(fn(ReflectionAttribute $attribute) => is_subclass_of($attribute->getName(), Rule::class));
 
+        $propertyType = $attributes
+            ->filter(fn(ReflectionAttribute $attribute) => $attribute ->getName() === Property::class)
+            ->first()
+            ->getArguments()[0] ?? $property->getType()->getName();
+
         return $attributes
             ->filter(fn(ReflectionAttribute $attribute) => $attribute->getName() === Property::class)
             ->first()
             ->newInstance()
             ->setName($property->getName())
-            ->setType($property->getType()->getName())
+            ->setType($propertyType)
             ->setRules($rules);
 
     }

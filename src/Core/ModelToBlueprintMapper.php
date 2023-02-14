@@ -3,70 +3,56 @@
 namespace Eyadhamza\LaravelAutoMigration\Core;
 
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Property;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Collection;
 
 class ModelToBlueprintMapper
 {
+
+    private Blueprint $blueprint;
     private Collection $modelProperties;
 
     private Collection $columns;
-    public function __construct(Collection $modelProperties)
+
+    public function __construct(Collection $modelProperties, Blueprint $blueprint)
     {
         $this->modelProperties = $modelProperties;
+        $this->blueprint = $blueprint;
     }
 
-    public static function make(Collection $modelProperties): self
+    public static function make(Collection $modelProperties,Blueprint $blueprint): self
     {
-        return new self($modelProperties);
+        return new self($modelProperties, $blueprint);
     }
 
     public function build(): self
     {
-        $rules = $this->modelProperties->getRules();
+        $this->modelProperties->each(function (Property $modelProperty) {
+            $this->buildColumn($modelProperty);
+        });
 
-        $blueprint = $this->buildColumn($modelProperty, $modelName);
-//        $allowedRules = new ReflectionClass(Rule::class)->getConstants()
+        return $this;
+    }
 
-        foreach ($rules as $rule => $value) {
-            if (is_int($rule)) {
-                $rule = $value;
-                $blueprint->{$rule}();
-                return $this;
+    private function buildColumn(Property $property)
+    {
+        $rules = $property->getRules();
+
+        $columnType = $property->getType();
+
+        $columnName = $property->getName();
+        $column = $this->blueprint->$columnType($columnName);
+        foreach ($rules as $rule) {
+            if (empty($rule->getArguments())) {
+                $column->{$rule->getName()}();
+                continue;
             }
-
-            if (!array_key_exists($rule, $allowedRules)) {
-                throw new \Exception("Name {$rule} not found");
+            foreach ($rule->getArguments() as $value){
+                $column->{$rule->getName()}($value);
             }
-
-            $blueprint->{$rule}($value);
-
         }
         return $this;
     }
 
-    private function buildColumns(Property $property, string $modelName)
-    {
-        $blueprint = $this->modelBlueprints[$modelName];
 
-        $columnType = $this->mapToColumn($property->getPropertyType());
-
-        $columnName = $property->getPropertyName();
-
-        return $blueprint->$columnType($columnName);
-    }
-
-    private function mapToColumn(string $propertyType): string
-    {
-        return match ($propertyType) {
-            'int' => 'integer',
-            'string' => 'string',
-        };
-    }
-
-    public function mapRules(): Collection
-    {
-        return $this->modelProperties->map(function ($property) {
-            return $property->getAttributes('Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\After');
-        });
-    }
 }

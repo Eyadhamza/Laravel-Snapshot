@@ -87,5 +87,4 @@ abstract class Type
         private array|string $rules,
     ){}
 
-
 }

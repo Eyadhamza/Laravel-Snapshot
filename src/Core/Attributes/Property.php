@@ -3,8 +3,7 @@
 namespace Eyadhamza\LaravelAutoMigration\Core\Attributes;
 
 use Attribute;
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\Rule;
-use Eyadhamza\LaravelAutoMigration\Core\Constants\Type;
+use Eyadhamza\LaravelAutoMigration\Core\Rule;
 use Illuminate\Support\Collection;
 
 #[Attribute]
