@@ -33,16 +33,17 @@ class MapToBlueprintRule
         $this->arguments = $arguments;
     }
 
-    public static function map(Collection $rules): Collection
+    public static function map(array $rules): array
     {
-       return $rules->map(function (ReflectionAttribute $rule) {
-
+        foreach ($rules as $rule => $value) {
             if (!array_key_exists($rule->getName(), self::$rules)) {
                 throw new \Exception("Name {$rule} not found");
             }
-
-           return new self(self::$rules[$rule->getName()], $rule->getArguments());
-        });
+            if (is_int($rule)) {
+                $rule = $value;
+                return new self(self::$rules[$rule], $rule->getArguments());
+            }
+        }
     }
 
     public function getName(): string

@@ -52,10 +52,9 @@ class MapToMigration
 
     public function getPropertiesWhereHasColumnAttribute(ReflectionClass $reflectionClass): Collection
     {
-        dd($reflectionClass->getAttributes());
-        return collect($reflectionClass->getProperties())
-            ->filter(fn($property) => collect($property->getAttributes())
-                ->contains(fn($attribute) => is_subclass_of($attribute->getName(), Column::class)));
+
+        return collect($reflectionClass->getAttributes())
+                ->filter(fn($attribute) => is_subclass_of($attribute->getName(), Column::class));
 
     }
 
