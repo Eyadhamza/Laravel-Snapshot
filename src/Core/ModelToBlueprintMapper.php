@@ -12,8 +12,6 @@ class ModelToBlueprintMapper
     private Blueprint $blueprint;
     private Collection $modelProperties;
 
-    private Collection $columns;
-
     public function __construct(Collection $modelProperties, Blueprint $blueprint)
     {
         $this->modelProperties = $modelProperties;
@@ -25,33 +23,40 @@ class ModelToBlueprintMapper
         return new self($modelProperties, $blueprint);
     }
 
-    public function build(): self
+    public function ToBlueprint(): Blueprint
     {
-        $this->modelProperties->each(function (Property $modelProperty) {
-            $this->buildColumn($modelProperty);
-        });
+        return $this->buildColumns();
 
-        return $this;
     }
 
-    private function buildColumn(Property $property)
+    private function buildColumns(): Blueprint
     {
-        $rules = $property->getRules();
+        $this->modelProperties->each(function (Property $modelProperty) {
+            $rules = $modelProperty->getRules();
+            $columnType = $modelProperty->getType();
+            $columnName = $modelProperty->getName();
 
-        $columnType = $property->getType();
+            $column = $this->blueprint->$columnType($columnName);
+            foreach ($rules as $rule) {
+                if (empty($rule->getArguments())) {
+                    $column->{$rule->getName()}();
+                    continue;
+                }
+                foreach ($rule->getArguments() as $value){
+                    $column->{$rule->getName()}($value);
+                }
+            }
+        });
+        return $this->blueprint;
+    }
+    public function getBlueprint(): Blueprint
+    {
+        return $this->blueprint;
+    }
 
-        $columnName = $property->getName();
-        $column = $this->blueprint->$columnType($columnName);
-        foreach ($rules as $rule) {
-            if (empty($rule->getArguments())) {
-                $column->{$rule->getName()}();
-                continue;
-            }
-            foreach ($rule->getArguments() as $value){
-                $column->{$rule->getName()}($value);
-            }
-        }
-        return $this;
+    public function getModelProperties(): Collection
+    {
+        return $this->modelProperties;
     }
 
 

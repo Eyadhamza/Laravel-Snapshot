@@ -12,4 +12,8 @@ class Comment extends Rule
     )
     {
     }
+    public function getValue(): string
+    {
+        return $this->value;
+    }
 }

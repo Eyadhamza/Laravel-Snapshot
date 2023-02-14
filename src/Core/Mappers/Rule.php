@@ -1,9 +1,10 @@
 <?php
 
-namespace Eyadhamza\LaravelAutoMigration\Core;
+namespace Eyadhamza\LaravelAutoMigration\Core\Mappers;
 
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\After;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\AsDefault;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\AutoIncrement;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\Change;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\Comment;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\First;
@@ -25,13 +26,13 @@ class Rule
         Nullable::class => 'nullable',
         Unique::class => 'unique',
         Unsigned::class => 'unsigned',
-        Required::class => '',
         Primary::class => 'primary',
         First::class => 'first',
         Change::class => 'change',
         Comment::class => 'comment',
         Index::class => 'index',
         FullText::class => 'fullText',
+        AutoIncrement::class => 'autoIncrement',
     ];
     private string $name;
 

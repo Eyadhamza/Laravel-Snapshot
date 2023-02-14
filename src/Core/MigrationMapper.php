@@ -3,7 +3,7 @@
 namespace Eyadhamza\LaravelAutoMigration\Core;
 
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Property;
-use Eyadhamza\LaravelAutoMigration\Core\Constants\Name;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\Rule;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Collection;
@@ -44,11 +44,10 @@ class MigrationMapper
 
             $modelProperties = $properties
                 ->map(fn(ReflectionProperty $property) => $this->mapProperty($property));
+            $this->modelBlueprints[$model->class] = ModelToBlueprintMapper::make($modelProperties, $this->modelBlueprints[$modelName])->ToBlueprint();
 
-            $this->modelBlueprints[$model->class] = ModelToBlueprintMapper::make($modelProperties, $this->modelBlueprints[$modelName])->build();
         }
 
-        dd($this->modelBlueprints);
         return $this;
     }
 
@@ -65,7 +64,6 @@ class MigrationMapper
 
         $rules = $attributes
             ->filter(fn(ReflectionAttribute $attribute) => is_subclass_of($attribute->getName(), Rule::class));
-
         $propertyType = $attributes
             ->filter(fn(ReflectionAttribute $attribute) => $attribute ->getName() === Property::class)
             ->first()
@@ -79,6 +77,11 @@ class MigrationMapper
             ->setType($propertyType)
             ->setRules($rules);
 
+    }
+
+    public function getModelBlueprints(): Collection
+    {
+        return $this->modelBlueprints;
     }
 
 }

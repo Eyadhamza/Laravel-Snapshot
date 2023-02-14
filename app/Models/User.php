@@ -8,7 +8,7 @@ use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\Nullable;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\Primary;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\Required;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\Unique;
-use Eyadhamza\LaravelAutoMigration\Core\Constants\Type;
+use Eyadhamza\LaravelAutoMigration\Core\Mappers\Type;
 use Illuminate\Database\Eloquent\Model;
 
 class User extends Model

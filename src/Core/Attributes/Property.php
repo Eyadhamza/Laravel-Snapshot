@@ -3,7 +3,7 @@
 namespace Eyadhamza\LaravelAutoMigration\Core\Attributes;
 
 use Attribute;
-use Eyadhamza\LaravelAutoMigration\Core\Rule;
+use Eyadhamza\LaravelAutoMigration\Core\Mappers\Rule;
 use Illuminate\Support\Collection;
 
 #[Attribute]

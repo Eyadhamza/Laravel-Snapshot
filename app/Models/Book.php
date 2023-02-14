@@ -3,24 +3,27 @@
 namespace App\Models;
 
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Property;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\After;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\AutoIncrement;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\Primary;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\Required;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\Unique;
-use Eyadhamza\LaravelAutoMigration\Core\Constants\Type;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\Unsigned;
+use Eyadhamza\LaravelAutoMigration\Core\Mappers\Type;
 use Illuminate\Database\Eloquent\Model;
 
 class Book extends Model
 {
-    #[Property(Type::BIGINTEGER), Unique, Primary]
+    #[Property(Type::BIGINTEGER), Unique, Primary, Unsigned, AutoIncrement, After('email')]
     protected int $id;
 
-    #[Property, Required]
+    #[Property]
     protected string $title;
 
     #[Property, Unique]
     protected string $email;
 
-    #[Property, Required]
+    #[Property]
     protected string $password;
 
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Eyadhamza\LaravelAutoMigration\Core\Constants;
+namespace Eyadhamza\LaravelAutoMigration\Core\Mappers;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Property;
 
 abstract class Type
