@@ -27,7 +27,7 @@ class MapToBlueprintRule
 
     private array $arguments;
 
-    public function __construct(string $name, array $arguments)
+    public function __construct(string $name, array $arguments = [])
     {
         $this->name = $name;
         $this->arguments = $arguments;
@@ -40,7 +40,7 @@ class MapToBlueprintRule
 
             if (is_int($rule)) {
                 $rule = $value;
-                $mappedRules[] = new self($rule, [$value]);
+                $mappedRules[] = new self($value);
                 continue;
             }
             $mappedRules[] = new self($rule, [$value]);

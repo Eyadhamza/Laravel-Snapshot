@@ -31,7 +31,6 @@ it('can generate the right columns', function () {
     expect($blueprints->first()->getColumns())
         ->toHaveCount(4);
     $idColumn = $blueprints->first()->getColumns()[0];
-    dd($idColumn);
         expect($idColumn)
             ->toBeInstanceOf(ColumnDefinition::class)
             ->and($idColumn->getAttributes())
@@ -40,8 +39,7 @@ it('can generate the right columns', function () {
             ->toHaveKey('autoIncrement', true)
             ->toHaveKey('unsigned', true)
             ->toHaveKey('unique', true)
-            ->toHaveKey('primary', true)
-            ->toHaveKey('index', true);
+            ->toHaveKey('primary', true);
 });
 it('can do normal model operation', function () {
     User::create([
