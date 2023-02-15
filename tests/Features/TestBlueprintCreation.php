@@ -55,3 +55,8 @@ it('can do normal model operation', function () {
     expect($user->name)
         ->toBe('Eyad');
 });
+
+it('builds migrations files', function () {
+    $mapper = MapToMigration::make();
+    $mapper->buildMigrations();
+});

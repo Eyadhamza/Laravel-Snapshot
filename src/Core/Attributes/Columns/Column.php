@@ -11,12 +11,14 @@ use Illuminate\Support\Collection;
 #[Attribute(Attribute::IS_REPEATABLE | Attribute::TARGET_CLASS)]
 class Column
 {
-
+    private ?array $rules;
     public function __construct(
         private string $name,
-        private ?array $rules = null,
+        ...$rules
     )
-    {}
+    {
+        $this->rules = $rules;
+    }
     public function setType(string $type): self
     {
         $this->type = MapToBlueprintColumn::map($type);

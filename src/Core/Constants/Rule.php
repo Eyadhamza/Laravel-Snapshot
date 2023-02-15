@@ -4,7 +4,7 @@ namespace Eyadhamza\LaravelAutoMigration\Core\Constants;
 
 abstract class Rule
 {
-
+    #[Unique]
     const AFTER = 'after';
     const DEFAULT = 'default';
     const NULLABLE = 'nullable';
