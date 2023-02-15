@@ -112,39 +112,38 @@ class MapToMigration
 
     private function generateMigrationFile(MapToBlueprint $mapToBlueprint, string $migrationFilePath)
     {
-        $migrationFile = file_get_contents($migrationFilePath);
+        $oldMigrationFile = file_get_contents($migrationFilePath);
+        $tableName = $mapToBlueprint->getBlueprint()->getTable();
 
-        $migrationFile = Str::replace("public function up()
+        $generatedMigrationFile = Str::replace($this->oldStubMigrationFile($tableName), $this->newMigrationFile($tableName, $mapToBlueprint->getMappedColumns()), $oldMigrationFile);
+
+        file_put_contents($migrationFilePath, $generatedMigrationFile);
+    }
+
+
+    private function oldStubMigrationFile($tableName): string
     {
-        Schema::create('{$mapToBlueprint->getBlueprint()->getTable()}', function (Blueprint \$table) {
+        return "    public function up()
+    {
+        Schema::create('$tableName', function (Blueprint \$table) {
             \$table->id();
             \$table->timestamps();
         });
-    }"
-            , "public function up(){
-        Schema::create('{$mapToBlueprint->getBlueprint()->getTable()}', function (Blueprint \$table) {
-            {$mapToBlueprint->getMappedColumns()->join("\n \t \t \t")}
-        });
-     }", $migrationFile);
-
-        file_put_contents($migrationFilePath, $migrationFile);
+    }";
     }
 
-    private function getMappedColumns(Blueprint $blueprint)
+    private function newMigrationFile(string $tableName, Collection $mappedColumns): string
     {
-        $columns = collect($blueprint->getColumns());
-
-        return $columns->map(function (ColumnDefinition $column) {
-            $columnDefinition = "\$table->{$column->type}('$column->name')";
-            dump($column->getAttributes());
-            $columnRules = collect($column->getAttributes())
-                ->skip(2)
-                ->map(function ($exist, $attribute) {
-                    return $exist ? "->{$attribute}()" : '';
-                })
-                ->implode('');
-            return $columnDefinition . $columnRules . ';';
-        })->join(PHP_EOL);
+        return
+            "
+    public function up()
+    {
+        Schema::create('$tableName', function (Blueprint \$table) {
+            {$mappedColumns->join("\n \t \t \t")}
+            \$table->timestamps();
+        });
     }
-
+            ";
+    }
 }
+
