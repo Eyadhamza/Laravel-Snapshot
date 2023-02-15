@@ -28,12 +28,12 @@ class MapToMigration
     /**
      * @var Collection<Model, Blueprint>
      */
-    private Collection $modelBlueprints;
+    private Collection $blueprintsMappers;
 
     public function __construct()
     {
         $this->creator = app('migration.creator');
-        $this->modelBlueprints = collect();
+        $this->blueprintsMappers = collect();
 
         $this->mapModels(ModelInfo::forAllModels('app', config('auto-migration.base_path') ?? app_path()));
 
@@ -54,21 +54,22 @@ class MapToMigration
                 return $this->mapAttribute($attribute);
             });
 
-            $this->modelBlueprints->put($model->class, MapToBlueprint::make($modelProperties, new Blueprint($model->tableName)));
+            $this->blueprintsMappers->put($model->class, MapToBlueprint::make($modelProperties, new Blueprint($model->tableName)));
         });
 
         return $this;
     }
 
-    public function buildMigrations()
+    public function buildMigrations(): self
     {
-        $this->modelBlueprints->each(function (MapToBlueprint $mapToBlueprint) {
+        $this->blueprintsMappers->each(function (MapToBlueprint $mapToBlueprint) {
 
             $migrationFile = $this->creator->create("create_{$mapToBlueprint->getBlueprint()->getTable()}_table", database_path('migrations'), $mapToBlueprint->getBlueprint()->getTable(), true);
 
             $this->generateMigrationFile($mapToBlueprint, $migrationFile);
 
 
+            return $this;
             // 2. Updating
             // 2.1. Get the current table columns.
             // 2.2. Get the new table columns.
@@ -77,7 +78,7 @@ class MapToMigration
 
 
         });
-
+        return $this;
     }
 
     public function getAttributesOfColumnType(ReflectionClass $reflectionClass): Collection
@@ -105,12 +106,12 @@ class MapToMigration
 
     }
 
-    public function getModelBlueprints(): Collection
+    public function getBlueprintsMappers(): Collection
     {
-        return $this->modelBlueprints;
+        return $this->blueprintsMappers;
     }
 
-    private function generateMigrationFile(MapToBlueprint $mapToBlueprint, string $migrationFilePath)
+    private function generateMigrationFile(MapToBlueprint $mapToBlueprint, string $migrationFilePath): self
     {
         $oldMigrationFile = file_get_contents($migrationFilePath);
         $tableName = $mapToBlueprint->getBlueprint()->getTable();
@@ -118,6 +119,8 @@ class MapToMigration
         $generatedMigrationFile = Str::replace($this->oldStubMigrationFile($tableName), $this->newMigrationFile($tableName, $mapToBlueprint->getMappedColumns()), $oldMigrationFile);
 
         file_put_contents($migrationFilePath, $generatedMigrationFile);
+
+        return $this;
     }
 
 
@@ -144,6 +147,13 @@ class MapToMigration
         });
     }
             ";
+    }
+
+    public function getBlueprints()
+    {
+        return $this->blueprintsMappers->map(function (MapToBlueprint $mapToBlueprint) {
+            return $mapToBlueprint->getBlueprint();
+        });
     }
 }
 
