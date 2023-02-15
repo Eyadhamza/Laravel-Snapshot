@@ -10,6 +10,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Schema\ColumnDefinition;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Composer;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use ReflectionAttribute;
 use ReflectionClass;
@@ -64,12 +65,20 @@ class MapToMigration
     {
         $this->blueprintsMappers->each(function (MapToBlueprint $mapToBlueprint) {
 
-            $migrationFile = $this->creator->create("create_{$mapToBlueprint->getBlueprint()->getTable()}_table", database_path('migrations'), $mapToBlueprint->getBlueprint()->getTable(), true);
+            $isNewTable = !Schema::hasTable($mapToBlueprint->getBlueprint()->getTable());
+            if ($isNewTable) {
+                $migrationFile = $this->creator->create("create_{$mapToBlueprint->getBlueprint()->getTable()}_table", database_path('migrations'), $mapToBlueprint->getBlueprint()->getTable(), true);
+                $this->generateMigrationFile($mapToBlueprint, $migrationFile);
+                return $this;
+            }
+            $migrationFile = $this
+                ->creator
+                ->create("update_{$mapToBlueprint->getBlueprint()->getTable()}_table", database_path('migrations'), $mapToBlueprint->getBlueprint()->getTable(), false);
+
+
 
             $this->generateMigrationFile($mapToBlueprint, $migrationFile);
 
-
-            return $this;
             // 2. Updating
             // 2.1. Get the current table columns.
             // 2.2. Get the new table columns.
