@@ -135,5 +135,13 @@ class MigrationBuilder
         return app('migration.creator')->create("update_{$tableName}_table", database_path('migrations'), $tableName);
     }
 
+    public function getModelBlueprintBuilder(): BlueprintBuilder
+    {
+        return $this->modelBlueprintBuilder;
+    }
+    public function getBlueprint(): Blueprint
+    {
+        return $this->modelBlueprintBuilder->getBlueprint();
+    }
 }
 

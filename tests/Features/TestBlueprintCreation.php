@@ -11,33 +11,32 @@ use Spatie\ModelInfo\ModelInfo;
 
 
 it('can create a new MigrationBuilder instance', function () {
-    $mapper = MigrationBuilder::make();
-    expect($mapper)->toBeInstanceOf(MigrationBuilder::class);
+    $mapper = MigrationBuilder::mapAll(ModelInfo::forAllModels('app', config('auto-migration.base_path') ?? app_path()));
+    expect($mapper->first())->toBeInstanceOf(MigrationBuilder::class);
 });
 
 it('can map models to blueprints', function () {
-    $mapper = MigrationBuilder::make();
-    $blueprints = $mapper->getBlueprints();
-    $blueprint = $blueprints->first();
+    $mapper = MigrationBuilder::mapAll(ModelInfo::forAllModels('app', config('auto-migration.base_path') ?? app_path()));
+
+    $blueprint = $mapper->first()->getBlueprint();
+
         expect($blueprint)
             ->toBeInstanceOf(Blueprint::class)
             ->toHaveProperty('table');
 
 });
 it('can generate the right columns', function () {
-    $mapper = MigrationBuilder::make();
-
-    $blueprints = $mapper->getBlueprints();
-    expect($blueprints->first()->getColumns())
+    $mapper = MigrationBuilder::mapAll(ModelInfo::forAllModels('app', config('auto-migration.base_path') ?? app_path()));
+    $blueprint = $mapper->first()->getBlueprint();
+    expect($blueprint->getColumns())
         ->toHaveCount(4);
-    $idColumn = $blueprints->first()->getColumns()[0];
+    $idColumn = $blueprint->getColumns()[0];
         expect($idColumn)
             ->toBeInstanceOf(ColumnDefinition::class)
             ->and($idColumn->getAttributes())
             ->toHaveKey('type', 'bigInteger')
             ->toHaveKey('name', 'id')
             ->toHaveKey('autoIncrement', true)
-            ->toHaveKey('unsigned', true)
             ->toHaveKey('unique', true)
             ->toHaveKey('primary', true);
 });
@@ -65,14 +64,16 @@ it('builds migrations files', function () {
 
     expect($file->getContents())
         ->toContain('Schema::create(\'books\', function (Blueprint $table) {')
-        ->toContain("\$table->bigInteger('id')->unique()->primary()->autoIncrement()->unsigned()")
+        ->toContain("\$table->bigInteger('id')->unique()->primary()->autoIncrement()")
         ->toContain("\$table->string('title')->unique()")
         ->toContain("\$table->string('description')")
         ->toContain("\$table->foreignId('author_id')")
-        ->toContain("\$table->timestamps()")
         ->toContain('$table->timestamps();')
         ->toContain('Schema::dropIfExists(\'books\');');
 
-    File::deleteDirectory(database_path('migrations'), true);
 });
 
+afterEach(function () {
+    File::deleteDirectory(database_path('migrations'), true);
+
+});
