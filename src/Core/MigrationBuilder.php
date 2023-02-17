@@ -2,17 +2,9 @@
 
 namespace Eyadhamza\LaravelAutoMigration\Core;
 
-use Closure;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Column;
-use Illuminate\Contracts\Foundation\Application;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Migrations\MigrationCreator;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Database\Schema\Builder;
-use Illuminate\Database\Schema\ColumnDefinition;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Composer;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use ReflectionAttribute;
@@ -58,8 +50,6 @@ class MigrationBuilder
 
     public function buildMigration(): self
     {
-
-        $newBlueprint = $this->modelBlueprintBuilder->getBlueprint();
         $tableName = $this->modelBlueprintBuilder->getTable();
 
         if (!Schema::hasTable($tableName)) {
@@ -100,7 +90,7 @@ class MigrationBuilder
         $this->generateMigrationFile($modelBlueprintBuilder, $migrationFile, 'create');
     }
 
-    private function generateUpdatedMigration(BlueprintBuilder $modelBlueprintBuilder)
+    private function generateUpdatedMigration(BlueprintBuilder $modelBlueprintBuilder): void
     {
         $newBlueprint = $modelBlueprintBuilder->getBlueprint();
         $tableName = $newBlueprint->getTable();
@@ -118,7 +108,6 @@ class MigrationBuilder
     }
     private function generateMigrationFile(BlueprintBuilder|BlueprintComparer $mapToBlueprint, string $migrationFilePath,string $operation): void
     {
-        $oldMigrationFile = file_get_contents($migrationFilePath);
         $tableName = $mapToBlueprint->getBlueprint()->getTable();
 
         $generatedMigrationFile = $this->replaceStubMigrationFile($tableName, $mapToBlueprint->getMapped(), $operation);
@@ -145,8 +134,6 @@ class MigrationBuilder
     {
         return app('migration.creator')->create("update_{$tableName}_table", database_path('migrations'), $tableName);
     }
-
-
 
 }
 

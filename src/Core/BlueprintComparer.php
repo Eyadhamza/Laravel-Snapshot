@@ -29,58 +29,18 @@ class BlueprintComparer
     {
         $this->diffBlueprint = new Blueprint($this->blueprintOfCurrentTable->getTable());
 
-        // Compare the columns
         $currentBlueprintColumns = collect($this->blueprintOfCurrentTable->getColumns());
         $newBlueprintColumns = collect($this->newBlueprint->getColumns());
         $addedColumns = $newBlueprintColumns->diffKeys($currentBlueprintColumns);
         $removedColumns = $currentBlueprintColumns->diffKeys($newBlueprintColumns);
 
-        $this->compareModifiedColumns($currentBlueprintColumns, $newBlueprintColumns);
+        $this->compareModifiedColumns($currentBlueprintColumns, $newBlueprintColumns)
+            ->addNewColumns($addedColumns)
+            ->removeOldColumns($removedColumns);
 
-        $this->addNewColumns($addedColumns);
-
-        $this->removeOldColumns($removedColumns);
-
+        // INDEXES AND FOREIGN KEYS TODO
         return $this;
-//        dd($this->blueprintOfCurrentTable);
-//
-//        // Compare the indexes
-//        $currentIndexes = collect($blueprintOfCurrentTable->getCommands())->filter(function ($command) {
-//            return $command->get('name') === 'index';
-//        })->keyBy(function ($command) {
-//            return $command->get('index');
-//        });
-//        $newIndexes = collect($newBlueprint->getCommands())->filter(function ($command) {
-//            return $command->get('name') === 'index';
-//        })->keyBy(function ($command) {
-//            return $command->get('index');
-//        });
-//        $addedIndexes = $newIndexes->diffKeys($currentIndexes);
-//        $removedIndexes = $currentIndexes->diffKeys($newIndexes);
-//        $modifiedIndexes = collect();
-//        $currentIndexes->intersectByKeys($newIndexes)
-//            ->each(function ($command, $key) use ($newIndexes, &$modifiedIndexes) {
-//                if ($command != $newIndexes->get($key)) {
-//                    $modifiedIndexes->put($key, $newIndexes->get($key));
-//                }
-//            });
-//
-//        // Add and modify indexes in the diff blueprint
-//        $addedIndexes->merge($modifiedIndexes)->each(function ($command) use ($diffBlueprint) {
-//            $diffBlueprint->index(
-//                $command->get('columns'),
-//                $command->get('index'),
-//                $command->get('algorithm'),
-//                $command->get('unique')
-//            );
-//        });
-//
-//        // Remove indexes from the diff blueprint
-//        $removedIndexes->each(function ($command) use ($diffBlueprint) {
-//            $diffBlueprint->dropIndex($command->get('index'));
-//        });
-//
-//        return $diffBlueprint;
+
     }
 
     private function compareModifiedColumns(Collection $currentBlueprintColumns, Collection $newBlueprintColumns): self
@@ -114,7 +74,7 @@ class BlueprintComparer
         return $this;
     }
 
-    private function addNewColumns(Collection $addedColumns): static
+    private function addNewColumns(Collection $addedColumns): self
     {
         $this->mappedDiff->add($addedColumns->map(function (ColumnDefinition $column){
             $columnName = $column->get('name');
@@ -124,7 +84,7 @@ class BlueprintComparer
         return $this;
     }
 
-    private function removeOldColumns(Collection $removedColumns): static
+    private function removeOldColumns(Collection $removedColumns): self
     {
         $this->mappedDiff->add($removedColumns->map(function (ColumnDefinition $column){
             $columnName = $column->get('name');
