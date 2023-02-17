@@ -3,19 +3,20 @@
 
 use App\Models\User;
 use Eyadhamza\LaravelAutoMigration\Core\BlueprintBuilder;
-use Eyadhamza\LaravelAutoMigration\Core\MapToMigration;
+use Eyadhamza\LaravelAutoMigration\Core\MigrationBuilder;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Schema\ColumnDefinition;
 use Illuminate\Support\Facades\File;
+use Spatie\ModelInfo\ModelInfo;
 
 
-it('can create a new MapToMigration instance', function () {
-    $mapper = MapToMigration::make();
-    expect($mapper)->toBeInstanceOf(MapToMigration::class);
+it('can create a new MigrationBuilder instance', function () {
+    $mapper = MigrationBuilder::make();
+    expect($mapper)->toBeInstanceOf(MigrationBuilder::class);
 });
 
 it('can map models to blueprints', function () {
-    $mapper = MapToMigration::make();
+    $mapper = MigrationBuilder::make();
     $blueprints = $mapper->getBlueprints();
     $blueprint = $blueprints->first();
         expect($blueprint)
@@ -24,7 +25,7 @@ it('can map models to blueprints', function () {
 
 });
 it('can generate the right columns', function () {
-    $mapper = MapToMigration::make();
+    $mapper = MigrationBuilder::make();
 
     $blueprints = $mapper->getBlueprints();
     expect($blueprints->first()->getColumns())
@@ -56,8 +57,8 @@ it('can do normal model operation', function () {
 });
 
 it('builds migrations files', function () {
-    $mapper = MapToMigration::make();
-    $mapper->buildMigrations();
+    $mapper = MigrationBuilder::mapAll(ModelInfo::forAllModels('app', config('auto-migration.base_path') ?? app_path()));
+    $mapper->buildMigration();
 
     $file = collect(File::allFiles(database_path('migrations')))
         ->first();

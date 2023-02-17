@@ -2,41 +2,93 @@
 
 namespace Eyadhamza\LaravelAutoMigration\Core;
 
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Column;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Schema\ColumnDefinition;
+use Illuminate\Support\Collection;
 
 class BlueprintComparer
 {
     private Blueprint $blueprintOfCurrentTable;
     private Blueprint $newBlueprint;
+    private Collection $mappedDiff;
+    private Blueprint $diffBlueprint;
+
     public function __construct(Blueprint $blueprintOfCurrentTable,Blueprint $newBlueprint)
     {
         $this->blueprintOfCurrentTable = $blueprintOfCurrentTable;
         $this->newBlueprint = $newBlueprint;
     }
 
-    public static function make(Blueprint $blueprintOfCurrentTable, Blueprint $newBlueprint)
+    public static function make(Blueprint $blueprintOfCurrentTable, Blueprint $newBlueprint): BlueprintComparer
     {
         return new self($blueprintOfCurrentTable, $newBlueprint);
     }
 
     public function getDiffBlueprint(): Blueprint
     {
-        $diffBlueprint = new Blueprint($this->blueprintOfCurrentTable->getTable());
+        $this->diffBlueprint = new Blueprint($this->blueprintOfCurrentTable->getTable());
 
         // Compare the columns
-        $currentColumns = collect($this->blueprintOfCurrentTable->getColumns());
-        $newColumns = collect($this->newBlueprint->getColumns());
-        $addedColumns = $newColumns->diffKeys($currentColumns);
-        $removedColumns = $currentColumns->diffKeys($newColumns);
-        $modifiedColumns = collect();
-        $currentColumns->intersectByKeys($newColumns)
-            ->each(function (Blueprint $column, $key) use ($newColumns, &$modifiedColumns) {
-                if (!$column->isEqualTo($newColumns->get($key))) {
-                    $modifiedColumns->put($key, $newColumns->get($key));
-                }
-            });
+        $currentBlueprintColumns = collect($this->blueprintOfCurrentTable->getColumns());
+        $newBlueprintColumns = collect($this->newBlueprint->getColumns());
+        $addedColumns = $newBlueprintColumns->diffKeys($currentBlueprintColumns);
+        $removedColumns = $currentBlueprintColumns->diffKeys($newBlueprintColumns);
 
+        $this->mappedDiff = $currentBlueprintColumns->map(function (ColumnDefinition $currentBlueprintColumn) use ($newBlueprintColumns){
+
+            $matchingNewBlueprintColumns = $newBlueprintColumns->where('name', $currentBlueprintColumn->get('name'));
+
+            if ($matchingNewBlueprintColumns->isNotEmpty()) {
+                $matchingNewBlueprintColumn = $matchingNewBlueprintColumns->first();
+
+                $modifiedAttributes = collect($matchingNewBlueprintColumn->getAttributes())->filter(function ($value, $attribute) use ($currentBlueprintColumn) {
+                    return $value !== $currentBlueprintColumn->get($attribute);
+                });
+
+                if ($modifiedAttributes->isNotEmpty()) {
+                    $columnType = $matchingNewBlueprintColumn->get('type');
+                    $columnName = $matchingNewBlueprintColumn->get('name');
+                    $mappedColumn = "\$table" . "->$columnType" . "('$columnName')";
+                    foreach ($modifiedAttributes as $attribute => $value) {
+                        if ($attribute === 'type' || $attribute === 'name')
+                            continue;
+                        $mappedColumn = $mappedColumn . "->{$attribute}()";
+                    }
+                    return $mappedColumn . "->change();";
+                }
+            }
+
+        })->filter()->values();
+
+        dd($this->mappedDiff);
+        return $this;
+        dd($currentBlueprintColumns->map(function ($currentBlueprintColumn) use ($newBlueprintColumns) {
+            $matchingNewBlueprintColumns = $newBlueprintColumns->where('name', $currentBlueprintColumn->get('name'));
+
+            if ($matchingNewBlueprintColumns->isNotEmpty()) {
+                $matchingNewBlueprintColumn = $matchingNewBlueprintColumns->first();
+
+                $modifiedAttributes = collect($matchingNewBlueprintColumn->getAttributes())->filter(function ($value, $attribute) use ($currentBlueprintColumn) {
+                    return $value !== $currentBlueprintColumn->get($attribute);
+                });
+                if ($modifiedAttributes->isNotEmpty()) {
+                    $columnType = $modifiedAttributes->get('type') ?? $matchingNewBlueprintColumn->get('type');
+                    $columnName = $matchingNewBlueprintColumn->get('name');
+                    $this->mappedDiff = "\$table->$columnType('$columnName');";
+                    $modifiedAttributes->each(function ($value, $attribute){
+                        return $this->mappedDiff . "->$attribute()->change();";
+                    });
+                }
+            }
+            return $this->mappedDiff;
+        })->join());
         // Add and modify columns in the diff blueprint
+        $modifiedColumns->each(function (\Illuminate\Support\Collection $columnAttributes) use ($diffBlueprint) {
+            $diffBlueprint->$columnAttributes['type']($columnAttributes['name']);
+            $columnAttributes->skip();
+            dd();
+        });
         $addedColumns->merge($modifiedColumns)->each(function (Blueprint $column) use ($diffBlueprint) {
             $column->change();
             $diffBlueprint->addColumn($column);

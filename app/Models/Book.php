@@ -9,7 +9,7 @@ use Eyadhamza\LaravelAutoMigration\Core\Constants\Rule;
 use Illuminate\Database\Eloquent\Model;
 
 
-#[BigInteger('id', Rule::UNIQUE, Rule::PRIMARY, Rule::AUTO_ICREMENT, Rule::UNSIGNED)]
+#[BigInteger('id', Rule::UNIQUE, Rule::PRIMARY, Rule::AUTO_ICREMENT)]
 #[AsString('title', Rule::UNIQUE)]
 #[AsString('description')]
 #[ForeignId('author_id')]
