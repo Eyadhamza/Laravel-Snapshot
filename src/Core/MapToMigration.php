@@ -22,24 +22,15 @@ use Spatie\ModelInfo\ModelInfo;
 class MapToMigration
 {
 
-
-    protected Application $laravel;
-
-    protected MigrationCreator $creator;
-
-    protected Composer $composer;
-
     /**
      * @var Collection<Model, Blueprint>
      */
-    private Collection $blueprintsMappers;
+    private Collection $modelBlueprintsBuilders;
 
     public function __construct()
     {
-        // get the connection instance
 
-        $this->creator = app('migration.creator');
-        $this->blueprintsMappers = collect();
+        $this->modelBlueprintsBuilders = collect();
 
         $this->mapModels(ModelInfo::forAllModels('app', config('auto-migration.base_path') ?? app_path()));
 
@@ -60,7 +51,7 @@ class MapToMigration
                 return $this->mapAttribute($attribute);
             });
 
-            $this->blueprintsMappers->put($model->class, MapToBlueprint::make($modelProperties, new Blueprint($model->tableName)));
+            $this->modelBlueprintsBuilders->put($model->class, ModelBlueprintBuilder::make(new Blueprint($model->tableName), $modelProperties)->build());
         });
 
         return $this;
@@ -68,84 +59,17 @@ class MapToMigration
 
     public function buildMigrations(): self
     {
-        $this->blueprintsMappers->each(function (MapToBlueprint $mapToBlueprint) {
+        $this->modelBlueprintsBuilders->each(function (ModelBlueprintBuilder $modelBlueprintBuilder) {
+            $newBlueprint = $modelBlueprintBuilder->getBlueprint();
+            $tableName = $modelBlueprintBuilder->getTable();
 
-            $newBlueprint = $mapToBlueprint->getBlueprint();
-            $table = $newBlueprint->getTable();
+            if (!Schema::hasTable($tableName)) {
+                $this->generateFirstMigration($modelBlueprintBuilder);
+                return $this;
+            }
+            $this->generateUpdatedMigration($modelBlueprintBuilder);
 
-//            if (!Schema::hasTable($table)) {
-//                $migrationFile = $this->creator->create("create_{$table}_table", database_path('migrations'), $table, true);
-//                $this->generateMigrationFile($mapToBlueprint, $migrationFile);
-//                return $this;
-//            }
-//            $migrationFile = $this
-//                ->creator
-//                ->create("update_{$table}_table", database_path('migrations'), $table, false);
-            $tableName = 'books';
-            $tableDetails = Schema::getConnection()
-                ->getDoctrineSchemaManager()
-                ->listTableDetails($tableName);
-            $blueprintForCurrentTable = new Blueprint($tableName, function ($blueprint) use ($tableDetails){
-                foreach ($tableDetails->getColumns() as $column) {
-                    $columnDefinition = $blueprint->{$column->getType()->getName()}($column->getName());
-                    $columnDefinition->nullable(!$column->getNotnull());
-                    if ($column->getUnsigned()) {
-                        $columnDefinition->unsigned();
-                    }
-                    if ($column->getAutoincrement()) {
-                        $columnDefinition->autoIncrement();
-                    }
-                    if ($column->getLength() !== null) {
-                        $columnDefinition->length($column->getLength());
-                    }
-                    if ($column->getDefault() !== null) {
-                        $columnDefinition->default($column->getDefault());
-                    }
-                }
-                foreach ($tableDetails->getIndexes() as $index) {
-                    $indexDefinition = $blueprint->index($index->getColumns(), $index->getName());
-                    if ($index->isPrimary()) {
-                        $indexDefinition->primary();
-                    }
-                    if ($index->isUnique()) {
-                        $indexDefinition->unique();
-                    }
-                }
-                foreach ($tableDetails->getForeignKeys() as $foreignKey) {
-                    $foreignKeyDefinition = $blueprint->foreign($foreignKey->getLocalColumns())
-                        ->references($foreignKey->getForeignColumns())
-                        ->on($foreignKey->getForeignTableName())
-                        ->name($foreignKey->getName());
-                    if ($foreignKey->getOption('onUpdate') !== null) {
-                        $foreignKeyDefinition->onUpdate($foreignKey->getOption('onUpdate'));
-                    }
-                    if ($foreignKey->getOption('onDelete') !== null) {
-                        $foreignKeyDefinition->onDelete($foreignKey->getOption('onDelete'));
-                    }
-                }
-            });
-            dd($blueprintForCurrentTable);
-            Schema::create($tableName, function ($blueprint) use ($tableDetails) {
-
-            });
-            // I want to get the blueprint of existing table in the database
-            $newColumn = $newBlueprint->getColumns();
-            dd($newColumn);
-            $oldColumn = DB::connection()->getDoctrineColumn('books', 'title');
-            dd($oldColumn);
-            $oldBlueprint = $this;
-
-            dd($oldBlueprint);
-            dd($existingBlueprint); // getting close!
-            $this->generateMigrationFile($mapToBlueprint, $migrationFile);
-
-            // 2. Updating
-            // 2.1. Get the current table columns.
-            // 2.2. Get the new table columns.
-            // 2.3. Compare the two columns.
-            // 2.4. If there is a difference, update the migration file.
-
-
+            return $this;
         });
         return $this;
     }
@@ -160,7 +84,6 @@ class MapToMigration
 
     private function mapAttribute(ReflectionAttribute $attribute): Column
     {
-
         $rules = $attribute
             ->newInstance()
             ->getRules();
@@ -175,12 +98,12 @@ class MapToMigration
 
     }
 
-    public function getBlueprintsMappers(): Collection
+    public function getModelBlueprintsBuilders(): Collection
     {
-        return $this->blueprintsMappers;
+        return $this->modelBlueprintsBuilders;
     }
 
-    private function generateMigrationFile(MapToBlueprint $mapToBlueprint, string $migrationFilePath): self
+    private function generateMigrationFile(BlueprintBuilder $mapToBlueprint, string $migrationFilePath): self
     {
         $oldMigrationFile = file_get_contents($migrationFilePath);
         $tableName = $mapToBlueprint->getBlueprint()->getTable();
@@ -220,9 +143,46 @@ class MapToMigration
 
     public function getBlueprints()
     {
-        return $this->blueprintsMappers->map(function (MapToBlueprint $mapToBlueprint) {
+        return $this->modelBlueprintsBuilders->map(function (BlueprintBuilder $mapToBlueprint) {
             return $mapToBlueprint->getBlueprint();
         });
     }
+
+
+    private function setMigrationFileAsCreateTemplate(string $tableName)
+    {
+        return app('migration.creator')->create("create_{$tableName}_table", database_path('migrations'), $tableName, true);
+    }
+
+    private function setMigrationFileAsUpdateTemplate(string $tableName): string
+    {
+       return app('migration.creator')->create("update_{$tableName}_table", database_path('migrations'), $tableName);
+    }
+
+    private function generateFirstMigration(ModelBlueprintBuilder $modelBlueprintBuilder): void
+    {
+        $migrationFile = $this->setMigrationFileAsCreateTemplate($modelBlueprintBuilder->getTable());
+        $this->generateMigrationFile($modelBlueprintBuilder, $migrationFile);
+    }
+
+    private function generateUpdatedMigration(ModelBlueprintBuilder $modelBlueprintBuilder)
+    {
+        $newBlueprint = $modelBlueprintBuilder->getBlueprint();
+        $tableName = $newBlueprint->getTable();
+
+        $migrationFile = $this->setMigrationFileAsUpdateTemplate($tableName);
+
+        $blueprintOfCurrentTable = DoctrineBlueprintBuilder::make(new Blueprint($tableName))
+            ->build()
+            ->getBlueprint();
+
+        $diffBlueprint = BlueprintComparer::make($blueprintOfCurrentTable, $newBlueprint)
+            ->getDiffBlueprint();
+
+        dd($diffBlueprint);
+
+        $this->generateMigrationFile($mapToBlueprint, $migrationFile);
+    }
+
 }
 

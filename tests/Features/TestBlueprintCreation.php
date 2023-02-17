@@ -2,7 +2,7 @@
 
 
 use App\Models\User;
-use Eyadhamza\LaravelAutoMigration\Core\MapToBlueprint;
+use Eyadhamza\LaravelAutoMigration\Core\BlueprintBuilder;
 use Eyadhamza\LaravelAutoMigration\Core\MapToMigration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Schema\ColumnDefinition;

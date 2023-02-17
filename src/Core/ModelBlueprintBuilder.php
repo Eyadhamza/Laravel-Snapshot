@@ -6,25 +6,22 @@ use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Column;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Collection;
 
-class MapToBlueprint
+class ModelBlueprintBuilder extends BlueprintBuilder
 {
-    private Blueprint $blueprint;
     private Collection $modelProperties;
-    private Collection $mappedColumns;
 
-    public function __construct(Collection $modelProperties, Blueprint $blueprint)
+    public function __construct(Blueprint $blueprint, Collection $modelProperties)
     {
+        parent::__construct($blueprint);
         $this->modelProperties = $modelProperties;
-        $this->blueprint = $blueprint;
     }
 
-    public static function make(Collection $modelProperties, Blueprint $blueprint): MapToBlueprint
+    public static function make(Blueprint $blueprint, Collection $modelProperties): self
     {
-        $mapper = new self($modelProperties, $blueprint);
-        return $mapper->buildColumns();
+        return new self($blueprint, $modelProperties);
     }
 
-    private function buildColumns(): MapToBlueprint
+    private function buildColumns(): self
     {
         $this->mappedColumns = $this->modelProperties->map(function (Column $modelProperty) {
             $rules = $modelProperty->getRules();
@@ -32,7 +29,7 @@ class MapToBlueprint
             $columnName = $modelProperty->getName();
             $column = $this->blueprint->$columnType($columnName);
             $mappedColumn = "\$table" . "->$columnType" . "('$columnName')";
-            if (is_null($rules)){
+            if (is_null($rules)) {
                 return $this->blueprint;
             }
             foreach ($rules as $rule) {
@@ -53,14 +50,8 @@ class MapToBlueprint
         return $this;
     }
 
-    public function getMappedColumns()
+    public function build(): self
     {
-        return $this->mappedColumns;
+        return $this->buildColumns();
     }
-
-    public function getBlueprint()
-    {
-        return $this->blueprint;
-    }
-
 }
