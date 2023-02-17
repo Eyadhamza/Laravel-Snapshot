@@ -58,7 +58,6 @@ it('can do normal model operation', function () {
 
 it('builds migrations files', function () {
     $mapper = MigrationBuilder::mapAll(ModelInfo::forAllModels('app', config('auto-migration.base_path') ?? app_path()));
-    $mapper->buildMigration();
 
     $file = collect(File::allFiles(database_path('migrations')))
         ->first();

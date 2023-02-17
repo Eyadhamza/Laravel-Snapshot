@@ -19,7 +19,7 @@ abstract class BlueprintBuilder
 
     public abstract function build(): self;
 
-    public function getMappedColumns(): Collection
+    public function getMapped(): Collection
     {
         return $this->mappedColumns;
     }

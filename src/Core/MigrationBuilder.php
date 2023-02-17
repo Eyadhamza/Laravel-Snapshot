@@ -97,7 +97,7 @@ class MigrationBuilder
     private function generateFirstMigration(BlueprintBuilder $modelBlueprintBuilder): void
     {
         $migrationFile = $this->setMigrationFileAsCreateTemplate($modelBlueprintBuilder->getTable());
-        $this->generateMigrationFile($modelBlueprintBuilder, $migrationFile);
+        $this->generateMigrationFile($modelBlueprintBuilder, $migrationFile, 'create');
     }
 
     private function generateUpdatedMigration(BlueprintBuilder $modelBlueprintBuilder)
@@ -112,47 +112,28 @@ class MigrationBuilder
             ->getBlueprint();
 
         $diffBlueprint = BlueprintComparer::make($blueprintOfCurrentTable, $newBlueprint)
-            ->getDiffBlueprint();
+            ->getDiff();
 
-        dd($diffBlueprint);
-
-        $this->generateMigrationFile($mapToBlueprint, $migrationFile);
+        $this->generateMigrationFile($diffBlueprint, $migrationFile, 'update');
     }
-    private function generateMigrationFile(BlueprintBuilder $mapToBlueprint, string $migrationFilePath): void
+    private function generateMigrationFile(BlueprintBuilder|BlueprintComparer $mapToBlueprint, string $migrationFilePath,string $operation): void
     {
         $oldMigrationFile = file_get_contents($migrationFilePath);
         $tableName = $mapToBlueprint->getBlueprint()->getTable();
 
-        $generatedMigrationFile = Str::replace($this->oldStubMigrationFile($tableName), $this->newMigrationFile($tableName, $mapToBlueprint->getMappedColumns()), $oldMigrationFile);
+        $generatedMigrationFile = $this->replaceStubMigrationFile($tableName, $mapToBlueprint->getMapped(), $operation);
 
         file_put_contents($migrationFilePath, $generatedMigrationFile);
 
     }
 
 
-    private function oldStubMigrationFile($tableName): string
+    private function replaceStubMigrationFile($tableName, $mappedColumns, string $operation): string
     {
-        return "    public function up()
-    {
-        Schema::create('$tableName', function (Blueprint \$table) {
-            \$table->id();
-            \$table->timestamps();
-        });
-    }";
-    }
+        $fileContent = file_get_contents("stubs/{$operation}-migration.stub");
+        $fileContent = Str::replace("\$tableName", $tableName, $fileContent);
 
-    private function newMigrationFile(string $tableName, Collection $mappedColumns): string
-    {
-        return
-            "
-    public function up()
-    {
-        Schema::create('$tableName', function (Blueprint \$table) {
-            {$mappedColumns->join("\n \t \t \t")}
-            \$table->timestamps();
-        });
-    }
-            ";
+        return Str::replace("{{ \$mappedColumns }}",$mappedColumns->join("\n \t \t \t"), $fileContent);
     }
 
     private function setMigrationFileAsCreateTemplate(string $tableName)
