@@ -2,14 +2,17 @@
 
 namespace Eyadhamza\LaravelAutoMigration\Core;
 
+use Closure;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Column;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Migrations\MigrationCreator;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Schema\Builder;
 use Illuminate\Database\Schema\ColumnDefinition;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Composer;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use ReflectionAttribute;
@@ -33,6 +36,8 @@ class MapToMigration
 
     public function __construct()
     {
+        // get the connection instance
+
         $this->creator = app('migration.creator');
         $this->blueprintsMappers = collect();
 
@@ -65,18 +70,73 @@ class MapToMigration
     {
         $this->blueprintsMappers->each(function (MapToBlueprint $mapToBlueprint) {
 
-            $isNewTable = !Schema::hasTable($mapToBlueprint->getBlueprint()->getTable());
-            if ($isNewTable) {
-                $migrationFile = $this->creator->create("create_{$mapToBlueprint->getBlueprint()->getTable()}_table", database_path('migrations'), $mapToBlueprint->getBlueprint()->getTable(), true);
-                $this->generateMigrationFile($mapToBlueprint, $migrationFile);
-                return $this;
-            }
-            $migrationFile = $this
-                ->creator
-                ->create("update_{$mapToBlueprint->getBlueprint()->getTable()}_table", database_path('migrations'), $mapToBlueprint->getBlueprint()->getTable(), false);
+            $newBlueprint = $mapToBlueprint->getBlueprint();
+            $table = $newBlueprint->getTable();
 
+//            if (!Schema::hasTable($table)) {
+//                $migrationFile = $this->creator->create("create_{$table}_table", database_path('migrations'), $table, true);
+//                $this->generateMigrationFile($mapToBlueprint, $migrationFile);
+//                return $this;
+//            }
+//            $migrationFile = $this
+//                ->creator
+//                ->create("update_{$table}_table", database_path('migrations'), $table, false);
+            $tableName = 'books';
+            $tableDetails = Schema::getConnection()
+                ->getDoctrineSchemaManager()
+                ->listTableDetails($tableName);
+            $blueprintForCurrentTable = new Blueprint($tableName, function ($blueprint) use ($tableDetails){
+                foreach ($tableDetails->getColumns() as $column) {
+                    $columnDefinition = $blueprint->{$column->getType()->getName()}($column->getName());
+                    $columnDefinition->nullable(!$column->getNotnull());
+                    if ($column->getUnsigned()) {
+                        $columnDefinition->unsigned();
+                    }
+                    if ($column->getAutoincrement()) {
+                        $columnDefinition->autoIncrement();
+                    }
+                    if ($column->getLength() !== null) {
+                        $columnDefinition->length($column->getLength());
+                    }
+                    if ($column->getDefault() !== null) {
+                        $columnDefinition->default($column->getDefault());
+                    }
+                }
+                foreach ($tableDetails->getIndexes() as $index) {
+                    $indexDefinition = $blueprint->index($index->getColumns(), $index->getName());
+                    if ($index->isPrimary()) {
+                        $indexDefinition->primary();
+                    }
+                    if ($index->isUnique()) {
+                        $indexDefinition->unique();
+                    }
+                }
+                foreach ($tableDetails->getForeignKeys() as $foreignKey) {
+                    $foreignKeyDefinition = $blueprint->foreign($foreignKey->getLocalColumns())
+                        ->references($foreignKey->getForeignColumns())
+                        ->on($foreignKey->getForeignTableName())
+                        ->name($foreignKey->getName());
+                    if ($foreignKey->getOption('onUpdate') !== null) {
+                        $foreignKeyDefinition->onUpdate($foreignKey->getOption('onUpdate'));
+                    }
+                    if ($foreignKey->getOption('onDelete') !== null) {
+                        $foreignKeyDefinition->onDelete($foreignKey->getOption('onDelete'));
+                    }
+                }
+            });
+            dd($blueprintForCurrentTable);
+            Schema::create($tableName, function ($blueprint) use ($tableDetails) {
 
+            });
+            // I want to get the blueprint of existing table in the database
+            $newColumn = $newBlueprint->getColumns();
+            dd($newColumn);
+            $oldColumn = DB::connection()->getDoctrineColumn('books', 'title');
+            dd($oldColumn);
+            $oldBlueprint = $this;
 
+            dd($oldBlueprint);
+            dd($existingBlueprint); // getting close!
             $this->generateMigrationFile($mapToBlueprint, $migrationFile);
 
             // 2. Updating
