@@ -2,7 +2,6 @@
 
 
 use App\Models\User;
-use Eyadhamza\LaravelAutoMigration\Core\BlueprintBuilder;
 use Eyadhamza\LaravelAutoMigration\Core\MigrationBuilder;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Schema\ColumnDefinition;
@@ -73,7 +72,7 @@ it('builds migrations files', function () {
 
 });
 
-afterEach(function () {
+afterAll(function () {
     File::deleteDirectory(database_path('migrations'), true);
 
 });

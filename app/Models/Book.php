@@ -10,10 +10,10 @@ use Eyadhamza\LaravelAutoMigration\Core\Constants\Rule;
 use Illuminate\Database\Eloquent\Model;
 
 
-#[BigInteger('id', Rule::UNIQUE, Rule::PRIMARY, Rule::AUTO_ICREMENT)]
+#[Id('id')]
 #[AsString('title', Rule::UNIQUE)]
 #[AsString('description')]
-#[ForeignId('author_id')]
+#[ForeignId('author_id', Rule::CONSTRAINED)]
 class Book extends Model
 {
 

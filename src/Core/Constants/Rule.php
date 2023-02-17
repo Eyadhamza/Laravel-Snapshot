@@ -16,5 +16,8 @@ abstract class Rule
     const COMMENT = 'comment';
     const INDEX = 'index';
     const FULL_TEXT = 'fullText';
-    const AUTO_ICREMENT = 'autoIncrement';
+    const AUTO_INCREMENT = 'autoIncrement';
+    const CONSTRAINED = 'constrained';
+
+
 }

@@ -3,17 +3,24 @@
 namespace App\Models;
 
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\AsString;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\ForeignId;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Id;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Timestamp;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Timestamps;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\AsDefault;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\Nullable;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\Primary;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\Unique;
+use Eyadhamza\LaravelAutoMigration\Core\Constants\Rule;
 use Illuminate\Database\Eloquent\Model;
 
-#[Id('id'), Unique, Primary]
-#[AsString('name'), Nullable, AsDefault('Eyad Hamza')]
-#[AsString('email'), Unique]
-#[AsString('password'), Unique]
+#[Id('id')]
+#[AsString('name', Rule::UNIQUE, [Rule::DEFAULT => 'Eyad Hamza'])]
+#[AsString('description')]
+#[AsString('email', Rule::UNIQUE)]
+#[AsString('password')]
+#[Timestamps]
+
 class User extends Model
 {
     /**

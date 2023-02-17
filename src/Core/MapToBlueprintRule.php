@@ -21,7 +21,7 @@ class MapToBlueprintRule
         Rule::COMMENT,
         Rule::INDEX,
         Rule::FULL_TEXT,
-        Rule::AUTO_ICREMENT,
+        Rule::AUTO_INCREMENT,
     ];
     private string $name;
 
