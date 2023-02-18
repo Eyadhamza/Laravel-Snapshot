@@ -15,8 +15,8 @@ use Illuminate\Database\Eloquent\Model;
 #[AsString('title', [Rule::DEFAULT => 'Eyad Hamza'])]
 #[AsString('description')]
 #[ForeignId('author_id', [Rule::CONSTRAINED, Rule::CASCADE_ON_DELETE, Rule::CASCADE_ON_UPDATE])]
-#[Unique('title', 'description')]
-#[Index('title', 'description')]
+#[Unique(['title', 'description'])]
+#[Index(['title', 'description'])]
 class Book extends Model
 {
 

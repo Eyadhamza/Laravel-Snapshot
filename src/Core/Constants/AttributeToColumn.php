@@ -77,6 +77,12 @@ use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\UnsignedTinyInteger;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Uuid;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\UuidMorphs;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Year;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes\FullText;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes\Index;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes\Primary;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes\RawIndex;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes\SpatialIndex;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes\Unique;
 
 abstract class AttributeToColumn
 {
@@ -156,6 +162,13 @@ abstract class AttributeToColumn
         NullableUuidMorphs::class => 'nullableUuidMorphs',
         UlidMorphs::class => 'ulidMorphs',
         NullableUlidMorphs::class => 'nullableUlidMorphs',
+        Unique::class => 'unique',
+        Index::class => 'index',
+        FullText::class => 'fullText',
+        Primary::class => 'primary',
+        RawIndex::class => 'rawIndex',
+        SpatialIndex::class => 'spatialIndex',
+
     ];
 
 

@@ -3,6 +3,7 @@
 namespace Eyadhamza\LaravelAutoMigration\Core;
 
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\BlueprintColumnBuilder;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes\BlueprintIndexBuilder;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
@@ -63,11 +64,14 @@ class MigrationBuilder
     {
 
         return collect($reflectionClass->getAttributes())
-            ->filter(fn($attribute) => is_subclass_of($attribute->getName(), BlueprintColumnBuilder::class));
+            ->filter(function (ReflectionAttribute $attribute) {
+                return is_subclass_of($attribute->getName(), BlueprintColumnBuilder::class)
+                    || is_subclass_of($attribute->getName(), BlueprintIndexBuilder::class);
+            });
 
     }
 
-    private function mapAttribute(ReflectionAttribute $reflectionAttribute): BlueprintColumnBuilder
+    private function mapAttribute(ReflectionAttribute $reflectionAttribute): BlueprintColumnBuilder|BlueprintIndexBuilder
     {
         return $reflectionAttribute
             ->newInstance()

@@ -2,7 +2,7 @@
 
 namespace Eyadhamza\LaravelAutoMigration\Core;
 
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\BlueprintColumnBuilder;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\BlueprintAttributeEntity;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Collection;
 
@@ -23,25 +23,22 @@ class ModelBlueprintBuilder extends BlueprintBuilder
 
     private function buildColumns(): self
     {
-        $this->mappedColumns = $this->modelProperties->map(function (BlueprintColumnBuilder $modelProperty) {
+        $this->mappedColumns = $this->modelProperties->map(function (BlueprintAttributeEntity $modelProperty) {
             $rules = $modelProperty->getRules();
             $columnType = $modelProperty->getType();
-            $columnName = $modelProperty->getName();
+            $columnName = $modelProperty->getName() ?? $modelProperty->getNames();
 
             $column = $this->blueprint->$columnType($columnName);
             $mappedColumn = "\$table" . "->$columnType" . "('$columnName')";
 
-            $mappedRules = [];
             foreach ($rules as $rule => $value) {
                 if (is_int($rule)) {
-                    $mappedRules[] = $rule;
                     $mappedColumn = $mappedColumn . "->{$value}()";
                     continue;
                 }
 
                 $column->{$rule}($value);
                 $mappedColumn = $mappedColumn . "->{$rule}('$value')";
-                $mappedRules[] = [$value => $rule];
             }
             return $mappedColumn . ";";
         });

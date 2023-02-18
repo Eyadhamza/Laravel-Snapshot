@@ -59,7 +59,7 @@ class BlueprintComparer
                 if ($modifiedAttributes->isNotEmpty()) {
                     $columnType = $matchingNewBlueprintColumn->get('type');
                     $columnName = $matchingNewBlueprintColumn->get('name');
-                    $mappedColumn = "\$table" . "->$columnType" . "('$columnName')";
+                    $mappedColumn = "\$table" . "->$columnType" . "($columnName)";
                     foreach ($modifiedAttributes as $attribute => $value) {
                         if ($attribute === 'type' || $attribute === 'name')
                             continue;
