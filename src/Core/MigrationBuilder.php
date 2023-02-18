@@ -2,7 +2,7 @@
 
 namespace Eyadhamza\LaravelAutoMigration\Core;
 
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Column;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\BlueprintColumnBuilder;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
@@ -42,9 +42,7 @@ class MigrationBuilder
         $modelProperties = $attributes->map(function (ReflectionAttribute $attribute) {
             return $this->mapAttribute($attribute);
         });
-
         $this->modelBlueprintBuilder = ModelBlueprintBuilder::make(new Blueprint($this->modelInfo->tableName), $modelProperties)->build();
-
         return $this;
     }
 
@@ -65,23 +63,15 @@ class MigrationBuilder
     {
 
         return collect($reflectionClass->getAttributes())
-            ->filter(fn($attribute) => is_subclass_of($attribute->getName(), Column::class));
+            ->filter(fn($attribute) => is_subclass_of($attribute->getName(), BlueprintColumnBuilder::class));
 
     }
 
-    private function mapAttribute(ReflectionAttribute $attribute): Column
+    private function mapAttribute(ReflectionAttribute $reflectionAttribute): BlueprintColumnBuilder
     {
-        $rules = $attribute
+        return $reflectionAttribute
             ->newInstance()
-            ->getRules();
-
-        $propertyType = $attribute->getName();
-
-        return $attribute
-            ->newInstance()
-            ->setName($attribute->getArguments()[0])
-            ->setType($propertyType)
-            ->setRules($rules);
+            ->setType($reflectionAttribute->getName());
 
     }
     private function generateFirstMigration(BlueprintBuilder $modelBlueprintBuilder): void
@@ -101,19 +91,15 @@ class MigrationBuilder
             ->build()
             ->getBlueprint();
 
-        $diffBlueprint = BlueprintComparer::make($blueprintOfCurrentTable, $newBlueprint)
-            ->getDiff();
+        $diffBlueprint = BlueprintComparer::make($blueprintOfCurrentTable, $newBlueprint)->getDiff();
 
         $this->generateMigrationFile($diffBlueprint, $migrationFile, 'update');
     }
     private function generateMigrationFile(BlueprintBuilder|BlueprintComparer $mapToBlueprint, string $migrationFilePath,string $operation): void
     {
         $tableName = $mapToBlueprint->getBlueprint()->getTable();
-
         $generatedMigrationFile = $this->replaceStubMigrationFile($tableName, $mapToBlueprint->getMapped(), $operation);
-
         file_put_contents($migrationFilePath, $generatedMigrationFile);
-
     }
 
 

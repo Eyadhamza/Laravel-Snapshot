@@ -1,6 +1,6 @@
 <?php
 
-namespace Eyadhamza\LaravelAutoMigration\Core;
+namespace Eyadhamza\LaravelAutoMigration\Core\Constants;
 
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\AsFloat;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\AsString;
@@ -77,9 +77,8 @@ use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\UnsignedTinyInteger;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Uuid;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\UuidMorphs;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Year;
-use Illuminate\Support\Collection;
 
-class MapToBlueprintColumn
+abstract class BlueprintColumns
 {
     private static array $columns = [
         Foreign::class => 'foreign',

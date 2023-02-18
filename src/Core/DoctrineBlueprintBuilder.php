@@ -29,6 +29,7 @@ class DoctrineBlueprintBuilder extends BlueprintBuilder
     {
         foreach ($this->doctrineTableDetails->getColumns() as $column) {
             $columnDefinition = $this->blueprint->{$column->getType()->getName()}($column->getName());
+//            dd($column, $columnDefinition);
             $columnDefinition->nullable(!$column->getNotnull());
             if ($column->getUnsigned()) {
                 $columnDefinition->unsigned();

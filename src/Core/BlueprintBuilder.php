@@ -3,7 +3,7 @@
 namespace Eyadhamza\LaravelAutoMigration\Core;
 
 use Doctrine\DBAL\Schema\Table;
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Column;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\BlueprintColumnBuilder;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Collection;
 

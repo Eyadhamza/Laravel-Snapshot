@@ -11,9 +11,9 @@ use Illuminate\Database\Eloquent\Model;
 
 
 #[Id('id')]
-#[AsString('title', Rule::UNIQUE)]
+#[AsString('title', [Rule::UNIQUE, Rule::DEFAULT => 'Eyad Hamza'])]
 #[AsString('description')]
-#[ForeignId('author_id', Rule::CONSTRAINED)]
+#[ForeignId('author_id', [Rule::CONSTRAINED])]
 class Book extends Model
 {
 

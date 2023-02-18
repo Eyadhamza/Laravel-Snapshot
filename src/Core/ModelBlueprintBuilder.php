@@ -2,7 +2,7 @@
 
 namespace Eyadhamza\LaravelAutoMigration\Core;
 
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Column;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\BlueprintColumnBuilder;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Collection;
 
@@ -23,27 +23,25 @@ class ModelBlueprintBuilder extends BlueprintBuilder
 
     private function buildColumns(): self
     {
-        $this->mappedColumns = $this->modelProperties->map(function (Column $modelProperty) {
+        $this->mappedColumns = $this->modelProperties->map(function (BlueprintColumnBuilder $modelProperty) {
             $rules = $modelProperty->getRules();
             $columnType = $modelProperty->getType();
             $columnName = $modelProperty->getName();
+
             $column = $this->blueprint->$columnType($columnName);
             $mappedColumn = "\$table" . "->$columnType" . "('$columnName')";
-            if (is_null($rules)) {
-                return $this->blueprint;
-            }
-            foreach ($rules as $rule) {
-                if (empty($rule->getArguments())) {
 
-                    $column->{$rule->getName()}();
-                    $mappedColumn = $mappedColumn . "->{$rule->getName()}()";
+            $mappedRules = [];
+            foreach ($rules as $rule => $value) {
+                if (is_int($rule)) {
+                    $mappedRules[] = $rule;
+                    $mappedColumn = $mappedColumn . "->{$value}()";
                     continue;
                 }
-                foreach ($rule->getArguments() as $value) {
-                    $column->{$rule->getName()}($value);
 
-                    $mappedColumn = $mappedColumn . "->{$rule->getName()}($value)";
-                }
+                $column->{$rule}($value);
+                $mappedColumn = $mappedColumn . "->{$rule}('$value')";
+                $mappedRules[] = [$value => $rule];
             }
             return $mappedColumn . ";";
         });
@@ -52,6 +50,7 @@ class ModelBlueprintBuilder extends BlueprintBuilder
 
     public function build(): self
     {
-        return $this->buildColumns();
+        $this->buildColumns();
+        return $this;
     }
 }

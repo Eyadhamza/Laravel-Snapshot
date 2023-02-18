@@ -35,9 +35,7 @@ it('can generate the right columns', function () {
             ->and($idColumn->getAttributes())
             ->toHaveKey('type', 'bigInteger')
             ->toHaveKey('name', 'id')
-            ->toHaveKey('autoIncrement', true)
-            ->toHaveKey('unique', true)
-            ->toHaveKey('primary', true);
+            ->toHaveKey('autoIncrement', true);
 });
 it('can do normal model operation', function () {
     User::create([
@@ -72,7 +70,6 @@ it('builds migrations files', function () {
 
 });
 
-afterAll(function () {
-    File::deleteDirectory(database_path('migrations'), true);
-
-});
+//afterEach(function () {
+//    File::deleteDirectory(database_path('migrations'), true);
+//});

@@ -14,10 +14,10 @@ use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\Unique;
 use Eyadhamza\LaravelAutoMigration\Core\Constants\Rule;
 use Illuminate\Database\Eloquent\Model;
 
+#[AsString('name', [Rule::UNIQUE, Rule::DEFAULT => 'Eyad Hamza'])]
 #[Id('id')]
-#[AsString('name', Rule::UNIQUE, [Rule::DEFAULT => 'Eyad Hamza'])]
 #[AsString('description')]
-#[AsString('email', Rule::UNIQUE)]
+#[AsString('email', [Rule::UNIQUE])]
 #[AsString('password')]
 #[Timestamps]
 
