@@ -32,22 +32,7 @@ class BlueprintComparer extends Grammar
 
     public function getDiff(): BlueprintComparer
     {
-        // $currentSchema
-        $connection = Schema::getConnection();
-        $comparator = new Comparator;
-        $fromSchema = $connection->getDoctrineSchemaManager()->listTableDetails('savers');
-        $sqlQueries = $this->newBlueprint->toSql(Schema::getConnection(), new MySqlGrammar);
-        $schema =new \Doctrine\DBAL\Schema\Schema;
-//        $table = $schema->createTable(DB::raw($query));
-        dd($table);
-        dd($sqlQueries);
-        dd($table);
-        $sqlQueries = $comparator->compareTables($fromSchema, $currentSchema);
-
-        dd($sqlQueries);
-
         $this->diffBlueprint = new Blueprint($this->blueprintOfCurrentTable->getTable());
-
         $currentBlueprintColumns = collect($this->blueprintOfCurrentTable->getColumns());
         $newBlueprintColumns = collect($this->newBlueprint->getColumns());
         $addedColumns = $newBlueprintColumns->diffKeys($currentBlueprintColumns);
@@ -57,14 +42,12 @@ class BlueprintComparer extends Grammar
             ->addNewColumns($addedColumns)
             ->removeOldColumns($removedColumns);
 
-        // INDEXES AND FOREIGN KEYS TODO
         return $this;
 
     }
 
     private function compareModifiedColumns(Collection $currentBlueprintColumns, Collection $newBlueprintColumns): self
     {
-        dd($currentBlueprintColumns, $newBlueprintColumns);
         $this->mappedDiff = $currentBlueprintColumns->map(function (ColumnDefinition $currentBlueprintColumn) use ($newBlueprintColumns) {
 
             $matchingNewBlueprintColumns = $newBlueprintColumns->where('name', $currentBlueprintColumn->get('name'));

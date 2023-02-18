@@ -9,6 +9,12 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Spatie\ModelInfo\ModelInfo;
 
+it('shows database info', function () {
+    Artisan::call('db:table savers');
+    dd(Artisan::output());
+});
+
+
 it('can create a new MigrationBuilder instance', function () {
     $mapper = MigrationBuilder::mapAll(ModelInfo::forAllModels('app', config('auto-migration.base_path') ?? app_path()));
     expect($mapper->first())->toBeInstanceOf(MigrationBuilder::class);

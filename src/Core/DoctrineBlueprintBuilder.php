@@ -2,6 +2,7 @@
 
 namespace Eyadhamza\LaravelAutoMigration\Core;
 
+use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Index;
@@ -14,7 +15,6 @@ use Illuminate\Support\Fluent;
 class DoctrineBlueprintBuilder extends BlueprintBuilder
 {
     private Table $doctrineTableDetails;
-
     public function __construct(Blueprint $blueprint)
     {
         parent::__construct($blueprint);
@@ -31,7 +31,6 @@ class DoctrineBlueprintBuilder extends BlueprintBuilder
 
     public function buildColumns(): static
     {
-        $attributes = [];
         collect($this->doctrineTableDetails->getColumns())->map(function (Column $column) {
             $attributes = collect([
                 'name' => $column->getName(),
