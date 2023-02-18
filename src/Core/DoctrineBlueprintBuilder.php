@@ -29,9 +29,12 @@ class DoctrineBlueprintBuilder extends BlueprintBuilder
 
     public function buildColumns(): static
     {
-
         collect($this->doctrineTableDetails->getColumns())->map(function (Column $column){
-            $columnDefinition = $this->blueprint->{$column->getType()->getName()}($column->getName());
+            $columnType = match ($column->getType()->getName()){
+                'datetime' => 'timestamp',
+                 default => $column->getType()->getName(),
+            };
+            $columnDefinition = $this->blueprint->{$columnType}($column->getName());
             match (true) {
                 $column->getAutoincrement() => $columnDefinition->autoIncrement(),
                 $column->getUnsigned() => $columnDefinition->unsigned(),
@@ -39,7 +42,7 @@ class DoctrineBlueprintBuilder extends BlueprintBuilder
                 $column->getDefault() !== null => $columnDefinition->default($column->getDefault()),
                 $column->getComment() !== null => $columnDefinition->comment($column->getComment()),
                 $column->getLength() !== null => $columnDefinition->length($column->getLength()),
-                $column->getPrecision() !== null => $columnDefinition->precision($column->getPrecision()),
+                $column->getPrecision() !== null => $this->blueprint->{$columnType}($column->getPrecision()),
                 $column->getScale() !== null => $columnDefinition->scale($column->getScale()),
                 $column->getFixed() => $columnDefinition->fixed(),
             };

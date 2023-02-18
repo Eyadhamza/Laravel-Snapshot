@@ -45,6 +45,7 @@ class BlueprintComparer
 
     private function compareModifiedColumns(Collection $currentBlueprintColumns, Collection $newBlueprintColumns): self
     {
+        dd($currentBlueprintColumns, $newBlueprintColumns);
         $this->mappedDiff = $currentBlueprintColumns->map(function (ColumnDefinition $currentBlueprintColumn) use ($newBlueprintColumns){
 
             $matchingNewBlueprintColumns = $newBlueprintColumns->where('name', $currentBlueprintColumn->get('name'));
@@ -63,6 +64,10 @@ class BlueprintComparer
                     foreach ($modifiedAttributes as $attribute => $value) {
                         if ($attribute === 'type' || $attribute === 'name')
                             continue;
+                        if ($attribute === 'length' || $attribute === 'precision'){
+                            $mappedColumn = "\$table" . "->$columnType" . "('$columnName', $value)";
+                            continue;
+                        }
                         $mappedColumn = $mappedColumn . "->{$attribute}()";
                     }
                     return $mappedColumn . "->change();";

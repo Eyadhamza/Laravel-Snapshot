@@ -9,6 +9,5 @@ class Timestamps extends BlueprintColumnBuilder
 {
     public function __construct()
     {
-        parent::__construct('timestamps');
     }
 }

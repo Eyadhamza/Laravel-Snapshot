@@ -15,9 +15,9 @@ use Eyadhamza\LaravelAutoMigration\Core\Constants\Rule;
 use Illuminate\Database\Eloquent\Model;
 
 #[Id('id')]
-#[AsString('name', [Rule::UNIQUE, Rule::DEFAULT => 'Eyad Hamza'])]
+#[AsString('name', [Rule::DEFAULT => 'Eyad Hamza'])]
 #[AsString('description')]
-#[AsString('email', [Rule::UNIQUE])]
+#[AsString('email')]
 #[AsString('password')]
 #[Timestamps]
 

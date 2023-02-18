@@ -29,8 +29,11 @@ class ModelBlueprintBuilder extends BlueprintBuilder
             $columnName = $modelProperty->getName();
 
             $column = $this->blueprint->$columnType($columnName);
-            $mappedColumn = "\$table" . "->$columnType" . "({$this->getColumnNameOrNames($columnName)}";
+            $mappedColumn = "\$table" . "->$columnType" . "({$this->getColumnNameOrNames($columnName)})";
 
+            if (!$rules) {
+                return $mappedColumn . ";";
+            }
             foreach ($rules as $rule => $value) {
                 if (is_int($rule)) {
                     $mappedColumn = $mappedColumn . "->{$value}()";
@@ -52,7 +55,10 @@ class ModelBlueprintBuilder extends BlueprintBuilder
 
     private function getColumnNameOrNames(mixed $name): string
     {
-        return is_array($name) ? "['" . implode("','", $name) . "'])" : "'{$name}')";
+        if (!$name) {
+            return '';
+        }
+        return is_array($name) ? "['" . implode("','", $name) . "']" : "'{$name}'";
     }
 
 }

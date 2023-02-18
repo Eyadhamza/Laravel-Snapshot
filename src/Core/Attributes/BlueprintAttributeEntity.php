@@ -26,7 +26,7 @@ class BlueprintAttributeEntity
 
     public function getRules(): ?array
     {
-        return $this->rules;
+        return $this->rules ?? null;
     }
     public function getType(): string
     {
