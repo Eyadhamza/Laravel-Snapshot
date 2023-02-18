@@ -9,6 +9,8 @@ use Illuminate\Support\Collection;
 
 abstract class BlueprintBuilder
 {
+    private int $executionOrder = 0;
+
     protected Blueprint $blueprint;
     protected Collection $mappedColumns;
 
@@ -32,5 +34,16 @@ abstract class BlueprintBuilder
     public function getTable(): string
     {
         return $this->blueprint->getTable();
+    }
+
+    public function getExecutionOrder(): int
+    {
+        return $this->executionOrder;
+    }
+
+    public function setExecutionOrder(int $executionOrder): static
+    {
+        $this->executionOrder = $executionOrder;
+        return $this;
     }
 }

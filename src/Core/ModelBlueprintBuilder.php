@@ -36,7 +36,6 @@ class ModelBlueprintBuilder extends BlueprintBuilder
                     $mappedColumn = $mappedColumn . "->{$value}()";
                     continue;
                 }
-
                 $column->{$rule}($value);
                 $mappedColumn = $mappedColumn . "->{$rule}('$value')";
             }
@@ -55,4 +54,5 @@ class ModelBlueprintBuilder extends BlueprintBuilder
     {
         return is_array($name) ? "['" . implode("','", $name) . "'])" : "'{$name}')";
     }
+
 }
