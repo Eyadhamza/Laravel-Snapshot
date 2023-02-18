@@ -47,7 +47,7 @@ class ModelBlueprintBuilder extends BlueprintBuilder
         return $this;
     }
 
-    public function build(): self
+    public function buildNew(): self
     {
         $this->buildColumns();
         return $this;

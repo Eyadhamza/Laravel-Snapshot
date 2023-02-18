@@ -19,7 +19,7 @@ abstract class BlueprintBuilder
         $this->blueprint = $blueprint;
     }
 
-    public abstract function build(): self;
+    public abstract function buildNew(): self;
 
     public function getMapped(): Collection
     {

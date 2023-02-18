@@ -7,7 +7,9 @@ use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Index;
 use Doctrine\DBAL\Schema\Table;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Schema\ColumnDefinition;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Fluent;
 
 class DoctrineBlueprintBuilder extends BlueprintBuilder
 {
@@ -19,7 +21,7 @@ class DoctrineBlueprintBuilder extends BlueprintBuilder
 
         $this->doctrineTableDetails = Schema::getConnection()
             ->getDoctrineSchemaManager()
-            ->listTableDetails($blueprint->getTable());;
+            ->introspectTable($blueprint->getTable());;
     }
 
     public static function make(Blueprint $blueprint): self
@@ -29,24 +31,22 @@ class DoctrineBlueprintBuilder extends BlueprintBuilder
 
     public function buildColumns(): static
     {
-        collect($this->doctrineTableDetails->getColumns())->map(function (Column $column){
-            $columnType = match ($column->getType()->getName()){
+        $attributes = [];
+        collect($this->doctrineTableDetails->getColumns())->map(function (Column $column) {
+            $attributes = collect([
+                'name' => $column->getName(),
+                'unsigned' => $column->getUnsigned(),
+                'nullable' => $column->getNotnull() == false,
+                'default' => $column->getDefault(),
+                'length' => $column->getLength(),
+                'precision' => $column->getPrecision(),
+                'scale' => $column->getScale(),
+            ])->filter()->toArray();
+            $attributes['type'] = match ($column->getType()->getName()) {
                 'datetime' => 'timestamp',
-                 default => $column->getType()->getName(),
+                default => $column->getType()->getName(),
             };
-            $columnDefinition = $this->blueprint->{$columnType}($column->getName());
-            match (true) {
-                $column->getAutoincrement() => $columnDefinition->autoIncrement(),
-                $column->getUnsigned() => $columnDefinition->unsigned(),
-                !$column->getNotNull() => $columnDefinition->nullable(),
-                $column->getDefault() !== null => $columnDefinition->default($column->getDefault()),
-                $column->getComment() !== null => $columnDefinition->comment($column->getComment()),
-                $column->getLength() !== null => $columnDefinition->length($column->getLength()),
-                $column->getPrecision() !== null => $this->blueprint->{$columnType}($column->getPrecision()),
-                $column->getScale() !== null => $columnDefinition->scale($column->getScale()),
-                $column->getFixed() => $columnDefinition->fixed(),
-            };
-
+            return $this->blueprint->addColumn($attributes['type'], $attributes['name'], $attributes);
         });
         return $this;
     }
@@ -54,16 +54,16 @@ class DoctrineBlueprintBuilder extends BlueprintBuilder
     public function buildIndexes(): static
     {
         collect($this->doctrineTableDetails->getIndexes())->map(function (Index $index) {
-                $indexDefinition = $this->blueprint->index($index->getColumns(), $index->getName());
+            $indexDefinition = $this->blueprint->index($index->getColumns(), $index->getName());
 
-                if ($index->isPrimary()) {
-                    $indexDefinition->primary();
-                }
-                if ($index->isUnique()) {
-                    $indexDefinition->unique();
-                }
-                return $indexDefinition;
-            });
+            if ($index->isPrimary()) {
+                $indexDefinition->primary();
+            }
+            if ($index->isUnique()) {
+                $indexDefinition->unique();
+            }
+            return $indexDefinition;
+        });
         return $this;
     }
 
@@ -89,7 +89,7 @@ class DoctrineBlueprintBuilder extends BlueprintBuilder
         return $this;
     }
 
-    public function build(): self
+    public function buildNew(): self
     {
         return $this->buildColumns()
             ->buildForeignKeys()

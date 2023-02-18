@@ -45,7 +45,7 @@ class MigrationBuilder
                 return $this->mapAttribute($attribute);
             });
 
-            return ModelBlueprintBuilder::make(new Blueprint($model->tableName), $modelProperties)->build();
+            return ModelBlueprintBuilder::make(new Blueprint($model->tableName), $modelProperties)->buildNew();
         });
         return $this;
     }
@@ -98,7 +98,7 @@ class MigrationBuilder
         $migrationFile = $this->setMigrationFileAsUpdateTemplate($tableName, $modelBlueprintBuilder->getExecutionOrder());
 
         $blueprintOfCurrentTable = DoctrineBlueprintBuilder::make(new Blueprint($tableName))
-            ->build()
+            ->buildNew()
             ->getBlueprint();
 
         $diffBlueprint = BlueprintComparer::make($blueprintOfCurrentTable, $newBlueprint)->getDiff();

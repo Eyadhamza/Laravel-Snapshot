@@ -2,19 +2,24 @@
 
 namespace Eyadhamza\LaravelAutoMigration\Core;
 
+use Doctrine\DBAL\Schema\Comparator;
+use Doctrine\DBAL\Schema\Table;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\BlueprintColumnBuilder;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Schema\ColumnDefinition;
+use Illuminate\Database\Schema\Grammars\Grammar;
+use Illuminate\Database\Schema\Grammars\MySqlGrammar;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Schema;
 
-class BlueprintComparer
+class BlueprintComparer extends Grammar
 {
     private Blueprint $blueprintOfCurrentTable;
     private Blueprint $newBlueprint;
     private Collection $mappedDiff;
     private Blueprint $diffBlueprint;
 
-    public function __construct(Blueprint $blueprintOfCurrentTable,Blueprint $newBlueprint)
+    public function __construct(Blueprint $blueprintOfCurrentTable, Blueprint $newBlueprint)
     {
         $this->blueprintOfCurrentTable = $blueprintOfCurrentTable;
         $this->newBlueprint = $newBlueprint;
@@ -27,6 +32,20 @@ class BlueprintComparer
 
     public function getDiff(): BlueprintComparer
     {
+        // $currentSchema
+        $connection = Schema::getConnection();
+        $comparator = new Comparator;
+        $fromSchema = $connection->getDoctrineSchemaManager()->listTableDetails('savers');
+        $sqlQueries = $this->newBlueprint->toSql(Schema::getConnection(), new MySqlGrammar);
+        $schema =new \Doctrine\DBAL\Schema\Schema;
+//        $table = $schema->createTable(DB::raw($query));
+        dd($table);
+        dd($sqlQueries);
+        dd($table);
+        $sqlQueries = $comparator->compareTables($fromSchema, $currentSchema);
+
+        dd($sqlQueries);
+
         $this->diffBlueprint = new Blueprint($this->blueprintOfCurrentTable->getTable());
 
         $currentBlueprintColumns = collect($this->blueprintOfCurrentTable->getColumns());
@@ -46,7 +65,7 @@ class BlueprintComparer
     private function compareModifiedColumns(Collection $currentBlueprintColumns, Collection $newBlueprintColumns): self
     {
         dd($currentBlueprintColumns, $newBlueprintColumns);
-        $this->mappedDiff = $currentBlueprintColumns->map(function (ColumnDefinition $currentBlueprintColumn) use ($newBlueprintColumns){
+        $this->mappedDiff = $currentBlueprintColumns->map(function (ColumnDefinition $currentBlueprintColumn) use ($newBlueprintColumns) {
 
             $matchingNewBlueprintColumns = $newBlueprintColumns->where('name', $currentBlueprintColumn->get('name'));
 
@@ -64,7 +83,7 @@ class BlueprintComparer
                     foreach ($modifiedAttributes as $attribute => $value) {
                         if ($attribute === 'type' || $attribute === 'name')
                             continue;
-                        if ($attribute === 'length' || $attribute === 'precision'){
+                        if ($attribute === 'length' || $attribute === 'precision') {
                             $mappedColumn = "\$table" . "->$columnType" . "('$columnName', $value)";
                             continue;
                         }
@@ -81,7 +100,7 @@ class BlueprintComparer
 
     private function addNewColumns(Collection $addedColumns): self
     {
-        $this->mappedDiff->add($addedColumns->map(function (ColumnDefinition $column){
+        $this->mappedDiff->add($addedColumns->map(function (ColumnDefinition $column) {
             $columnName = $column->get('name');
             return "\$table->addColumn('$columnName');";
         }));
@@ -91,7 +110,7 @@ class BlueprintComparer
 
     private function removeOldColumns(Collection $removedColumns): self
     {
-        $this->mappedDiff->add($removedColumns->map(function (ColumnDefinition $column){
+        $this->mappedDiff->add($removedColumns->map(function (ColumnDefinition $column) {
             $columnName = $column->get('name');
             return "\$table->dropColumn('$columnName');";
         }));

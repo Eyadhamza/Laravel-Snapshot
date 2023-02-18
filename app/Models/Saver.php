@@ -7,10 +7,7 @@ use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\ForeignId;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Id;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Timestamp;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Timestamps;
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\AsDefault;
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\Nullable;
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\Primary;
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\Rules\Unique;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes\Unique;
 use Eyadhamza\LaravelAutoMigration\Core\Constants\Rule;
 use Illuminate\Database\Eloquent\Model;
 
@@ -20,7 +17,8 @@ use Illuminate\Database\Eloquent\Model;
 #[AsString('email')]
 #[AsString('password')]
 #[Timestamps]
-
+#[Unique('email')]
+#[ForeignId('user_id')]
 class Saver extends Model
 {
     /**
