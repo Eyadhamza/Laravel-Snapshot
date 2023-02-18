@@ -78,7 +78,7 @@ use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Uuid;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\UuidMorphs;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Year;
 
-abstract class BlueprintColumns
+abstract class AttributeToColumn
 {
     private static array $columns = [
         Foreign::class => 'foreign',

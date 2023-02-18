@@ -4,7 +4,7 @@ namespace Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns;
 
 use Attribute;
 use Eyadhamza\LaravelAutoMigration\Core\Rules;
-use Eyadhamza\LaravelAutoMigration\Core\Constants\BlueprintColumns;
+use Eyadhamza\LaravelAutoMigration\Core\Constants\AttributeToColumn;
 use Illuminate\Database\Schema\Blueprint;
 
 
@@ -42,7 +42,7 @@ class BlueprintColumnBuilder
 
     public function setType(string $type): static
     {
-        $this->type = BlueprintColumns::map($type);
+        $this->type = AttributeToColumn::map($type);
 
         return $this;
     }

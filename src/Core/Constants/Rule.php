@@ -9,14 +9,14 @@ abstract class Rule
     const NULLABLE = 'nullable';
     const UNIQUE = 'unique';
     const UNSIGNED = 'unsigned';
-    const PRIMARY = 'primary';
     const FIRST = 'first';
     const CHANGE = 'change';
     const COMMENT = 'comment';
-    const INDEX = 'index';
-    const FULL_TEXT = 'fullText';
     const AUTO_INCREMENT = 'autoIncrement';
     const CONSTRAINED = 'constrained';
+    const CASCADE_ON_DELETE = 'cascadeOnDelete';
+    const CASCADE_ON_UPDATE = 'cascadeOnUpdate';
+
 
     private static array $rules = [
         Rule::AFTER ,
