@@ -68,7 +68,7 @@ it('builds migrations files', function () {
         ->toContain('Schema::dropIfExists(\'books\');');
 
 });
-
-afterEach(function () {
-    File::deleteDirectory(database_path('migrations'), true);
-});
+//
+//afterEach(function () {
+//    File::deleteDirectory(database_path('migrations'), true);
+//});

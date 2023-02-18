@@ -28,9 +28,10 @@ class BlueprintIndexBuilder extends BlueprintAttributeEntity
 
         return new self($modelProperty->getColumns(), $modelProperty->getName(), $modelProperty->getAlgorithm());
     }
-    public function getNames(): string
+
+    public function getName(): mixed
     {
-        return "['" . implode("','", $this->columns) . "']";
+        return $this->columns;
     }
 
 }

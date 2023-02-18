@@ -19,9 +19,9 @@ class BlueprintAttributeEntity
         $this->rules = $rules;
     }
 
-    public function getName(): string
+    public function getName(): mixed
     {
-        return "$this->name";
+        return $this->name ?? null;
     }
 
     public function getRules(): ?array

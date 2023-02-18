@@ -26,10 +26,12 @@ class ModelBlueprintBuilder extends BlueprintBuilder
         $this->mappedColumns = $this->modelProperties->map(function (BlueprintAttributeEntity $modelProperty) {
             $rules = $modelProperty->getRules();
             $columnType = $modelProperty->getType();
-            $columnName = $modelProperty->getName() ?? $modelProperty->getNames();
+            $columnName = is_array($modelProperty->getName()) ?
+                "['" . implode("','", $modelProperty->getName()) . "']"
+                : "'{$modelProperty->getName()}'";
 
             $column = $this->blueprint->$columnType($columnName);
-            $mappedColumn = "\$table" . "->$columnType" . "('$columnName')";
+            $mappedColumn = "\$table" . "->$columnType" . "($columnName)";
 
             foreach ($rules as $rule => $value) {
                 if (is_int($rule)) {
