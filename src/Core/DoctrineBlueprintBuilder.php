@@ -2,9 +2,11 @@
 
 namespace Eyadhamza\LaravelAutoMigration\Core;
 
+use Doctrine\DBAL\Schema\Column;
+use Doctrine\DBAL\Schema\ForeignKeyConstraint;
+use Doctrine\DBAL\Schema\Index;
 use Doctrine\DBAL\Schema\Table;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 
 class DoctrineBlueprintBuilder extends BlueprintBuilder
@@ -27,54 +29,60 @@ class DoctrineBlueprintBuilder extends BlueprintBuilder
 
     public function buildColumns(): static
     {
-        foreach ($this->doctrineTableDetails->getColumns() as $column) {
+
+        collect($this->doctrineTableDetails->getColumns())->map(function (Column $column){
             $columnDefinition = $this->blueprint->{$column->getType()->getName()}($column->getName());
-//            dd($column, $columnDefinition);
-            $columnDefinition->nullable(!$column->getNotnull());
-            if ($column->getUnsigned()) {
-                $columnDefinition->unsigned();
-            }
-            if ($column->getAutoincrement()) {
-                $columnDefinition->autoIncrement();
-            }
-            if ($column->getLength() !== null) {
-                $columnDefinition->length($column->getLength());
-            }
-            if ($column->getDefault() !== null) {
-                $columnDefinition->default($column->getDefault());
-            }
-        }
+            match (true) {
+                $column->getAutoincrement() => $columnDefinition->autoIncrement(),
+                $column->getUnsigned() => $columnDefinition->unsigned(),
+                !$column->getNotNull() => $columnDefinition->nullable(),
+                $column->getDefault() !== null => $columnDefinition->default($column->getDefault()),
+                $column->getComment() !== null => $columnDefinition->comment($column->getComment()),
+                $column->getLength() !== null => $columnDefinition->length($column->getLength()),
+                $column->getPrecision() !== null => $columnDefinition->precision($column->getPrecision()),
+                $column->getScale() !== null => $columnDefinition->scale($column->getScale()),
+                $column->getFixed() => $columnDefinition->fixed(),
+            };
+
+        });
         return $this;
     }
 
     public function buildIndexes(): static
     {
-        foreach ($this->doctrineTableDetails->getIndexes() as $index) {
-            $indexDefinition = $this->blueprint->index($index->getColumns(), $index->getName());
-            if ($index->isPrimary()) {
-                $indexDefinition->primary();
-            }
-            if ($index->isUnique()) {
-                $indexDefinition->unique();
-            }
-        }
+        collect($this->doctrineTableDetails->getIndexes())->map(function (Index $index) {
+                $indexDefinition = $this->blueprint->index($index->getColumns(), $index->getName());
+
+                if ($index->isPrimary()) {
+                    $indexDefinition->primary();
+                }
+                if ($index->isUnique()) {
+                    $indexDefinition->unique();
+                }
+                return $indexDefinition;
+            });
         return $this;
     }
 
     public function buildForeignKeys(): static
     {
-        foreach ($this->doctrineTableDetails->getForeignKeys() as $foreignKey) {
-            $foreignKeyDefinition = $this->blueprint->foreign($foreignKey->getLocalColumns())
-                ->references($foreignKey->getForeignColumns())
-                ->on($foreignKey->getForeignTableName())
-                ->name($foreignKey->getName());
-            if ($foreignKey->getOption('onUpdate') !== null) {
-                $foreignKeyDefinition->onUpdate($foreignKey->getOption('onUpdate'));
-            }
-            if ($foreignKey->getOption('onDelete') !== null) {
-                $foreignKeyDefinition->onDelete($foreignKey->getOption('onDelete'));
-            }
-        }
+        collect($this->doctrineTableDetails->getForeignKeys())
+            ->map(function (ForeignKeyConstraint $foreignKey) {
+                $foreignKeyDefinition = $this->blueprint->foreign($foreignKey->getLocalColumns())
+                    ->references($foreignKey->getForeignColumns())
+                    ->on($foreignKey->getForeignTableName())
+                    ->name($foreignKey->getName());
+
+                if ($foreignKey->getOption('onUpdate') !== null) {
+                    $foreignKeyDefinition->onUpdate($foreignKey->getOption('onUpdate'));
+                }
+
+                if ($foreignKey->getOption('onDelete') !== null) {
+                    $foreignKeyDefinition->onDelete($foreignKey->getOption('onDelete'));
+                }
+
+                return $foreignKeyDefinition;
+            });
         return $this;
     }
 

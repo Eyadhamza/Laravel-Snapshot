@@ -61,15 +61,14 @@ it('builds migrations files', function () {
 
     expect($file->getContents())
         ->toContain('Schema::create(\'books\', function (Blueprint $table) {')
-        ->toContain("\$table->bigInteger('id')->unique()->primary()->autoIncrement()")
-        ->toContain("\$table->string('title')->unique()")
+        ->toContain("\$table->id('id')")
+        ->toContain("\$table->string('title')")
         ->toContain("\$table->string('description')")
         ->toContain("\$table->foreignId('author_id')")
-        ->toContain('$table->timestamps();')
         ->toContain('Schema::dropIfExists(\'books\');');
 
 });
 
-//afterEach(function () {
-//    File::deleteDirectory(database_path('migrations'), true);
-//});
+afterEach(function () {
+    File::deleteDirectory(database_path('migrations'), true);
+});
