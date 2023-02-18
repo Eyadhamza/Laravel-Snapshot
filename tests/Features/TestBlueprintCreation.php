@@ -5,9 +5,9 @@ use App\Models\User;
 use Eyadhamza\LaravelAutoMigration\Core\MigrationBuilder;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Schema\ColumnDefinition;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Spatie\ModelInfo\ModelInfo;
-
 
 it('can create a new MigrationBuilder instance', function () {
     $mapper = MigrationBuilder::mapAll(ModelInfo::forAllModels('app', config('auto-migration.base_path') ?? app_path()));
@@ -68,7 +68,7 @@ it('builds migrations files', function () {
         ->toContain('Schema::dropIfExists(\'books\');');
 
 });
-//
+
 //afterEach(function () {
 //    File::deleteDirectory(database_path('migrations'), true);
 //});

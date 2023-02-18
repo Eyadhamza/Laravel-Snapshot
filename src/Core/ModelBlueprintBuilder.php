@@ -26,12 +26,10 @@ class ModelBlueprintBuilder extends BlueprintBuilder
         $this->mappedColumns = $this->modelProperties->map(function (BlueprintAttributeEntity $modelProperty) {
             $rules = $modelProperty->getRules();
             $columnType = $modelProperty->getType();
-            $columnName = is_array($modelProperty->getName()) ?
-                "['" . implode("','", $modelProperty->getName()) . "']"
-                : "'{$modelProperty->getName()}'";
+            $columnName = $modelProperty->getName();
 
             $column = $this->blueprint->$columnType($columnName);
-            $mappedColumn = "\$table" . "->$columnType" . "($columnName)";
+            $mappedColumn = "\$table" . "->$columnType" . "({$this->getColumnNameOrNames($columnName)}";
 
             foreach ($rules as $rule => $value) {
                 if (is_int($rule)) {
@@ -51,5 +49,10 @@ class ModelBlueprintBuilder extends BlueprintBuilder
     {
         $this->buildColumns();
         return $this;
+    }
+
+    private function getColumnNameOrNames(mixed $name): string
+    {
+        return is_array($name) ? "['" . implode("','", $name) . "'])" : "'{$name}')";
     }
 }
