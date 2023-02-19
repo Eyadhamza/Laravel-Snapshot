@@ -24,12 +24,9 @@ abstract class Rule
         Rule::NULLABLE ,
         Rule::UNIQUE ,
         Rule::UNSIGNED,
-        Rule::PRIMARY,
         Rule::FIRST,
         Rule::CHANGE,
         Rule::COMMENT,
-        Rule::INDEX,
-        Rule::FULL_TEXT,
         Rule::AUTO_INCREMENT,
     ];
 

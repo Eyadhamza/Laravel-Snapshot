@@ -35,7 +35,11 @@ class ModelBlueprintBuilder extends BlueprintBuilder
                 return $mappedColumn . ";";
             }
             foreach ($rules as $rule => $value) {
-                dump($rule, $value);
+                if ($this->inForeignRules($value)){
+                    $column->foreign()->{$value}();
+                    $mappedColumn = $mappedColumn . "->{$value}('$rule')";
+                    continue;
+                }
                 if (is_int($rule)) {
                     $column->{$value}();
                     $mappedColumn = $mappedColumn . "->$value()";
@@ -61,6 +65,11 @@ class ModelBlueprintBuilder extends BlueprintBuilder
             return '';
         }
         return is_array($name) ? "['" . implode("','", $name) . "']" : "'{$name}'";
+    }
+
+    private function inForeignRules($rule): bool
+    {
+        return in_array($rule, ['onDelete', 'onUpdate']);
     }
 
 }

@@ -2,15 +2,9 @@
 
 namespace Eyadhamza\LaravelAutoMigration\Core;
 
-use Doctrine\DBAL\Schema\Comparator;
-use Doctrine\DBAL\Schema\Table;
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\BlueprintColumnBuilder;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Schema\ColumnDefinition;
-use Illuminate\Database\Schema\Grammars\Grammar;
-use Illuminate\Database\Schema\Grammars\MySqlGrammar;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Schema;
 
 class BlueprintComparer
 {
@@ -103,16 +97,21 @@ class BlueprintComparer
 
     private function compareModifiedIndexes()
     {
+        //                    dd($matchingNewBlueprintColumn);
+        //                    $mappedColumn = "\$table->dropForeign(['$columnName']);" . "\n \t \t \t";
+        //                    return $mappedColumn . "\$table->foreign('$columnName')->references()->$attribute('$value');" . "\n \t \t \t";
         return $this;
     }
 
     private function addNewIndexes()
     {
+        // TODO: Implement addNewIndexes() method.
         return $this;
     }
 
     private function removeOldIndexes()
     {
+        // TODO: Implement removeOldIndexes() method.
         return $this;
     }
 
@@ -137,40 +136,42 @@ class BlueprintComparer
         return collect($modifiedAttributes)
             ->reject(fn($value, $attribute) => $this->attributesToBeSkipped($attribute))
             ->reject(fn($value, $attribute) => $this->noChangeHappened($attribute))
-            ->map(function ($value, $attribute) use ($columnName, $columnType, $mappedColumn) {
+            ->map(function ($value, $attribute) use ($columnName, $columnType, $mappedColumn, $matchingNewBlueprintColumn) {
                 if ($this->attributesAsSecondArgument($attribute)) {
-                    return $value ? "\$table->{$columnType}('$columnName', $value)"  . "->change();" : "";
+                    return $value ? "\$table->{$columnType}('$columnName', $value)" . "->change();" : "";
                 }
-                return $mappedColumn . "->{$attribute}()"  . "->change();";
+                if ($this->inForeignRules($attribute)) {
+                    return "";
+                }
+                return $mappedColumn . "->{$attribute}()" . "->change();";
             })->implode('');
     }
 
     private function attributesAsSecondArgument($attribute): bool
     {
-        return match ($attribute) {
-            'length', 'precision' => true,
-            default => false,
-        };
+
+        return in_array($attribute, ['length', 'precision', 'scale']);
     }
 
     private function attributesToBeSkipped(int|string|null $attribute): bool
     {
-        return match ($attribute) {
-            'name', 'type' => true,
-            default => false,
-        };
+        return in_array($attribute, ['name', 'type']);
     }
 
     private function noChangeHappened($attribute): bool
     {
-        return match ($attribute) {
-            'autoIncrement' => true,
-            default => false,
-        };
+        return in_array($attribute, ['autoIncrement']);
     }
+
     public function getTable(): string
     {
         return $this->table;
     }
+
+    private function inForeignRules($rule): bool
+    {
+        return in_array($rule, ['cascadeOnDelete', 'cascadeOnUpdate']);
+    }
+
 
 }

@@ -8,9 +8,9 @@ use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Timestamps;
 use Eyadhamza\LaravelAutoMigration\Core\Constants\Rule;
 use Illuminate\Database\Eloquent\Model;
 
-#[AsString('name', [Rule::UNIQUE, Rule::DEFAULT => 'Eyad Hamza'])]
+#[AsString('name', [ Rule::DEFAULT => 'Eyad Hamza'])]
 #[Id('id')]
-#[AsString('email', [Rule::UNIQUE])]
+#[AsString('email')]
 #[AsString('password')]
 #[Timestamps]
 
