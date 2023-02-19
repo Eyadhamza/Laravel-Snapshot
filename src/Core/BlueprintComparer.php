@@ -60,15 +60,12 @@ class BlueprintComparer
                 $matchingNewBlueprintColumn = $matchingNewBlueprintColumns->first();
 
                 $modifiedAttributes = $this->getModifiedAttributes($currentBlueprintColumn, $matchingNewBlueprintColumn);
-
                 if ($modifiedAttributes->isNotEmpty()) {
                     return $this->buildMappedColumn($matchingNewBlueprintColumn, $modifiedAttributes);
                 }
             }
             return "";
-        })
-            ->filter()
-            ->values();
+        })->filter()->values();
 
         return $this;
     }
@@ -137,17 +134,39 @@ class BlueprintComparer
         $columnName = $matchingNewBlueprintColumn->get('name');
 
         $mappedColumn = "\$table" . "->$columnType" . "('$columnName')";
+        return collect($modifiedAttributes)
+            ->reject(fn($value, $attribute) => $this->attributesToBeSkipped($attribute))
+            ->reject(fn($value, $attribute) => $this->noChangeHappened($attribute))
+            ->map(function ($value, $attribute) use ($columnName, $columnType, $mappedColumn) {
+                if ($this->attributesAsSecondArgument($attribute)) {
+                    return $value ? "\$table->{$columnType}('$columnName', $value)"  . "->change();" : "";
+                }
+                return $mappedColumn . "->{$attribute}()"  . "->change();";
+            })->implode('');
+    }
 
-        foreach ($modifiedAttributes as $attribute => $value) {
-            if ($attribute === 'type' || $attribute === 'name')
-                continue;
-            if ($attribute === 'length' || $attribute === 'precision') {
-                $mappedColumn = "\$table" . "->$columnType" . "('$columnName', $value)";
-                continue;
-            }
-            $mappedColumn = $mappedColumn . "->{$attribute}()";
-        }
-        return $mappedColumn . "->change();";
+    private function attributesAsSecondArgument($attribute): bool
+    {
+        return match ($attribute) {
+            'length', 'precision' => true,
+            default => false,
+        };
+    }
+
+    private function attributesToBeSkipped(int|string|null $attribute): bool
+    {
+        return match ($attribute) {
+            'name', 'type' => true,
+            default => false,
+        };
+    }
+
+    private function noChangeHappened($attribute): bool
+    {
+        return match ($attribute) {
+            'autoIncrement' => true,
+            default => false,
+        };
     }
 
 }

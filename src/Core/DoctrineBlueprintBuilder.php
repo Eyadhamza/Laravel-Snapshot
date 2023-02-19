@@ -8,9 +8,7 @@ use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Index;
 use Doctrine\DBAL\Schema\Table;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Database\Schema\ColumnDefinition;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Fluent;
 
 class DoctrineBlueprintBuilder extends BlueprintBuilder
 {
@@ -51,20 +49,11 @@ class DoctrineBlueprintBuilder extends BlueprintBuilder
     public function buildColumns(): static
     {
         collect($this->doctrineTableDetails->getColumns())->map(function (Column $column) {
-            $attributes = collect([
-                'name' => $column->getName(),
-                'unsigned' => $column->getUnsigned(),
-                'nullable' => $column->getNotnull() == false,
-                'default' => $column->getDefault(),
-                'length' => $column->getLength(),
-                'precision' => $column->getPrecision(),
-                'scale' => $column->getScale(),
-            ])->filter()->toArray();
-            $attributes['type'] = match ($column->getType()->getName()) {
-                'datetime' => 'timestamp',
-                default => $column->getType()->getName(),
-            };
-            return $this->blueprint->addColumn($attributes['type'], $attributes['name'], $attributes);
+            return $this->blueprint->addColumn(
+                    $this->mapTypeToBlueprint($column),
+                    $column->getName(),
+                    $this->mapAttributesToBlueprint($column)
+                );
         });
         return $this;
     }
@@ -119,6 +108,33 @@ class DoctrineBlueprintBuilder extends BlueprintBuilder
         foreach ($this->typeMappings as $type => $value) {
             $platform->registerDoctrineTypeMapping($type, $value);
         }
+    }
+
+    private function mapAttributesToBlueprint(Column $column)
+    {
+        return collect([
+            'name' => $column->getName(),
+            'unsigned' => $column->getUnsigned(),
+            'nullable' => $column->getNotnull() == false,
+            'default' => $column->getDefault(),
+            'length' => $column->getLength(),
+            'precision' => $column->getPrecision(),
+            'scale' => $column->getScale(),
+            'comment' => $column->getComment(),
+            'autoIncrement' => $column->getAutoincrement(),
+            'fixed' => $column->getFixed(),
+        ])->filter()->toArray();
+    }
+
+    private function mapTypeToBlueprint(Column $column): string
+    {
+        return match ($column->getType()->getName()) {
+            'datetime' => 'timestamp',
+            'bigint' => 'bigInteger',
+            'smallint' => 'smallInteger',
+            'tinyint' => 'tinyInteger',
+            default => $column->getType()->getName(),
+        };
     }
 
 }
