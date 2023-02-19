@@ -96,7 +96,7 @@ class DoctrineBlueprintBuilder extends BlueprintBuilder
         return $this;
     }
 
-    public function buildNew(): self
+    public function build(): self
     {
         return $this->buildColumns()
             ->buildForeignKeys()

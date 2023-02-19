@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 
 #[Id('id')]
 #[AsString('title', [Rule::DEFAULT => 'Eyad Hamza'])]
-#[AsString('description')]
+#[AsString('description', [Rule::NULLABLE])]
 #[ForeignId('author_id', [Rule::CONSTRAINED => 'savers', Rule::CASCADE_ON_DELETE, Rule::CASCADE_ON_UPDATE])]
 #[Unique(['title'])]
 #[Index(['title', 'description'])]

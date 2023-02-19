@@ -55,7 +55,6 @@ class BlueprintComparer
         $this->mappedDiff = $this->currentBlueprintColumns->map(function (ColumnDefinition $currentBlueprintColumn) {
 
             $matchingNewBlueprintColumns = $this->getMatchingNewBlueprintColumns($currentBlueprintColumn);
-
             if ($matchingNewBlueprintColumns->isNotEmpty()) {
                 $matchingNewBlueprintColumn = $matchingNewBlueprintColumns->first();
 
@@ -75,7 +74,8 @@ class BlueprintComparer
 
         $this->mappedDiff->add($this->addedColumns->map(function (ColumnDefinition $column) {
             $columnName = $column->get('name');
-            return "\$table->addColumn('$columnName');";
+            $columnType = $column->get('type');
+            return "\$table->$columnType('$columnName');";
         }));
 
         return $this;
@@ -167,6 +167,10 @@ class BlueprintComparer
             'autoIncrement' => true,
             default => false,
         };
+    }
+    public function getTable(): string
+    {
+        return $this->table;
     }
 
 }

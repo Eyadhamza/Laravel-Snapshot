@@ -10,7 +10,6 @@ use Illuminate\Database\Eloquent\Model;
 
 #[AsString('name', [Rule::UNIQUE, Rule::DEFAULT => 'Eyad Hamza'])]
 #[Id('id')]
-#[AsString('description')]
 #[AsString('email', [Rule::UNIQUE])]
 #[AsString('password')]
 #[Timestamps]

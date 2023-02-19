@@ -45,7 +45,7 @@ class MigrationBuilder
                 return $this->mapAttribute($attribute);
             });
 
-            return ModelBlueprintBuilder::make(new Blueprint($model->tableName), $modelProperties)->buildNew();
+            return ModelBlueprintBuilder::make(new Blueprint($model->tableName), $modelProperties)->build();
         });
         return $this;
     }
@@ -95,19 +95,20 @@ class MigrationBuilder
         $newBlueprint = $modelBlueprintBuilder->getBlueprint();
         $tableName = $newBlueprint->getTable();
 
-        $migrationFile = $this->setMigrationFileAsUpdateTemplate($tableName, $modelBlueprintBuilder->getExecutionOrder());
-
         $blueprintOfCurrentTable = DoctrineBlueprintBuilder::make(new Blueprint($tableName))
-            ->buildNew()
+            ->build()
             ->getBlueprint();
 
-        $diffBlueprint = BlueprintComparer::make($blueprintOfCurrentTable, $newBlueprint)->getDiff();
-
-        $this->generateMigrationFile($diffBlueprint, $migrationFile, 'update');
+        $diffBlueprint = BlueprintComparer::make($blueprintOfCurrentTable, $newBlueprint)
+            ->getDiff();
+        if ($diffBlueprint->getMapped()->isNotEmpty()) {
+            $migrationFile = $this->setMigrationFileAsUpdateTemplate($tableName, $modelBlueprintBuilder->getExecutionOrder());
+            $this->generateMigrationFile($diffBlueprint, $migrationFile, 'update');
+        }
     }
     private function generateMigrationFile(BlueprintBuilder|BlueprintComparer $mapToBlueprint, string $migrationFilePath,string $operation): void
     {
-        $tableName = $mapToBlueprint->getDiffBlueprint()->getTable();
+        $tableName = $mapToBlueprint->getTable();
         $generatedMigrationFile = $this->replaceStubMigrationFile($tableName, $mapToBlueprint->getMapped(), $operation);
         file_put_contents($migrationFilePath, $generatedMigrationFile);
     }
@@ -150,6 +151,10 @@ class MigrationBuilder
         })->sortBy(fn ($data) => $data->getExecutionOrder())->values();
 
         return $this;
+    }
+    public function getModelBlueprintBuilders(): Collection
+    {
+        return $this->modelBlueprintBuilders;
     }
 }
 

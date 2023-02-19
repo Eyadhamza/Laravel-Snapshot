@@ -35,8 +35,10 @@ class ModelBlueprintBuilder extends BlueprintBuilder
                 return $mappedColumn . ";";
             }
             foreach ($rules as $rule => $value) {
+                dump($rule, $value);
                 if (is_int($rule)) {
-                    $mappedColumn = $mappedColumn . "->{$value}()";
+                    $column->{$value}();
+                    $mappedColumn = $mappedColumn . "->$value()";
                     continue;
                 }
                 $column->{$rule}($value);
@@ -47,7 +49,7 @@ class ModelBlueprintBuilder extends BlueprintBuilder
         return $this;
     }
 
-    public function buildNew(): self
+    public function build(): self
     {
         $this->buildColumns();
         return $this;

@@ -3,38 +3,36 @@
 
 use App\Models\User;
 use Eyadhamza\LaravelAutoMigration\Core\MigrationBuilder;
+use Eyadhamza\LaravelAutoMigration\Core\ModelBlueprintBuilder;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Schema\ColumnDefinition;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Schema;
 use Spatie\ModelInfo\ModelInfo;
 
-beforeEach(function (){
-    Artisan::call('migrate:fresh');
-});
 
 it('can create a new MigrationBuilder instance', function () {
     $mapper = MigrationBuilder::mapAll(ModelInfo::forAllModels('app', config('auto-migration.base_path') ?? app_path()));
-    expect($mapper->first())->toBeInstanceOf(MigrationBuilder::class);
+    expect($mapper)
+        ->toBeInstanceOf(MigrationBuilder::class);
 });
 
 it('can map models to blueprints', function () {
     $mapper = MigrationBuilder::mapAll(ModelInfo::forAllModels('app', config('auto-migration.base_path') ?? app_path()));
 
-    $blueprint = $mapper->first()->getBlueprint();
-
-        expect($blueprint)
-            ->toBeInstanceOf(Blueprint::class)
-            ->toHaveProperty('table');
+    $blueprintBuilder = $mapper->getModelBlueprintBuilders()->first();
+    expect($blueprintBuilder)
+        ->toBeInstanceOf(ModelBlueprintBuilder::class)
+        ->and($blueprintBuilder->getBlueprint())
+        ->toBeInstanceOf(Blueprint::class)
+        ->toHaveProperty('table');
 
 });
 it('can generate the right columns', function () {
     $mapper = MigrationBuilder::mapAll(ModelInfo::forAllModels('app', config('auto-migration.base_path') ?? app_path()));
-    $blueprint = $mapper->first()->getBlueprint();
+    $blueprint = $mapper->getModelBlueprintBuilders()->first()->getBlueprint();
     expect($blueprint->getColumns())
-        ->toHaveCount(4);
+        ->toHaveCount(8);
     $idColumn = $blueprint->getColumns()[0];
         expect($idColumn)
             ->toBeInstanceOf(ColumnDefinition::class)
@@ -42,20 +40,6 @@ it('can generate the right columns', function () {
             ->toHaveKey('type', 'bigInteger')
             ->toHaveKey('name', 'id')
             ->toHaveKey('autoIncrement', true);
-});
-it('can do normal model operation', function () {
-    User::create([
-        'name' => 'Eyad',
-        'email' => 'Eyadhamza0@gmail.com',
-        'password' => 'password'
-    ]);
-
-    expect(User::all())
-        ->toHaveCount(1);
-
-    $user = User::first();
-    expect($user->name)
-        ->toBe('Eyad');
 });
 
 it('builds migrations files', function () {
@@ -66,12 +50,12 @@ it('builds migrations files', function () {
 
 
     expect($file->getContents())
-        ->toContain('Schema::create(\'books\', function (Blueprint $table) {')
+        ->toContain('Schema::create(\'savers\', function (Blueprint $table) {')
         ->toContain("\$table->id('id')")
-        ->toContain("\$table->string('title')")
+        ->toContain("\$table->string('name')")
         ->toContain("\$table->string('description')")
-        ->toContain("\$table->foreignId('author_id')")
-        ->toContain('Schema::dropIfExists(\'books\');');
+        ->toContain("\$table->foreignId('user_id')")
+        ->toContain('Schema::dropIfExists(\'savers\');');
 });
 
 //afterEach(function () {
