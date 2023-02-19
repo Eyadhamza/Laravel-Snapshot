@@ -3,11 +3,13 @@
 namespace Eyadhamza\LaravelAutoMigration\Tests;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Orchestra\Testbench\TestCase as Orchestra;
 use Eyadhamza\LaravelAutoMigration\LaravelAutoMigrationServiceProvider;
 
 class TestCase extends Orchestra
 {
+    use RefreshDatabase;
     protected function setUp(): void
     {
         parent::setUp();
@@ -31,7 +33,6 @@ class TestCase extends Orchestra
 
     public function getEnvironmentSetUp($app)
     {
-        config()->set('database.default', 'testing');
 
         /*
         $migration = include __DIR__.'/../database/migrations/create_laravel-auto-migration_table.php.stub';

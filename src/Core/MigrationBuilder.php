@@ -107,7 +107,7 @@ class MigrationBuilder
     }
     private function generateMigrationFile(BlueprintBuilder|BlueprintComparer $mapToBlueprint, string $migrationFilePath,string $operation): void
     {
-        $tableName = $mapToBlueprint->getBlueprint()->getTable();
+        $tableName = $mapToBlueprint->getDiffBlueprint()->getTable();
         $generatedMigrationFile = $this->replaceStubMigrationFile($tableName, $mapToBlueprint->getMapped(), $operation);
         file_put_contents($migrationFilePath, $generatedMigrationFile);
     }

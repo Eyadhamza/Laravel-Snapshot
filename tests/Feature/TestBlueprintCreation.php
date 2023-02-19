@@ -5,15 +5,15 @@ use App\Models\User;
 use Eyadhamza\LaravelAutoMigration\Core\MigrationBuilder;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Schema\ColumnDefinition;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Schema;
 use Spatie\ModelInfo\ModelInfo;
 
-it('shows database info', function () {
-    Artisan::call('db:table savers');
-    dd(Artisan::output());
+beforeEach(function (){
+    Artisan::call('migrate:fresh');
 });
-
 
 it('can create a new MigrationBuilder instance', function () {
     $mapper = MigrationBuilder::mapAll(ModelInfo::forAllModels('app', config('auto-migration.base_path') ?? app_path()));
@@ -72,9 +72,8 @@ it('builds migrations files', function () {
         ->toContain("\$table->string('description')")
         ->toContain("\$table->foreignId('author_id')")
         ->toContain('Schema::dropIfExists(\'books\');');
-
 });
-//
+
 //afterEach(function () {
 //    File::deleteDirectory(database_path('migrations'), true);
 //});

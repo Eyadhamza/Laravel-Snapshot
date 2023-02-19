@@ -15,13 +15,32 @@ use Illuminate\Support\Fluent;
 class DoctrineBlueprintBuilder extends BlueprintBuilder
 {
     private Table $doctrineTableDetails;
+    protected $typeMappings = [
+        'bit' => 'string',
+        'citext' => 'string',
+        'enum' => 'string',
+        'geometry' => 'string',
+        'geomcollection' => 'string',
+        'linestring' => 'string',
+        'ltree' => 'string',
+        'multilinestring' => 'string',
+        'multipoint' => 'string',
+        'multipolygon' => 'string',
+        'point' => 'string',
+        'polygon' => 'string',
+        'sysname' => 'string',
+    ];
+
     public function __construct(Blueprint $blueprint)
     {
         parent::__construct($blueprint);
 
-        $this->doctrineTableDetails = Schema::getConnection()
-            ->getDoctrineSchemaManager()
-            ->introspectTable($blueprint->getTable());;
+        $schema =  Schema::getConnection()->getDoctrineSchemaManager();
+
+        $this->registerTypeMappings($schema->getDatabasePlatform());
+
+        $this->doctrineTableDetails = $schema->introspectTable($blueprint->getTable());
+
     }
 
     public static function make(Blueprint $blueprint): self
@@ -94,4 +113,12 @@ class DoctrineBlueprintBuilder extends BlueprintBuilder
             ->buildForeignKeys()
             ->buildIndexes();
     }
+
+    protected function registerTypeMappings(AbstractPlatform $platform)
+    {
+        foreach ($this->typeMappings as $type => $value) {
+            $platform->registerDoctrineTypeMapping($type, $value);
+        }
+    }
+
 }

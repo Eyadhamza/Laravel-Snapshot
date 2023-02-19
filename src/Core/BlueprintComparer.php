@@ -12,17 +12,24 @@ use Illuminate\Database\Schema\Grammars\MySqlGrammar;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 
-class BlueprintComparer extends Grammar
+class BlueprintComparer
 {
-    private Blueprint $blueprintOfCurrentTable;
-    private Blueprint $newBlueprint;
     private Collection $mappedDiff;
     private Blueprint $diffBlueprint;
+    private Collection $currentBlueprintColumns;
+    private Collection $newBlueprintColumns;
+    private Collection $addedColumns;
+    private Collection $removedColumns;
+    private string $table;
 
     public function __construct(Blueprint $blueprintOfCurrentTable, Blueprint $newBlueprint)
     {
-        $this->blueprintOfCurrentTable = $blueprintOfCurrentTable;
-        $this->newBlueprint = $newBlueprint;
+        $this->table = $blueprintOfCurrentTable->getTable();
+        $this->diffBlueprint = new Blueprint($this->table);
+        $this->currentBlueprintColumns = collect($blueprintOfCurrentTable->getColumns());
+        $this->newBlueprintColumns = collect($newBlueprint->getColumns());
+        $this->addedColumns = $this->newBlueprintColumns->diffKeys($this->currentBlueprintColumns);
+        $this->removedColumns = $this->currentBlueprintColumns->diffKeys($this->newBlueprintColumns);
     }
 
     public static function make(Blueprint $blueprintOfCurrentTable, Blueprint $newBlueprint): BlueprintComparer
@@ -32,58 +39,44 @@ class BlueprintComparer extends Grammar
 
     public function getDiff(): BlueprintComparer
     {
-        $this->diffBlueprint = new Blueprint($this->blueprintOfCurrentTable->getTable());
-        $currentBlueprintColumns = collect($this->blueprintOfCurrentTable->getColumns());
-        $newBlueprintColumns = collect($this->newBlueprint->getColumns());
-        $addedColumns = $newBlueprintColumns->diffKeys($currentBlueprintColumns);
-        $removedColumns = $currentBlueprintColumns->diffKeys($newBlueprintColumns);
-
-        $this->compareModifiedColumns($currentBlueprintColumns, $newBlueprintColumns)
-            ->addNewColumns($addedColumns)
-            ->removeOldColumns($removedColumns);
+        $this->compareModifiedColumns()
+            ->addNewColumns()
+            ->removeOldColumns()
+            ->compareModifiedIndexes()
+            ->addNewIndexes()
+            ->removeOldIndexes();
 
         return $this;
 
     }
 
-    private function compareModifiedColumns(Collection $currentBlueprintColumns, Collection $newBlueprintColumns): self
+    private function compareModifiedColumns(): self
     {
-        $this->mappedDiff = $currentBlueprintColumns->map(function (ColumnDefinition $currentBlueprintColumn) use ($newBlueprintColumns) {
+        $this->mappedDiff = $this->currentBlueprintColumns->map(function (ColumnDefinition $currentBlueprintColumn) {
 
-            $matchingNewBlueprintColumns = $newBlueprintColumns->where('name', $currentBlueprintColumn->get('name'));
+            $matchingNewBlueprintColumns = $this->getMatchingNewBlueprintColumns($currentBlueprintColumn);
 
             if ($matchingNewBlueprintColumns->isNotEmpty()) {
                 $matchingNewBlueprintColumn = $matchingNewBlueprintColumns->first();
 
-                $modifiedAttributes = collect($matchingNewBlueprintColumn->getAttributes())->filter(function ($value, $attribute) use ($currentBlueprintColumn) {
-                    return $value !== $currentBlueprintColumn->get($attribute);
-                });
+                $modifiedAttributes = $this->getModifiedAttributes($currentBlueprintColumn, $matchingNewBlueprintColumn);
 
                 if ($modifiedAttributes->isNotEmpty()) {
-                    $columnType = $matchingNewBlueprintColumn->get('type');
-                    $columnName = $matchingNewBlueprintColumn->get('name');
-                    $mappedColumn = "\$table" . "->$columnType" . "('$columnName')";
-                    foreach ($modifiedAttributes as $attribute => $value) {
-                        if ($attribute === 'type' || $attribute === 'name')
-                            continue;
-                        if ($attribute === 'length' || $attribute === 'precision') {
-                            $mappedColumn = "\$table" . "->$columnType" . "('$columnName', $value)";
-                            continue;
-                        }
-                        $mappedColumn = $mappedColumn . "->{$attribute}()";
-                    }
-                    return $mappedColumn . "->change();";
+                    return $this->buildMappedColumn($matchingNewBlueprintColumn, $modifiedAttributes);
                 }
             }
-
-        })->filter()->values();
+            return "";
+        })
+            ->filter()
+            ->values();
 
         return $this;
     }
 
-    private function addNewColumns(Collection $addedColumns): self
+    private function addNewColumns(): self
     {
-        $this->mappedDiff->add($addedColumns->map(function (ColumnDefinition $column) {
+
+        $this->mappedDiff->add($this->addedColumns->map(function (ColumnDefinition $column) {
             $columnName = $column->get('name');
             return "\$table->addColumn('$columnName');";
         }));
@@ -91,9 +84,9 @@ class BlueprintComparer extends Grammar
         return $this;
     }
 
-    private function removeOldColumns(Collection $removedColumns): self
+    private function removeOldColumns(): self
     {
-        $this->mappedDiff->add($removedColumns->map(function (ColumnDefinition $column) {
+        $this->mappedDiff->add($this->removedColumns->map(function (ColumnDefinition $column) {
             $columnName = $column->get('name');
             return "\$table->dropColumn('$columnName');";
         }));
@@ -101,8 +94,7 @@ class BlueprintComparer extends Grammar
         return $this;
     }
 
-
-    public function getBlueprint(): Blueprint
+    public function getDiffBlueprint(): Blueprint
     {
         return $this->diffBlueprint;
     }
@@ -110,6 +102,52 @@ class BlueprintComparer extends Grammar
     public function getMapped(): Collection
     {
         return $this->mappedDiff->flatten()->filter()->values();
+    }
+
+    private function compareModifiedIndexes()
+    {
+        return $this;
+    }
+
+    private function addNewIndexes()
+    {
+        return $this;
+    }
+
+    private function removeOldIndexes()
+    {
+        return $this;
+    }
+
+    private function getMatchingNewBlueprintColumns(ColumnDefinition $currentBlueprintColumn): Collection
+    {
+        return $this->newBlueprintColumns->where('name', $currentBlueprintColumn->get('name'));
+    }
+
+    private function getModifiedAttributes(ColumnDefinition $currentBlueprintColumn, $matchingNewBlueprintColumn): Collection
+    {
+        return collect($matchingNewBlueprintColumn->getAttributes())->filter(function ($value, $attribute) use ($currentBlueprintColumn) {
+            return $value !== $currentBlueprintColumn->get($attribute);
+        });
+    }
+
+    private function buildMappedColumn(ColumnDefinition $matchingNewBlueprintColumn, Collection $modifiedAttributes): string
+    {
+        $columnType = $matchingNewBlueprintColumn->get('type');
+        $columnName = $matchingNewBlueprintColumn->get('name');
+
+        $mappedColumn = "\$table" . "->$columnType" . "('$columnName')";
+
+        foreach ($modifiedAttributes as $attribute => $value) {
+            if ($attribute === 'type' || $attribute === 'name')
+                continue;
+            if ($attribute === 'length' || $attribute === 'precision') {
+                $mappedColumn = "\$table" . "->$columnType" . "('$columnName', $value)";
+                continue;
+            }
+            $mappedColumn = $mappedColumn . "->{$attribute}()";
+        }
+        return $mappedColumn . "->change();";
     }
 
 }
