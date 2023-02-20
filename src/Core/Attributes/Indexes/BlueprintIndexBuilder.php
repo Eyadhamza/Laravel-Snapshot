@@ -34,4 +34,14 @@ class BlueprintIndexBuilder extends BlueprintAttributeEntity
         return $this->columns;
     }
 
+    public function getColumns(): array|string
+    {
+        return $this->columns;
+    }
+
+    private function getAlgorithm()
+    {
+        return $this->algorithm;
+    }
+
 }

@@ -4,26 +4,29 @@ namespace Eyadhamza\LaravelAutoMigration\Core;
 
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Schema\ColumnDefinition;
+use Illuminate\Database\Schema\IndexDefinition;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Fluent;
 
 class BlueprintComparer
 {
     private Collection $mappedDiff;
     private Blueprint $diffBlueprint;
-    private Collection $currentBlueprintColumns;
+    private Collection $doctrineBlueprintColumns;
     private Collection $newBlueprintColumns;
-    private Collection $addedColumns;
-    private Collection $removedColumns;
+
+    private Collection $doctrineBlueprintIndexes;
+    private Collection $newBlueprintIndexes;
     private string $table;
 
-    public function __construct(Blueprint $blueprintOfCurrentTable, Blueprint $newBlueprint)
+    public function __construct(Blueprint $doctrineBlueprint, Blueprint $newBlueprint)
     {
-        $this->table = $blueprintOfCurrentTable->getTable();
+        $this->table = $doctrineBlueprint->getTable();
         $this->diffBlueprint = new Blueprint($this->table);
-        $this->currentBlueprintColumns = collect($blueprintOfCurrentTable->getColumns());
+        $this->doctrineBlueprintColumns = collect($doctrineBlueprint->getColumns());
         $this->newBlueprintColumns = collect($newBlueprint->getColumns());
-        $this->addedColumns = $this->newBlueprintColumns->diffKeys($this->currentBlueprintColumns);
-        $this->removedColumns = $this->currentBlueprintColumns->diffKeys($this->newBlueprintColumns);
+        $this->doctrineBlueprintIndexes = collect($doctrineBlueprint->getCommands());
+        $this->newBlueprintIndexes = collect($newBlueprint->getCommands());
     }
 
     public static function make(Blueprint $blueprintOfCurrentTable, Blueprint $newBlueprint): BlueprintComparer
@@ -39,14 +42,14 @@ class BlueprintComparer
             ->compareModifiedIndexes()
             ->addNewIndexes()
             ->removeOldIndexes();
-
+        dd($this->mappedDiff);
         return $this;
 
     }
 
     private function compareModifiedColumns(): self
     {
-        $this->mappedDiff = $this->currentBlueprintColumns->map(function (ColumnDefinition $currentBlueprintColumn) {
+        $this->mappedDiff = $this->doctrineBlueprintColumns->map(function (ColumnDefinition $currentBlueprintColumn) {
 
             $matchingNewBlueprintColumns = $this->getMatchingNewBlueprintColumns($currentBlueprintColumn);
             if ($matchingNewBlueprintColumns->isNotEmpty()) {
@@ -65,8 +68,9 @@ class BlueprintComparer
 
     private function addNewColumns(): self
     {
+        $addedColumns = $this->newBlueprintColumns->diffKeys($this->doctrineBlueprintColumns);
 
-        $this->mappedDiff->add($this->addedColumns->map(function (ColumnDefinition $column) {
+        $this->mappedDiff->add($addedColumns->map(function (ColumnDefinition $column) {
             $columnName = $column->get('name');
             $columnType = $column->get('type');
             return "\$table->$columnType('$columnName');";
@@ -77,7 +81,9 @@ class BlueprintComparer
 
     private function removeOldColumns(): self
     {
-        $this->mappedDiff->add($this->removedColumns->map(function (ColumnDefinition $column) {
+        $removedColumns = $this->doctrineBlueprintColumns->diffKeys($this->newBlueprintColumns);
+
+        $this->mappedDiff->add($removedColumns->map(function (ColumnDefinition $column) {
             $columnName = $column->get('name');
             return "\$table->dropColumn('$columnName');";
         }));
@@ -95,23 +101,45 @@ class BlueprintComparer
         return $this->mappedDiff->flatten()->filter()->values();
     }
 
-    private function compareModifiedIndexes()
+    private function compareModifiedIndexes(): self
     {
-        //                    dd($matchingNewBlueprintColumn);
-        //                    $mappedColumn = "\$table->dropForeign(['$columnName']);" . "\n \t \t \t";
-        //                    return $mappedColumn . "\$table->foreign('$columnName')->references()->$attribute('$value');" . "\n \t \t \t";
+        $this->doctrineBlueprintIndexes->each(function (Fluent $doctrineIndex) {
+            $matchedIndexes = $this->newBlueprintIndexes->where('index', $doctrineIndex->get('index'));
+            if ($matchedIndexes->isNotEmpty()) {
+                $matchedIndex = $matchedIndexes->first();
+
+                $modifiedAttributes = $this->getModifiedAttributes($matchedIndex, $doctrineIndex);
+                if ($modifiedAttributes->isNotEmpty()) {
+                    return $this->buildMappedIndex($matchedIndex, $modifiedAttributes);
+                }
+            }
+            return "";
+        });
+
         return $this;
     }
 
     private function addNewIndexes()
     {
-        // TODO: Implement addNewIndexes() method.
+        $addedIndexes = $this->newBlueprintIndexes->diffKeys($this->doctrineBlueprintIndexes);
+
+        $this->mappedDiff->add($addedIndexes->map(function (Fluent $index) {
+            $indexNames = $this->getIndexColumns($index);
+
+            return "\$table->index($indexNames);";
+        }));
+
         return $this;
     }
 
-    private function removeOldIndexes()
+    private function removeOldIndexes(): self
     {
-        // TODO: Implement removeOldIndexes() method.
+        $removedIndexes = $this->doctrineBlueprintIndexes->diffKeys($this->newBlueprintIndexes);
+        $this->mappedDiff->add($removedIndexes->map(function (Fluent $index) {
+            $indexNames = $this->getIndexColumns($index);
+            return "\$table->dropIndex($indexNames);";
+        }));
+
         return $this;
     }
 
@@ -120,7 +148,7 @@ class BlueprintComparer
         return $this->newBlueprintColumns->where('name', $currentBlueprintColumn->get('name'));
     }
 
-    private function getModifiedAttributes(ColumnDefinition $currentBlueprintColumn, $matchingNewBlueprintColumn): Collection
+    private function getModifiedAttributes(Fluent $currentBlueprintColumn, Fluent $matchingNewBlueprintColumn): Collection
     {
         return collect($matchingNewBlueprintColumn->getAttributes())->filter(function ($value, $attribute) use ($currentBlueprintColumn) {
             return $value !== $currentBlueprintColumn->get($attribute);
@@ -171,6 +199,23 @@ class BlueprintComparer
     private function inForeignRules($rule): bool
     {
         return in_array($rule, ['cascadeOnDelete', 'cascadeOnUpdate']);
+    }
+
+    private function buildMappedIndex(Fluent $matchedIndex, Collection $modifiedAttributes)
+    {
+        $indexType = $matchedIndex->get('name');
+        $indexColumns = $this->getIndexColumns($matchedIndex);
+        $mappedIndex = "\$table" . "->$indexType" . "($indexColumns)";
+        return collect($modifiedAttributes)->filter(function ($value, $attribute) use ($matchedIndex) {
+            return $value !== $matchedIndex->get($attribute);
+        })->map(function ($value, $attribute) use ($indexType, $mappedIndex) {
+            return $mappedIndex . "->{$attribute}()" . "->change();";
+        })->implode('');
+    }
+
+    private function getIndexColumns(Fluent $matchedIndex): string
+    {
+        return "['" . implode("','", $matchedIndex->get('columns')) . "']";
     }
 
 
