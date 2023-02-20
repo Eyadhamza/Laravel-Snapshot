@@ -2,39 +2,31 @@
 
 namespace Eyadhamza\LaravelAutoMigration\Core;
 
+use Doctrine\DBAL\Schema\Column;
+use Doctrine\DBAL\Schema\ForeignKeyConstraint;
+use Doctrine\DBAL\Schema\Index;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\AttributeEntity;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Schema\ColumnDefinition;
 use Illuminate\Database\Schema\IndexDefinition;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Fluent;
 
-class BlueprintComparer
+class Comparer extends Mapper
 {
-    private Collection $mappedDiff;
-    private Blueprint $diffBlueprint;
-    private Collection $doctrineBlueprintColumns;
-    private Collection $newBlueprintColumns;
-
-    private Collection $doctrineBlueprintIndexes;
-    private Collection $newBlueprintIndexes;
-    private string $table;
-
-    public function __construct(Blueprint $doctrineBlueprint, Blueprint $newBlueprint)
-    {
-        $this->table = $doctrineBlueprint->getTable();
-        $this->diffBlueprint = new Blueprint($this->table);
-        $this->doctrineBlueprintColumns = collect($doctrineBlueprint->getColumns());
-        $this->newBlueprintColumns = collect($newBlueprint->getColumns());
-        $this->doctrineBlueprintIndexes = collect($doctrineBlueprint->getCommands());
-        $this->newBlueprintIndexes = collect($newBlueprint->getCommands());
+    public function __construct(
+        private DoctrineMapper $doctrineMapper,
+        private ModelMapper $modelMapper
+    ){
+        parent::__construct($doctrineMapper->getTableName());
     }
 
-    public static function make(Blueprint $blueprintOfCurrentTable, Blueprint $newBlueprint): BlueprintComparer
+    public static function make(DoctrineMapper $doctrineMapper, ModelMapper $modelMapper): Comparer
     {
-        return new self($blueprintOfCurrentTable, $newBlueprint);
+        return new self($doctrineMapper, $modelMapper);
     }
 
-    public function getDiff(): BlueprintComparer
+    public function getDiff(): Comparer
     {
         $this->compareModifiedColumns()
             ->addNewColumns()
@@ -49,7 +41,7 @@ class BlueprintComparer
 
     private function compareModifiedColumns(): self
     {
-        $this->mappedDiff = $this->doctrineBlueprintColumns->map(function (ColumnDefinition $currentBlueprintColumn) {
+        $this->mappedDiff = $this->doctrineColumns->map(function (ColumnDefinition $currentBlueprintColumn) {
 
             $matchingNewBlueprintColumns = $this->getMatchingNewBlueprintColumns($currentBlueprintColumn);
             if ($matchingNewBlueprintColumns->isNotEmpty()) {
@@ -68,7 +60,7 @@ class BlueprintComparer
 
     private function addNewColumns(): self
     {
-        $addedColumns = $this->newBlueprintColumns->diffKeys($this->doctrineBlueprintColumns);
+        $addedColumns = $this->modelColumns->diffKeys($this->doctrineColumns);
 
         $this->mappedDiff->add($addedColumns->map(function (ColumnDefinition $column) {
             $columnName = $column->get('name');
@@ -81,7 +73,7 @@ class BlueprintComparer
 
     private function removeOldColumns(): self
     {
-        $removedColumns = $this->doctrineBlueprintColumns->diffKeys($this->newBlueprintColumns);
+        $removedColumns = $this->doctrineMapper->getColumns()->diffKeys($this->modelMapper->getColumns());
 
         $this->mappedDiff->add($removedColumns->map(function (ColumnDefinition $column) {
             $columnName = $column->get('name');
@@ -90,12 +82,6 @@ class BlueprintComparer
 
         return $this;
     }
-
-    public function getDiffBlueprint(): Blueprint
-    {
-        return $this->diffBlueprint;
-    }
-
     public function getMapped(): Collection
     {
         return $this->mappedDiff->flatten()->filter()->values();
@@ -103,8 +89,8 @@ class BlueprintComparer
 
     private function compareModifiedIndexes(): self
     {
-        $this->doctrineBlueprintIndexes->each(function (Fluent $doctrineIndex) {
-            $matchedIndexes = $this->newBlueprintIndexes->where('index', $doctrineIndex->get('index'));
+        $this->doctrineIndexes->each(function (Fluent $doctrineIndex) {
+            $matchedIndexes = $this->modelIndexes->where('index', $doctrineIndex->get('index'));
             if ($matchedIndexes->isNotEmpty()) {
                 $matchedIndex = $matchedIndexes->first();
 
@@ -121,7 +107,7 @@ class BlueprintComparer
 
     private function addNewIndexes()
     {
-        $addedIndexes = $this->newBlueprintIndexes->diffKeys($this->doctrineBlueprintIndexes);
+        $addedIndexes = $this->modelIndexes->diffKeys($this->doctrineIndexes);
 
         $this->mappedDiff->add($addedIndexes->map(function (Fluent $index) {
             $indexNames = $this->getIndexColumns($index);
@@ -134,7 +120,7 @@ class BlueprintComparer
 
     private function removeOldIndexes(): self
     {
-        $removedIndexes = $this->doctrineBlueprintIndexes->diffKeys($this->newBlueprintIndexes);
+        $removedIndexes = $this->doctrineIndexes->diffKeys($this->modelIndexes);
         $this->mappedDiff->add($removedIndexes->map(function (Fluent $index) {
             $indexNames = $this->getIndexColumns($index);
             return "\$table->dropIndex($indexNames);";
@@ -145,7 +131,7 @@ class BlueprintComparer
 
     private function getMatchingNewBlueprintColumns(ColumnDefinition $currentBlueprintColumn): Collection
     {
-        return $this->newBlueprintColumns->where('name', $currentBlueprintColumn->get('name'));
+        return $this->modelColumns->where('name', $currentBlueprintColumn->get('name'));
     }
 
     private function getModifiedAttributes(Fluent $currentBlueprintColumn, Fluent $matchingNewBlueprintColumn): Collection
@@ -219,4 +205,38 @@ class BlueprintComparer
     }
 
 
+    public function map(): Mapper
+    {
+        // TODO: Implement map() method.
+    }
+
+    protected function mapColumns(): Mapper
+    {
+        // TODO: Implement mapColumns() method.
+    }
+
+    protected function mapIndexes(): Mapper
+    {
+        // TODO: Implement mapIndexes() method.
+    }
+
+    protected function mapForeignKeys(): Mapper
+    {
+        // TODO: Implement mapForeignKeys() method.
+    }
+
+    protected function mapToColumn(AttributeEntity|Column $column): array
+    {
+        // TODO: Implement mapToColumn() method.
+    }
+
+    protected function mapToIndex(Index|AttributeEntity $index): array
+    {
+        // TODO: Implement mapToIndex() method.
+    }
+
+    protected function mapToForeignKey(ForeignKeyConstraint|AttributeEntity $foreignKey): array
+    {
+        // TODO: Implement mapToForeignKey() method.
+    }
 }

@@ -5,7 +5,7 @@ namespace Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns;
 use Attribute;;
 
 #[Attribute(Attribute::IS_REPEATABLE | Attribute::TARGET_CLASS)]
-class MultiLineString extends BlueprintColumnBuilder
+class MultiLineString extends ColumnMapper
 {
 
 }

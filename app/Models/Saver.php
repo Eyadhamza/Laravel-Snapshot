@@ -11,7 +11,7 @@ use Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes\Unique;
 use Eyadhamza\LaravelAutoMigration\Core\Constants\Rule;
 use Illuminate\Database\Eloquent\Model;
 
-#[Id('id')]
+#[Id('id', [Rule::AUTO_INCREMENT,Rule::UNIQUE,Rule::UNSIGNED])]
 #[AsString('name', [Rule::DEFAULT => 'Eyad Hamza'])]
 #[AsString('description')]
 #[AsString('email')]

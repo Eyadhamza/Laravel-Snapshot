@@ -3,7 +3,7 @@
 namespace Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes;
 
 use Attribute;
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\BlueprintAttributeEntity;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\AttributeEntity;
 use Eyadhamza\LaravelAutoMigration\Core\Rules;
 use Eyadhamza\LaravelAutoMigration\Core\Constants\AttributeToColumn;
 use Illuminate\Database\Schema\Blueprint;
@@ -11,7 +11,7 @@ use Illuminate\Support\Str;
 
 
 #[Attribute(Attribute::IS_REPEATABLE | Attribute::TARGET_CLASS)]
-class BlueprintIndexBuilder extends BlueprintAttributeEntity
+class IndexMapper extends AttributeEntity
 {
     private string|array $columns;
     private string|null $algorithm;
@@ -23,7 +23,7 @@ class BlueprintIndexBuilder extends BlueprintAttributeEntity
         $this->algorithm = $algorithm;
     }
 
-    public static function make(BlueprintIndexBuilder $modelProperty): self
+    public static function make(IndexMapper $modelProperty): self
     {
 
         return new self($modelProperty->getColumns(), $modelProperty->getName(), $modelProperty->getAlgorithm());

@@ -3,7 +3,7 @@
 
 use App\Models\User;
 use Eyadhamza\LaravelAutoMigration\Core\MigrationBuilder;
-use Eyadhamza\LaravelAutoMigration\Core\ModelBlueprintBuilder;
+use Eyadhamza\LaravelAutoMigration\Core\ModelMapper;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Schema\ColumnDefinition;
 use Illuminate\Support\Facades\Artisan;
@@ -22,7 +22,7 @@ it('can map models to blueprints', function () {
 
     $blueprintBuilder = $mapper->getModelBlueprintBuilders()->first();
     expect($blueprintBuilder)
-        ->toBeInstanceOf(ModelBlueprintBuilder::class)
+        ->toBeInstanceOf(ModelMapper::class)
         ->and($blueprintBuilder->getBlueprint())
         ->toBeInstanceOf(Blueprint::class)
         ->toHaveProperty('table');
