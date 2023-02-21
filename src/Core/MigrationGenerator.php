@@ -4,24 +4,44 @@ namespace Eyadhamza\LaravelAutoMigration\Core;
 
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\AttributeEntity;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes\IndexMapper;
-use Illuminate\Database\Schema\ColumnDefinition;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Fluent;
+use Illuminate\Support\Str;
 
 class MigrationGenerator
 {
     private Collection $generated;
+    private string $tableName;
 
-    public function __construct()
+    public function __construct($tableName)
     {
-        $this->generated = collect();
+        $this->tableName = $tableName;
+        $this->generated = new Collection;
     }
-    public function addColumn(AttributeEntity $column): self
-    {
-        $columnType = $column->getType();
-        $columnName = $column->getName();
-        $rules = $column->getRules();
 
+    public static function make(string $tableName): MigrationGenerator
+    {
+        return new self($tableName);
+    }
+
+    public function generateMigrationFile(string $migrationFilePath, string $operation): void
+    {
+        $generatedMigrationFile = $this->replaceStubMigrationFile($operation);
+        file_put_contents($migrationFilePath, $generatedMigrationFile);
+    }
+    private function replaceStubMigrationFile(string $operation): string
+    {
+        $fileContent = file_get_contents("stubs/$operation-migration.stub");
+        $fileContent = Str::replace("\$tableName", $this->tableName, $fileContent);
+
+        return Str::replace("{{ \$mappedColumns }}", $this->generated->join("\n \t \t \t"), $fileContent);
+    }
+
+    public function addColumn(AttributeEntity|Fluent $column,string $columnName = null): self
+    {
+        $columnType = $column->get('type');
+        $columnName = $column->get('name') ?? $columnName;
+        $rules = $column->get('rules');
         $mappedColumn = "\$table" . "->$columnType" . "({$this->getColumnNameOrNames($columnName)})";
 
         if (!$rules) {
@@ -30,14 +50,14 @@ class MigrationGenerator
         }
         foreach ($rules as $rule => $value) {
             if ($this->inForeignRules($value)) {
-                $mappedColumn = $mappedColumn . "->{$value}('$rule')";
+                $mappedColumn = $mappedColumn . "->$value('$rule')";
                 continue;
             }
             if (is_int($rule)) {
                 $mappedColumn = $mappedColumn . "->$value()";
                 continue;
             }
-            $mappedColumn = $mappedColumn . "->{$rule}('$value');";
+            $mappedColumn = $mappedColumn . "->$rule('$value');";
         }
         $this->generated->add($mappedColumn);
         return $this;
@@ -49,17 +69,18 @@ class MigrationGenerator
         $columnName = $column->get('name');
 
         $mappedColumn = "\$table" . "->$columnType" . "('$columnName')";
+        dd($attributes);
         collect($attributes)
             ->reject(fn($value, $attribute) => $this->attributesToBeSkipped($attribute))
             ->reject(fn($value, $attribute) => $this->noChangeHappened($attribute))
             ->map(function ($value, $attribute) use ($columnName, $columnType, $mappedColumn, $column) {
                 if ($this->attributesAsSecondArgument($attribute)) {
-                    return $value ? "\$table->{$columnType}('$columnName', $value)" . "->change();" : "";
+                    return $value ? "\$table->$columnType('$columnName', $value)" . "->change();" : "";
                 }
                 if ($this->inForeignRules($attribute)) {
                     return "";
                 }
-                return $mappedColumn . "->{$attribute}()" . "->change();";
+                return $mappedColumn . "->$attribute()" . "->change();";
             });
         $this->generated->add($mappedColumn);
         return $this;
@@ -80,7 +101,7 @@ class MigrationGenerator
         collect($modifiedAttributes)->filter(function ($value, $attribute) use ($matchedIndex) {
             return $value !== $matchedIndex->get($attribute);
         })->map(function ($value, $attribute) use ($indexType, $mappedIndex) {
-            return $mappedIndex . "->{$attribute}()" . "->change();";
+            return $mappedIndex . "->$attribute()" . "->change();";
         });
         $this->generated->add($mappedIndex);
         return $this;
@@ -108,7 +129,7 @@ class MigrationGenerator
          collect($modifiedAttributes)->filter(function ($value, $attribute) use ($foreignKey) {
             return $value !== $foreignKey->get($attribute);
         })->map(function ($value, $attribute) use ($mappedForeignKey) {
-            return $mappedForeignKey . "->{$attribute}()" . "->change();";
+            return $mappedForeignKey . "->$attribute()" . "->change();";
         });
         $this->generated->add($mappedForeignKey);
         return $this;
@@ -119,10 +140,10 @@ class MigrationGenerator
         $foreignKeyColumns = $this->getIndexColumns($foreignKey);
         foreach ($foreignKey->get('rules') as $rule => $value) {
             if ($this->inForeignRules($value)) {
-                $foreignKeyColumns = $foreignKeyColumns . "->{$value}('$rule')";
+                $foreignKeyColumns = $foreignKeyColumns . "->$value('$rule')";
                 continue;
             }
-            $foreignKeyColumns = $foreignKeyColumns . "->{$rule}('$value');";
+            $foreignKeyColumns = $foreignKeyColumns . "->$rule('$value');";
         }
         $this->generated->add($foreignKeyColumns);
         return $this;
@@ -169,9 +190,11 @@ class MigrationGenerator
         return "['" . implode("','" , $matchedIndex->get('columns')) . "']";
     }
 
-    private function getColumnNameOrNames(mixed $columnName): string
+    private function getColumnNameOrNames(string|array $columnName): string
     {
         return is_array($columnName) ? "['" . implode("','", $columnName) . "']" : "'$columnName'";
     }
+
+
 
 }

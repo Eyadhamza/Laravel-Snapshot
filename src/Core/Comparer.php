@@ -2,14 +2,8 @@
 
 namespace Eyadhamza\LaravelAutoMigration\Core;
 
-use Doctrine\DBAL\Schema\Column;
-use Doctrine\DBAL\Schema\ForeignKeyConstraint;
-use Doctrine\DBAL\Schema\Index;
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\AttributeEntity;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes\IndexMapper;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Schema\ColumnDefinition;
-use Illuminate\Database\Schema\IndexDefinition;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Fluent;
 
@@ -28,7 +22,7 @@ class Comparer
 
     public function __construct(DoctrineMapper $doctrineMapper, ModelMapper $modelMapper)
     {
-        $this->migrationGenerator = new MigrationGenerator;
+        $this->migrationGenerator = new MigrationGenerator($doctrineMapper->getTableName());
 
         $this->addedColumns = $modelMapper->getColumns()->diffKeys($doctrineMapper->getColumns());
         $this->removedColumns = $doctrineMapper->getColumns()->diffKeys($modelMapper->getColumns());
@@ -49,7 +43,7 @@ class Comparer
         return new self($doctrineMapper, $modelMapper);
     }
 
-    public function getDiff(): Comparer
+    public function getMigrationGenerator(): MigrationGenerator
     {
         $this->compareModifiedColumns()
             ->addNewColumns()
@@ -61,14 +55,13 @@ class Comparer
             ->addNewForeignKeys()
             ->removeOldForeignKeys();
 
-        dd($this->getMigrationGenerator()->getGenerated());
-        return $this;
+        return $this->migrationGenerator;
 
     }
 
     private function compareModifiedColumns(): self
     {
-        $this->modifiedColumns->map(function (Fluent $column) {
+        $this->modifiedColumns = $this->modifiedColumns->map(function (Fluent $column) {
             $modifiedAttributes = $this->getModifiedAttributes($column);
             if ($modifiedAttributes->isNotEmpty()) {
                 return $this->migrationGenerator->modifyColumn($column, $modifiedAttributes);
@@ -81,15 +74,15 @@ class Comparer
 
     private function addNewColumns(): self
     {
-        $this->addedColumns->map(function (ColumnDefinition $column) {
-            return $this->migrationGenerator->addColumn($column);
+        $this->addedColumns = $this->addedColumns->map(function (Fluent $column) {
+            return  $this->migrationGenerator->addColumn($column);
         });
         return $this;
     }
 
     private function removeOldColumns(): self
     {
-        $this->removedColumns->map(function (ColumnDefinition $column) {
+        $this->removedColumns = $this->removedColumns->map(function (ColumnDefinition $column) {
             return $this->migrationGenerator->removeColumn($column);
         });
         return $this;
@@ -97,7 +90,7 @@ class Comparer
 
     private function compareModifiedIndexes(): self
     {
-        $this->modifiedIndexes->each(function (Fluent $index) {
+        $this->modifiedIndexes = $this->modifiedIndexes->map(function (Fluent $index) {
             $modifiedAttributes = $this->getModifiedAttributes($index);
             if ($modifiedAttributes->isNotEmpty()) {
                 return $this->migrationGenerator->buildIndex($index, $modifiedAttributes);
@@ -110,7 +103,7 @@ class Comparer
 
     private function addNewIndexes(): self
     {
-        $this->addedIndexes->map(function (Fluent|IndexMapper $index) {
+        $this->addedIndexes = $this->addedIndexes->map(function (Fluent|IndexMapper $index) {
             return $this->migrationGenerator->addIndex($index);
         });
         return $this;
@@ -118,7 +111,7 @@ class Comparer
 
     private function removeOldIndexes(): self
     {
-        $this->removedIndexes->map(function (Fluent $index) {
+        $this->removedIndexes = $this->removedIndexes->map(function (Fluent $index) {
             return $this->migrationGenerator->removeIndex($index);
         });
         return $this;
@@ -127,7 +120,7 @@ class Comparer
 
     private function compareModifiedForeignKeys(): self
     {
-        $this->modifiedForeignKeys->map(function (Fluent $foreignKey) {
+        $this->modifiedForeignKeys = $this->modifiedForeignKeys->map(function (Fluent $foreignKey) {
             $modifiedAttributes = $this->getModifiedAttributes($foreignKey);
             if ($modifiedAttributes->isNotEmpty()) {
                 return $this->migrationGenerator->buildForeignKey($foreignKey, $modifiedAttributes);
@@ -140,7 +133,7 @@ class Comparer
 
     private function addNewForeignKeys(): self
     {
-        $this->addedForeignKeys->map(function (Fluent $foreignKey) {
+        $this->addedForeignKeys = $this->addedForeignKeys->map(function (Fluent $foreignKey) {
             return $this->migrationGenerator->addForeignKey($foreignKey);
         });
         return $this;
@@ -148,7 +141,7 @@ class Comparer
 
     private function removeOldForeignKeys(): self
     {
-        $this->removedForeignKeys->map(function (Fluent $foreignKey) {
+        $this->removedForeignKeys = $this->removedForeignKeys->map(function (Fluent $foreignKey) {
             return $this->migrationGenerator->removeForeignKey($foreignKey);
         });
         return $this;
@@ -159,9 +152,5 @@ class Comparer
         return collect($column->getAttributes())->filter(function ($value, $attribute) use ($column) {
             return $value !== $column->get($attribute);
         });
-    }
-    public function getMigrationGenerator(): MigrationGenerator
-    {
-        return $this->migrationGenerator;
     }
 }

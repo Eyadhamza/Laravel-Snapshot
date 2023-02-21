@@ -10,10 +10,10 @@ use Doctrine\DBAL\Schema\Table;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\AttributeEntity;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Schema\ColumnDefinition;
-use Illuminate\Support\Collection;
+use Illuminate\Database\Schema\ForeignIdColumnDefinition;
+use Illuminate\Database\Schema\ForeignKeyDefinition;
+use Illuminate\Database\Schema\IndexDefinition;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Fluent;
-use SebastianBergmann\GlobalState\Snapshot;
 
 class DoctrineMapper extends Mapper
 {
@@ -50,22 +50,21 @@ class DoctrineMapper extends Mapper
 
     public function mapColumns(): static
     {
-        $this->columns = $this->columns
-            ->map(fn(Column $column) => new Fluent($this->mapToColumn($column)));
+        $this->columns = $this->columns->map(fn(Column $column) => new ColumnDefinition($this->mapToColumn($column)));
         return $this;
     }
 
     public function mapIndexes(): static
     {
         $this->indexes = $this->indexes
-            ->map(fn(Index $index) => new Fluent($this->mapAttributesToIndex($index)));
+            ->map(fn(Index $index) => new IndexDefinition($this->mapAttributesToIndex($index)));
         return $this;
     }
 
     public function mapForeignKeys(): static
     {
         $this->foreignKeys = $this->foreignKeys
-            ->map(fn(ForeignKeyConstraint $foreignKey) => new Fluent($this->mapToForeignKey($foreignKey)));
+            ->map(fn(ForeignKeyConstraint $foreignKey) => new ForeignKeyDefinition($this->mapToForeignKey($foreignKey)));
         return $this;
     }
 
@@ -90,6 +89,7 @@ class DoctrineMapper extends Mapper
     protected function mapToColumn(Column|AttributeEntity $column): array
     {
         return collect([
+            'name' => $column->getName(),
             'unsigned' => $column->getUnsigned(),
             'nullable' => $column->getNotnull() == false,
             'default' => $column->getDefault(),

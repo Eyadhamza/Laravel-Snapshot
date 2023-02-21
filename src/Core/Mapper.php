@@ -6,11 +6,13 @@ use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Index;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\AttributeEntity;
+use Illuminate\Database\Schema\ColumnDefinition;
+use Illuminate\Database\Schema\ForeignKeyDefinition;
+use Illuminate\Database\Schema\IndexDefinition;
 use Illuminate\Support\Collection;
 
 abstract class Mapper
 {
-
     protected int $executionOrder = 0;
     private string $tableName;
     protected Collection $columns;
@@ -52,9 +54,9 @@ abstract class Mapper
     abstract protected function mapColumns(): self;
     abstract protected function mapIndexes(): self;
     abstract protected function mapForeignKeys(): self;
-    abstract protected function mapToColumn(Column|AttributeEntity $column): array;
-    abstract protected function mapToIndex(Index|AttributeEntity $index): array;
-    abstract protected function mapToForeignKey(ForeignKeyConstraint|AttributeEntity $foreignKey): array;
+    abstract protected function mapToColumn(Column|ColumnDefinition $column): array;
+    abstract protected function mapToIndex(Index|IndexDefinition $index): array;
+    abstract protected function mapToForeignKey(ForeignKeyConstraint|ForeignKeyDefinition $foreignKey): array;
     public function __construct(string $tableName)
     {
         $this->tableName = $tableName;

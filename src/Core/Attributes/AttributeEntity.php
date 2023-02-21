@@ -5,6 +5,7 @@ namespace Eyadhamza\LaravelAutoMigration\Core\Attributes;
 use Attribute;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\ColumnMapper;
 use Eyadhamza\LaravelAutoMigration\Core\Constants\AttributeToColumn;
+use Illuminate\Support\Str;
 
 #[Attribute(Attribute::IS_REPEATABLE | Attribute::TARGET_CLASS)]
 class AttributeEntity
@@ -39,5 +40,9 @@ class AttributeEntity
 
         return $this;
     }
-
+    public function get($key)
+    {
+        $method = 'get' . Str::camel($key);
+        return $this->$method();
+    }
 }

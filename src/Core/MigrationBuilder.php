@@ -50,10 +50,10 @@ class MigrationBuilder
             $tableName = $modelBlueprintBuilder->getTableName();
 
             if (!Schema::hasTable($tableName)) {
-                $this->generateFirstMigration($modelBlueprintBuilder);
+                $this->buildFirstMigration($modelBlueprintBuilder);
                 return $this;
             }
-            $this->generateUpdatedMigration($modelBlueprintBuilder);
+            $this->buildUpdatedMigration($modelBlueprintBuilder);
 
             return $this;
         });
@@ -61,40 +61,25 @@ class MigrationBuilder
     }
 
 
-    private function generateFirstMigration(Mapper $modelBlueprintBuilder): void
-    {
-        $migrationFile = $this->setMigrationFileAsCreateTemplate($modelBlueprintBuilder->getTableName(), $modelBlueprintBuilder->getExecutionOrder());
-        $this->generateMigrationFile($modelBlueprintBuilder, $migrationFile, 'create');
-    }
-
-    private function generateUpdatedMigration(Mapper $modelMapper): void
+    private function buildFirstMigration(ModelMapper $modelMapper): void
     {
         $tableName = $modelMapper->getTableName();
+        $migrationFile = $this->setMigrationFileAsCreateTemplate($tableName, $modelMapper->getExecutionOrder());
+        $generator = $modelMapper->getMigrationGenerator();
+        $generator->generateMigrationFile($migrationFile, 'create');
+    }
 
-        $doctineMapper = DoctrineMapper::make($tableName)
-            ->map();
-
-        $diffBlueprint = Comparer::make($doctineMapper, $modelMapper)->getDiff();
-        if ($diffBlueprint->getMapped()->isNotEmpty()) {
+    private function buildUpdatedMigration(ModelMapper $modelMapper): void
+    {
+        $tableName = $modelMapper->getTableName();
+        $doctrineMapper = DoctrineMapper::make($tableName)->map();
+        $generator = Comparer::make($doctrineMapper, $modelMapper)->getMigrationGenerator();
+        if ($generator->getGenerated()->isNotEmpty()) {
             $migrationFile = $this->setMigrationFileAsUpdateTemplate($tableName, $modelMapper->getExecutionOrder());
-            $this->generateMigrationFile($diffBlueprint, $migrationFile, 'update');
+            $generator->generateMigrationFile($migrationFile, 'update');
         }
     }
-    private function generateMigrationFile(Mapper|Comparer $mapToBlueprint, string $migrationFilePath, string $operation): void
-    {
-        $tableName = $mapToBlueprint->getTableName();
-        $generatedMigrationFile = $this->replaceStubMigrationFile($tableName, $mapToBlueprint->getMapped(), $operation);
-        file_put_contents($migrationFilePath, $generatedMigrationFile);
-    }
 
-
-    private function replaceStubMigrationFile($tableName, $mappedColumns, string $operation): string
-    {
-        $fileContent = file_get_contents("stubs/{$operation}-migration.stub");
-        $fileContent = Str::replace("\$tableName", $tableName, $fileContent);
-
-        return Str::replace("{{ \$mappedColumns }}",$mappedColumns->join("\n \t \t \t"), $fileContent);
-    }
 
     private function setMigrationFileAsCreateTemplate(string $tableName, int $executionOrder)
     {
@@ -105,23 +90,24 @@ class MigrationBuilder
     {
         return app('migration.creator')->create($executionOrder . '_' . "update_{$tableName}_table", database_path('migrations'), $tableName);
     }
+
     private function ensureExecutionOrder(): self
     {
-        $this->modelBlueprintBuilders = $this->modelBlueprintBuilders->map(function (ModelMapper $model){
-
-                $model->getForeignKeys()->each(function ($command) use ($model) {
-                    $relatedModel = $this->modelBlueprintBuilders->first(function ($modelWithForeign) use ($command) {
-                        return $modelWithForeign->getBlueprint()->getTable() == $command->get('on');
-                    });
-                    if ($relatedModel) {
-                        $model->setExecutionOrder($relatedModel->getExecutionOrder() + 1);
-                    }
+        $this->modelBlueprintBuilders = $this->modelBlueprintBuilders->map(function (ModelMapper $model) {
+            $model->getForeignKeys()->each(function ($command) use ($model) {
+                $relatedModel = $this->modelBlueprintBuilders->first(function ($modelWithForeign) use ($command) {
+                    return $modelWithForeign->getBlueprint()->getTable() == $command->get('on');
                 });
+                if ($relatedModel) {
+                    $model->setExecutionOrder($relatedModel->getExecutionOrder() + 1);
+                }
+            });
             return $model;
-        })->sortBy(fn ($data) => $data->getExecutionOrder())->values();
+        })->sortBy(fn($data) => $data->getExecutionOrder())->values();
 
         return $this;
     }
+
     public function getModelBlueprintBuilders(): Collection
     {
         return $this->modelBlueprintBuilders;

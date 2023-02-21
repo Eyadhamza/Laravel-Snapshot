@@ -9,6 +9,9 @@ use Eyadhamza\LaravelAutoMigration\Core\Attributes\AttributeEntity;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\ColumnMapper;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes\IndexMapper;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Schema\ColumnDefinition;
+use Illuminate\Database\Schema\ForeignKeyDefinition;
+use Illuminate\Database\Schema\IndexDefinition;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Fluent;
 use ReflectionAttribute;
@@ -39,14 +42,23 @@ class ModelMapper extends Mapper
 
         $this->mappedBlueprint = collect();
 
-        $this->generator = new MigrationGenerator;
+        $this->generator = new MigrationGenerator($modelInfo->tableName);
     }
 
     public static function make(ModelInfo $modelInfo): self
     {
         return new self($modelInfo);
     }
+    public function getMigrationGenerator(): MigrationGenerator
+    {
+        $this
+            ->mapColumns()
+            ->mapIndexes()
+            ->mapForeignKeys();
 
+        return $this->generator;
+
+    }
     public function getAttributesOfColumnType(ReflectionClass $reflectionClass): Collection
     {
         return collect($reflectionClass->getAttributes())
@@ -73,9 +85,9 @@ class ModelMapper extends Mapper
 
     protected function mapColumns(): self
     {
-        $this->columns = $this->columns->mapWithKeys(function (ColumnMapper $column) {
+        $this->columns = $this->columns->mapWithKeys(function (ColumnMapper|Fluent $column) {
             return [
-                $column->getName() => new Fluent($this->mapToColumn($column))
+                $column->getName() => new ColumnDefinition($this->mapToColumn($column))
             ];
         });
 
@@ -93,7 +105,7 @@ class ModelMapper extends Mapper
     {
         $this->indexes = $this->indexes->mapWithKeys(function (IndexMapper $index) {
             return [
-                $index->getName() => new Fluent($this->mapToIndex($index))
+                $index->getName() => new IndexDefinition($this->mapToIndex($index))
             ];
         });
         return $this;
@@ -103,15 +115,18 @@ class ModelMapper extends Mapper
     {
         $this->foreignKeys = $this->foreignKeys->mapWithKeys(function (ForeignKeyConstraint $foreignKey) {
             return [
-                $foreignKey->getName() => new Fluent($this->mapToForeignKey($foreignKey))
+                $foreignKey->getName() => new ForeignKeyDefinition($this->mapToForeignKey($foreignKey))
             ];
         });
         return $this;
     }
 
-    protected function mapToColumn(AttributeEntity|Column $column): array
+    protected function mapToColumn(ColumnDefinition|Column $column): array
     {
+
         $rules = [];
+        $rules['type'] = $column->getType();
+        $rules['name'] = $column->getName();
         if ($column->getRules() === null) {
             return $rules;
         }
