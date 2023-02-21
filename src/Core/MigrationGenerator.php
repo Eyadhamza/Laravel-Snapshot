@@ -49,17 +49,13 @@ class MigrationGenerator
             return $this;
         }
         foreach ($rules as $rule => $value) {
-            if ($this->inForeignRules($value)) {
-                $mappedColumn = $mappedColumn . "->$value('$rule')";
-                continue;
-            }
-            if (is_int($rule)) {
+            if ($this->inForeignRules($value) || is_int($rule)) {
                 $mappedColumn = $mappedColumn . "->$value()";
                 continue;
             }
-            $mappedColumn = $mappedColumn . "->$rule('$value');";
+            $mappedColumn = $mappedColumn . "->$rule('$value')";
         }
-        $this->generated->add($mappedColumn);
+        $this->generated->add($mappedColumn . ";");
         return $this;
     }
 
@@ -107,7 +103,7 @@ class MigrationGenerator
         return $this;
     }
 
-    public function addIndex(Fluent|IndexMapper $index): self
+    public function addIndex(Fluent|AttributeEntity $index): self
     {
         $indexNames = $this->getIndexColumns($index);
         $this->generated->add("\$table->index($indexNames);");
@@ -184,6 +180,9 @@ class MigrationGenerator
 
     private function getIndexColumns(Fluent|IndexMapper $matchedIndex): string
     {
+        if (is_string($matchedIndex->get('columns'))) {
+            return "'{$matchedIndex->get('columns')}'";
+        }
         if (! $matchedIndex->get('columns')) {
             return '';
         }

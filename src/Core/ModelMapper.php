@@ -20,7 +20,6 @@ use Spatie\ModelInfo\ModelInfo;
 
 class ModelMapper extends Mapper
 {
-    private Collection $mappedBlueprint;
     private MigrationGenerator $generator;
 
     public function __construct(ModelInfo $modelInfo)
@@ -49,16 +48,16 @@ class ModelMapper extends Mapper
     {
         return new self($modelInfo);
     }
-    public function getMigrationGenerator(): MigrationGenerator
+
+    public function map(): self
     {
         $this
             ->mapColumns()
             ->mapIndexes()
             ->mapForeignKeys();
-
-        return $this->generator;
-
+        return $this;
     }
+
     public function getAttributesOfColumnType(ReflectionClass $reflectionClass): Collection
     {
         return collect($reflectionClass->getAttributes())
@@ -69,6 +68,7 @@ class ModelMapper extends Mapper
 
     public function getAttributesOfIndexType(ReflectionClass $reflectionClass): Collection
     {
+
         return collect($reflectionClass->getAttributes())
             ->filter(function (ReflectionAttribute $attribute) {
                 return is_subclass_of($attribute->getName(), IndexMapper::class);
@@ -94,19 +94,11 @@ class ModelMapper extends Mapper
         return $this;
     }
 
-    public function map(): self
-    {
-        $this->mapColumns();
-        return $this;
-    }
-
 
     protected function mapIndexes(): self
     {
         $this->indexes = $this->indexes->mapWithKeys(function (IndexMapper $index) {
-            return [
-                $index->getName() => new IndexDefinition($this->mapToIndex($index))
-            ];
+            return new IndexDefinition($this->mapToIndex($index));
         });
         return $this;
     }
@@ -114,16 +106,14 @@ class ModelMapper extends Mapper
     protected function mapForeignKeys(): self
     {
         $this->foreignKeys = $this->foreignKeys->mapWithKeys(function (ForeignKeyConstraint $foreignKey) {
-            return [
-                $foreignKey->getName() => new ForeignKeyDefinition($this->mapToForeignKey($foreignKey))
-            ];
+            return new ForeignKeyDefinition($this->mapToForeignKey($foreignKey));
         });
         return $this;
     }
 
-    protected function mapToColumn(ColumnDefinition|Column $column): array
+    protected function mapToColumn(AttributeEntity|Column $column): array
     {
-
+        dump($column);
         $rules = [];
         $rules['type'] = $column->getType();
         $rules['name'] = $column->getName();
@@ -131,25 +121,42 @@ class ModelMapper extends Mapper
             return $rules;
         }
         foreach ($column->getRules() as $key => $value) {
-            $this->generator->addColumn($column);
             if (is_int($key)) {
                 $rules[$value] = true;
                 continue;
             }
             $rules[$key] = $value;
         }
+        $this->generator->addColumn($column);
         return $rules;
     }
 
     protected function mapToIndex(Index|AttributeEntity $index): array
     {
-        return [];
+        $this->generator->addIndex($index);
+        return [
+            'name' => $index->getName(),
+            'type' => $index->getType(),
+            'columns' => $index->getColumns(),
+        ];
     }
 
     protected function mapToForeignKey(ForeignKeyConstraint|AttributeEntity $foreignKey): array
     {
-        return [];
+        $this->generator->addForeignKey($foreignKey);
+        return [
+            'name' => $foreignKey->getName(),
+            'columns' => $foreignKey->getColumns(),
+            'referencedTable' => $foreignKey->getForeignTableName(),
+            'referencedColumns' => $foreignKey->getForeignColumns(),
+            'onDelete' => $foreignKey->onDelete(),
+            'onUpdate' => $foreignKey->onUpdate(),
+        ];
     }
 
+    public function getMigrationGenerator(): MigrationGenerator
+    {
+        return $this->generator;
+    }
 
 }

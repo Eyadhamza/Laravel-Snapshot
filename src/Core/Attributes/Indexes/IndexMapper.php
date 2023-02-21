@@ -36,8 +36,7 @@ class IndexMapper extends AttributeEntity
 
     public function getColumns(): array|string
     {
-
-        return array_values($this->columns);
+        return $this->columns;
     }
 
     private function getAlgorithm()

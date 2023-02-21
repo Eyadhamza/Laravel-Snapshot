@@ -11,7 +11,7 @@ use Eyadhamza\LaravelAutoMigration\Core\Constants\Rule;
 use Illuminate\Database\Eloquent\Model;
 
 
-#[Id('id', [Rule::UNSIGNED, Rule::AUTO_INCREMENT, Rule::DEFAULT => 1])]
+#[Id('id', [Rule::UNSIGNED, Rule::AUTO_INCREMENT])]
 #[AsString('title', [Rule::DEFAULT => 'Eyad Hamza'])]
 #[AsString('description', [Rule::NULLABLE])]
 #[ForeignId('author_id', [Rule::CONSTRAINED => 'savers', Rule::CASCADE_ON_DELETE, Rule::CASCADE_ON_UPDATE])]

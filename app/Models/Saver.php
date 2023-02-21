@@ -18,7 +18,7 @@ use Illuminate\Database\Eloquent\Model;
 #[AsString('password')]
 #[Timestamps]
 #[Unique('email')]
-#[ForeignId('user_id')]
+#[ForeignId('user_id', [Rule::CONSTRAINED => 'users', Rule::CASCADE_ON_DELETE, Rule::CASCADE_ON_UPDATE])]
 class Saver extends Model
 {
     /**

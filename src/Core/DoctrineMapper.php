@@ -127,6 +127,11 @@ class DoctrineMapper extends Mapper
 
     public function mapToIndex(Index|AttributeEntity $index): array
     {
-        // TODO: Implement mapToIndex() method.
+        return collect([
+            'name' => $index->getName(),
+            'columns' => $index->getColumns(),
+            'unique' => $index->isUnique(),
+            'algorithm' => $index->getFlags(),
+        ])->filter()->toArray();
     }
 }
