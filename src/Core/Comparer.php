@@ -12,13 +12,31 @@ use Illuminate\Database\Schema\IndexDefinition;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Fluent;
 
-class Comparer extends Mapper
+class Comparer
 {
-    public function __construct(
-        private DoctrineMapper $doctrineMapper,
-        private ModelMapper $modelMapper
-    ){
-        parent::__construct($doctrineMapper->getTableName());
+    private Collection $addedColumns;
+    private Collection $removedColumns;
+    private Collection $modifiedColumns;
+    private Collection $addedIndexes;
+    private Collection $removedIndexes;
+    private Collection $modifiedIndexes;
+    private Collection $addedForeignKeys;
+    private Collection $removedForeignKeys;
+    private Collection $modifiedForeignKeys;
+
+    public function __construct(private DoctrineMapper $doctrineMapper, private ModelMapper $modelMapper){
+        $this->addedColumns = $this->modelMapper->getColumns()->diffKeys($this->doctrineMapper->getColumns());
+        $this->removedColumns = $this->doctrineMapper->getColumns()->diffKeys($this->modelMapper->getColumns());
+        $this->modifiedColumns = $this->modelMapper->getColumns()->intersectByKeys($this->doctrineMapper->getColumns());
+
+        $this->addedIndexes = $this->modelMapper->getIndexes()->diffKeys($this->doctrineMapper->getIndexes());
+        $this->removedIndexes = $this->doctrineMapper->getIndexes()->diffKeys($this->modelMapper->getIndexes());
+        $this->modifiedIndexes = $this->modelMapper->getIndexes()->intersectByKeys($this->doctrineMapper->getIndexes());
+
+        $this->addedForeignKeys = $this->modelMapper->getForeignKeys()->diffKeys($this->doctrineMapper->getForeignKeys());
+        $this->removedForeignKeys = $this->doctrineMapper->getForeignKeys()->diffKeys($this->modelMapper->getForeignKeys());
+        $this->modifiedForeignKeys = $this->modelMapper->getForeignKeys()->intersectByKeys($this->doctrineMapper->getForeignKeys());
+
     }
 
     public static function make(DoctrineMapper $doctrineMapper, ModelMapper $modelMapper): Comparer
@@ -41,7 +59,7 @@ class Comparer extends Mapper
 
     private function compareModifiedColumns(): self
     {
-        $this->mappedDiff = $this->doctrineColumns->map(function (ColumnDefinition $currentBlueprintColumn) {
+        $this->modifiedColumns->map(function (ColumnDefinition $currentBlueprintColumn) {
 
             $matchingNewBlueprintColumns = $this->getMatchingNewBlueprintColumns($currentBlueprintColumn);
             if ($matchingNewBlueprintColumns->isNotEmpty()) {
@@ -202,41 +220,5 @@ class Comparer extends Mapper
     private function getIndexColumns(Fluent $matchedIndex): string
     {
         return "['" . implode("','", $matchedIndex->get('columns')) . "']";
-    }
-
-
-    public function map(): Mapper
-    {
-        // TODO: Implement map() method.
-    }
-
-    protected function mapColumns(): Mapper
-    {
-        // TODO: Implement mapColumns() method.
-    }
-
-    protected function mapIndexes(): Mapper
-    {
-        // TODO: Implement mapIndexes() method.
-    }
-
-    protected function mapForeignKeys(): Mapper
-    {
-        // TODO: Implement mapForeignKeys() method.
-    }
-
-    protected function mapToColumn(AttributeEntity|Column $column): array
-    {
-        // TODO: Implement mapToColumn() method.
-    }
-
-    protected function mapToIndex(Index|AttributeEntity $index): array
-    {
-        // TODO: Implement mapToIndex() method.
-    }
-
-    protected function mapToForeignKey(ForeignKeyConstraint|AttributeEntity $foreignKey): array
-    {
-        // TODO: Implement mapToForeignKey() method.
     }
 }
