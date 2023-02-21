@@ -25,7 +25,8 @@ class Comparer
     private Collection $removedForeignKeys;
     private Collection $modifiedForeignKeys;
 
-    public function __construct(DoctrineMapper $doctrineMapper, ModelMapper $modelMapper){
+    public function __construct(DoctrineMapper $doctrineMapper, ModelMapper $modelMapper)
+    {
         $this->migrationGenerator = new MigrationGenerator;
 
         $this->addedColumns = $modelMapper->getColumns()->diffKeys($doctrineMapper->getColumns());
@@ -54,8 +55,12 @@ class Comparer
             ->removeOldColumns()
             ->compareModifiedIndexes()
             ->addNewIndexes()
-            ->removeOldIndexes();
-        dd($this->mappedDiff);
+            ->removeOldIndexes()
+            ->compareModifiedForeignKeys()
+            ->addNewForeignKeys()
+            ->removeOldForeignKeys();
+
+        dd($this->getMigrationGenerator()->getGenerated());
         return $this;
 
     }
@@ -63,10 +68,10 @@ class Comparer
     private function compareModifiedColumns(): self
     {
         $this->modifiedColumns->map(function (ColumnDefinition $column) {
-                $modifiedAttributes = $this->getModifiedAttributes($column);
-                if ($modifiedAttributes->isNotEmpty()) {
-                    return $this->migrationGenerator->buildMappedColumn($column, $modifiedAttributes);
-                }
+            $modifiedAttributes = $this->getModifiedAttributes($column);
+            if ($modifiedAttributes->isNotEmpty()) {
+                return $this->migrationGenerator->modifyColumn($column, $modifiedAttributes);
+            }
             return $this;
         });
 
@@ -88,52 +93,43 @@ class Comparer
         });
         return $this;
     }
+
     private function compareModifiedIndexes(): self
     {
-
         $this->modifiedIndexes->each(function (Fluent $index) {
-                $modifiedAttributes = $this->getModifiedAttributes($index);
-                if ($modifiedAttributes->isNotEmpty()) {
-                    return $this->migrationGenerator->buildMappedIndex($index, $modifiedAttributes);
-                }
-
+            $modifiedAttributes = $this->getModifiedAttributes($index);
+            if ($modifiedAttributes->isNotEmpty()) {
+                return $this->migrationGenerator->buildIndex($index, $modifiedAttributes);
+            }
             return $this;
         });
 
         return $this;
     }
 
-    private function addNewIndexes()
+    private function addNewIndexes(): self
     {
-
         $this->addedIndexes->map(function (Fluent $index) {
-            $indexNames = $this->getIndexColumns($index);
-            return $this->migrationGenerator->addIndex($indexNames);
+            return $this->migrationGenerator->addIndex($index);
         });
-
         return $this;
     }
 
     private function removeOldIndexes(): self
     {
         $this->removedIndexes->map(function (Fluent $index) {
-            $indexNames = $this->getIndexColumns($index);
-            return $this->migrationGenerator->removeIndex($indexNames);
+            return $this->migrationGenerator->removeIndex($index);
         });
         return $this;
     }
 
-    public function getMigrationGenerator(): MigrationGenerator
-    {
-        return $this->migrationGenerator;
-    }
 
     private function compareModifiedForeignKeys(): self
     {
         $this->modifiedForeignKeys->map(function (Fluent $foreignKey) {
             $modifiedAttributes = $this->getModifiedAttributes($foreignKey);
             if ($modifiedAttributes->isNotEmpty()) {
-                return $this->migrationGenerator->buildMappedForeignKey($foreignKey, $modifiedAttributes);
+                return $this->migrationGenerator->buildForeignKey($foreignKey, $modifiedAttributes);
             }
             return $this;
         });
@@ -163,10 +159,8 @@ class Comparer
             return $value !== $column->get($attribute);
         });
     }
-
-
-    private function getIndexColumns(Fluent $matchedIndex): string
+    public function getMigrationGenerator(): MigrationGenerator
     {
-        return "['" . implode("','", $matchedIndex->get('columns')) . "']";
+        return $this->migrationGenerator;
     }
 }
