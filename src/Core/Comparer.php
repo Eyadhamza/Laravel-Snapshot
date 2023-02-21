@@ -14,6 +14,7 @@ use Illuminate\Support\Fluent;
 
 class Comparer
 {
+    private MigrationGenerator $migrationGenerator;
     private Collection $addedColumns;
     private Collection $removedColumns;
     private Collection $modifiedColumns;
@@ -24,18 +25,20 @@ class Comparer
     private Collection $removedForeignKeys;
     private Collection $modifiedForeignKeys;
 
-    public function __construct(private DoctrineMapper $doctrineMapper, private ModelMapper $modelMapper){
-        $this->addedColumns = $this->modelMapper->getColumns()->diffKeys($this->doctrineMapper->getColumns());
-        $this->removedColumns = $this->doctrineMapper->getColumns()->diffKeys($this->modelMapper->getColumns());
-        $this->modifiedColumns = $this->modelMapper->getColumns()->intersectByKeys($this->doctrineMapper->getColumns());
+    public function __construct(DoctrineMapper $doctrineMapper, ModelMapper $modelMapper){
+        $this->migrationGenerator = new MigrationGenerator;
 
-        $this->addedIndexes = $this->modelMapper->getIndexes()->diffKeys($this->doctrineMapper->getIndexes());
-        $this->removedIndexes = $this->doctrineMapper->getIndexes()->diffKeys($this->modelMapper->getIndexes());
-        $this->modifiedIndexes = $this->modelMapper->getIndexes()->intersectByKeys($this->doctrineMapper->getIndexes());
+        $this->addedColumns = $modelMapper->getColumns()->diffKeys($doctrineMapper->getColumns());
+        $this->removedColumns = $doctrineMapper->getColumns()->diffKeys($modelMapper->getColumns());
+        $this->modifiedColumns = $modelMapper->getColumns()->intersectByKeys($doctrineMapper->getColumns());
 
-        $this->addedForeignKeys = $this->modelMapper->getForeignKeys()->diffKeys($this->doctrineMapper->getForeignKeys());
-        $this->removedForeignKeys = $this->doctrineMapper->getForeignKeys()->diffKeys($this->modelMapper->getForeignKeys());
-        $this->modifiedForeignKeys = $this->modelMapper->getForeignKeys()->intersectByKeys($this->doctrineMapper->getForeignKeys());
+        $this->addedIndexes = $modelMapper->getIndexes()->diffKeys($doctrineMapper->getIndexes());
+        $this->removedIndexes = $doctrineMapper->getIndexes()->diffKeys($modelMapper->getIndexes());
+        $this->modifiedIndexes = $modelMapper->getIndexes()->intersectByKeys($doctrineMapper->getIndexes());
+
+        $this->addedForeignKeys = $modelMapper->getForeignKeys()->diffKeys($doctrineMapper->getForeignKeys());
+        $this->removedForeignKeys = $doctrineMapper->getForeignKeys()->diffKeys($modelMapper->getForeignKeys());
+        $this->modifiedForeignKeys = $modelMapper->getForeignKeys()->intersectByKeys($doctrineMapper->getForeignKeys());
 
     }
 
@@ -59,65 +62,42 @@ class Comparer
 
     private function compareModifiedColumns(): self
     {
-        $this->modifiedColumns->map(function (ColumnDefinition $currentBlueprintColumn) {
-
-            $matchingNewBlueprintColumns = $this->getMatchingNewBlueprintColumns($currentBlueprintColumn);
-            if ($matchingNewBlueprintColumns->isNotEmpty()) {
-                $matchingNewBlueprintColumn = $matchingNewBlueprintColumns->first();
-
-                $modifiedAttributes = $this->getModifiedAttributes($currentBlueprintColumn, $matchingNewBlueprintColumn);
+        $this->modifiedColumns->map(function (ColumnDefinition $column) {
+                $modifiedAttributes = $this->getModifiedAttributes($column);
                 if ($modifiedAttributes->isNotEmpty()) {
-                    return $this->buildMappedColumn($matchingNewBlueprintColumn, $modifiedAttributes);
+                    return $this->migrationGenerator->buildMappedColumn($column, $modifiedAttributes);
                 }
-            }
-            return "";
-        })->filter()->values();
+            return $this;
+        });
 
         return $this;
     }
 
     private function addNewColumns(): self
     {
-        $addedColumns = $this->modelColumns->diffKeys($this->doctrineColumns);
-
-        $this->mappedDiff->add($addedColumns->map(function (ColumnDefinition $column) {
-            $columnName = $column->get('name');
-            $columnType = $column->get('type');
-            return "\$table->$columnType('$columnName');";
-        }));
-
+        $this->addedColumns->map(function (ColumnDefinition $column) {
+            return $this->migrationGenerator->addColumn($column);
+        });
         return $this;
     }
 
     private function removeOldColumns(): self
     {
-        $removedColumns = $this->doctrineMapper->getColumns()->diffKeys($this->modelMapper->getColumns());
-
-        $this->mappedDiff->add($removedColumns->map(function (ColumnDefinition $column) {
-            $columnName = $column->get('name');
-            return "\$table->dropColumn('$columnName');";
-        }));
-
+        $this->removedColumns->map(function (ColumnDefinition $column) {
+            return $this->migrationGenerator->removeColumn($column);
+        });
         return $this;
     }
-    public function getMapped(): Collection
-    {
-        return $this->mappedDiff->flatten()->filter()->values();
-    }
-
     private function compareModifiedIndexes(): self
     {
-        $this->doctrineIndexes->each(function (Fluent $doctrineIndex) {
-            $matchedIndexes = $this->modelIndexes->where('index', $doctrineIndex->get('index'));
-            if ($matchedIndexes->isNotEmpty()) {
-                $matchedIndex = $matchedIndexes->first();
 
-                $modifiedAttributes = $this->getModifiedAttributes($matchedIndex, $doctrineIndex);
+        $this->modifiedIndexes->each(function (Fluent $index) {
+                $modifiedAttributes = $this->getModifiedAttributes($index);
                 if ($modifiedAttributes->isNotEmpty()) {
-                    return $this->buildMappedIndex($matchedIndex, $modifiedAttributes);
+                    return $this->migrationGenerator->buildMappedIndex($index, $modifiedAttributes);
                 }
-            }
-            return "";
+
+            return $this;
         });
 
         return $this;
@@ -125,97 +105,65 @@ class Comparer
 
     private function addNewIndexes()
     {
-        $addedIndexes = $this->modelIndexes->diffKeys($this->doctrineIndexes);
 
-        $this->mappedDiff->add($addedIndexes->map(function (Fluent $index) {
+        $this->addedIndexes->map(function (Fluent $index) {
             $indexNames = $this->getIndexColumns($index);
-
-            return "\$table->index($indexNames);";
-        }));
+            return $this->migrationGenerator->addIndex($indexNames);
+        });
 
         return $this;
     }
 
     private function removeOldIndexes(): self
     {
-        $removedIndexes = $this->doctrineIndexes->diffKeys($this->modelIndexes);
-        $this->mappedDiff->add($removedIndexes->map(function (Fluent $index) {
+        $this->removedIndexes->map(function (Fluent $index) {
             $indexNames = $this->getIndexColumns($index);
-            return "\$table->dropIndex($indexNames);";
-        }));
+            return $this->migrationGenerator->removeIndex($indexNames);
+        });
+        return $this;
+    }
+
+    public function getMigrationGenerator(): MigrationGenerator
+    {
+        return $this->migrationGenerator;
+    }
+
+    private function compareModifiedForeignKeys(): self
+    {
+        $this->modifiedForeignKeys->map(function (Fluent $foreignKey) {
+            $modifiedAttributes = $this->getModifiedAttributes($foreignKey);
+            if ($modifiedAttributes->isNotEmpty()) {
+                return $this->migrationGenerator->buildMappedForeignKey($foreignKey, $modifiedAttributes);
+            }
+            return $this;
+        });
 
         return $this;
     }
 
-    private function getMatchingNewBlueprintColumns(ColumnDefinition $currentBlueprintColumn): Collection
+    private function addNewForeignKeys(): self
     {
-        return $this->modelColumns->where('name', $currentBlueprintColumn->get('name'));
+        $this->addedForeignKeys->map(function (Fluent $foreignKey) {
+            return $this->migrationGenerator->addForeignKey($foreignKey);
+        });
+        return $this;
     }
 
-    private function getModifiedAttributes(Fluent $currentBlueprintColumn, Fluent $matchingNewBlueprintColumn): Collection
+    private function removeOldForeignKeys(): self
     {
-        return collect($matchingNewBlueprintColumn->getAttributes())->filter(function ($value, $attribute) use ($currentBlueprintColumn) {
-            return $value !== $currentBlueprintColumn->get($attribute);
+        $this->removedForeignKeys->map(function (Fluent $foreignKey) {
+            return $this->migrationGenerator->removeForeignKey($foreignKey);
+        });
+        return $this;
+    }
+
+    private function getModifiedAttributes(Fluent $column): Collection
+    {
+        return collect($column->getAttributes())->filter(function ($value, $attribute) use ($column) {
+            return $value !== $column->get($attribute);
         });
     }
 
-    private function buildMappedColumn(ColumnDefinition $matchingNewBlueprintColumn, Collection $modifiedAttributes): string
-    {
-        $columnType = $matchingNewBlueprintColumn->get('type');
-        $columnName = $matchingNewBlueprintColumn->get('name');
-
-        $mappedColumn = "\$table" . "->$columnType" . "('$columnName')";
-        return collect($modifiedAttributes)
-            ->reject(fn($value, $attribute) => $this->attributesToBeSkipped($attribute))
-            ->reject(fn($value, $attribute) => $this->noChangeHappened($attribute))
-            ->map(function ($value, $attribute) use ($columnName, $columnType, $mappedColumn, $matchingNewBlueprintColumn) {
-                if ($this->attributesAsSecondArgument($attribute)) {
-                    return $value ? "\$table->{$columnType}('$columnName', $value)" . "->change();" : "";
-                }
-                if ($this->inForeignRules($attribute)) {
-                    return "";
-                }
-                return $mappedColumn . "->{$attribute}()" . "->change();";
-            })->implode('');
-    }
-
-    private function attributesAsSecondArgument($attribute): bool
-    {
-
-        return in_array($attribute, ['length', 'precision', 'scale']);
-    }
-
-    private function attributesToBeSkipped(int|string|null $attribute): bool
-    {
-        return in_array($attribute, ['name', 'type']);
-    }
-
-    private function noChangeHappened($attribute): bool
-    {
-        return in_array($attribute, ['autoIncrement']);
-    }
-
-    public function getTable(): string
-    {
-        return $this->table;
-    }
-
-    private function inForeignRules($rule): bool
-    {
-        return in_array($rule, ['cascadeOnDelete', 'cascadeOnUpdate']);
-    }
-
-    private function buildMappedIndex(Fluent $matchedIndex, Collection $modifiedAttributes)
-    {
-        $indexType = $matchedIndex->get('name');
-        $indexColumns = $this->getIndexColumns($matchedIndex);
-        $mappedIndex = "\$table" . "->$indexType" . "($indexColumns)";
-        return collect($modifiedAttributes)->filter(function ($value, $attribute) use ($matchedIndex) {
-            return $value !== $matchedIndex->get($attribute);
-        })->map(function ($value, $attribute) use ($indexType, $mappedIndex) {
-            return $mappedIndex . "->{$attribute}()" . "->change();";
-        })->implode('');
-    }
 
     private function getIndexColumns(Fluent $matchedIndex): string
     {

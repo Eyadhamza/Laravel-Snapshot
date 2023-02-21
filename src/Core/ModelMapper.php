@@ -127,7 +127,7 @@ class ModelMapper extends Mapper
             return $rules;
         }
         foreach ($column->getRules() as $key => $value) {
-            MigrationCodeGenerator::make()->handle($column);
+            MigrationGenerator::make()->handle($column);
             if (is_int($key)) {
                 $rules[$value] = true;
                 continue;
