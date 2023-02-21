@@ -18,6 +18,7 @@ use Spatie\ModelInfo\ModelInfo;
 class ModelMapper extends Mapper
 {
     private Collection $mappedBlueprint;
+    private MigrationGenerator $generator;
 
     public function __construct(ModelInfo $modelInfo)
     {
@@ -38,7 +39,7 @@ class ModelMapper extends Mapper
 
         $this->mappedBlueprint = collect();
 
-
+        $this->generator = new MigrationGenerator;
     }
 
     public static function make(ModelInfo $modelInfo): self
@@ -87,18 +88,6 @@ class ModelMapper extends Mapper
         return $this;
     }
 
-    private function getColumnNameOrNames(mixed $name): string
-    {
-        if (!$name) {
-            return '';
-        }
-        return is_array($name) ? "['" . implode("','", $name) . "']" : "'{$name}'";
-    }
-
-    private function inForeignRules($rule): bool
-    {
-        return in_array($rule, ['onDelete', 'onUpdate']);
-    }
 
     protected function mapIndexes(): self
     {
@@ -127,7 +116,7 @@ class ModelMapper extends Mapper
             return $rules;
         }
         foreach ($column->getRules() as $key => $value) {
-            MigrationGenerator::make()->handle($column);
+            $this->generator->addColumn($column);
             if (is_int($key)) {
                 $rules[$value] = true;
                 continue;

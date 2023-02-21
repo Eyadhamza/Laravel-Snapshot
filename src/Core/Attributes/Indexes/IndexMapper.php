@@ -36,12 +36,17 @@ class IndexMapper extends AttributeEntity
 
     public function getColumns(): array|string
     {
-        return $this->columns;
+
+        return array_values($this->columns);
     }
 
     private function getAlgorithm()
     {
         return $this->algorithm;
     }
-
+    public function get($key)
+    {
+        $method = 'get' . Str::camel($key);
+        return $this->$method();
+    }
 }

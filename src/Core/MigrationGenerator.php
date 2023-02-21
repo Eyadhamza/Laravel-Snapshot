@@ -2,6 +2,8 @@
 
 namespace Eyadhamza\LaravelAutoMigration\Core;
 
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\AttributeEntity;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes\IndexMapper;
 use Illuminate\Database\Schema\ColumnDefinition;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Fluent;
@@ -10,11 +12,15 @@ class MigrationGenerator
 {
     private Collection $generated;
 
-    public function addColumn($column): self
+    public function __construct()
     {
-        $columnType = $column->get('type');
-        $columnName = $column->get('name');
-        $rules = $column->get('rules');
+        $this->generated = collect();
+    }
+    public function addColumn(AttributeEntity $column): self
+    {
+        $columnType = $column->getType();
+        $columnName = $column->getName();
+        $rules = $column->getRules();
 
         $mappedColumn = "\$table" . "->$columnType" . "({$this->getColumnNameOrNames($columnName)})";
 
@@ -37,7 +43,7 @@ class MigrationGenerator
         return $this;
     }
 
-    public function modifyColumn(ColumnDefinition $column, Collection $attributes): self
+    public function modifyColumn(Fluent $column, Collection $attributes): self
     {
         $columnType = $column->get('type');
         $columnName = $column->get('name');
@@ -80,7 +86,7 @@ class MigrationGenerator
         return $this;
     }
 
-    public function addIndex(Fluent $index): self
+    public function addIndex(Fluent|IndexMapper $index): self
     {
         $indexNames = $this->getIndexColumns($index);
         $this->generated->add("\$table->index($indexNames);");
@@ -155,9 +161,12 @@ class MigrationGenerator
     }
 
 
-    private function getIndexColumns(Fluent $matchedIndex): string
+    private function getIndexColumns(Fluent|IndexMapper $matchedIndex): string
     {
-        return "['" . implode("','", $matchedIndex->get('columns')) . "']";
+        if (! $matchedIndex->get('columns')) {
+            return '';
+        }
+        return "['" . implode("','" , $matchedIndex->get('columns')) . "']";
     }
 
     private function getColumnNameOrNames(mixed $columnName): string

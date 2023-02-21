@@ -6,6 +6,7 @@ use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Index;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\AttributeEntity;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes\IndexMapper;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Schema\ColumnDefinition;
 use Illuminate\Database\Schema\IndexDefinition;
@@ -67,7 +68,7 @@ class Comparer
 
     private function compareModifiedColumns(): self
     {
-        $this->modifiedColumns->map(function (ColumnDefinition $column) {
+        $this->modifiedColumns->map(function (Fluent $column) {
             $modifiedAttributes = $this->getModifiedAttributes($column);
             if ($modifiedAttributes->isNotEmpty()) {
                 return $this->migrationGenerator->modifyColumn($column, $modifiedAttributes);
@@ -109,7 +110,7 @@ class Comparer
 
     private function addNewIndexes(): self
     {
-        $this->addedIndexes->map(function (Fluent $index) {
+        $this->addedIndexes->map(function (Fluent|IndexMapper $index) {
             return $this->migrationGenerator->addIndex($index);
         });
         return $this;
