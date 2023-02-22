@@ -20,7 +20,7 @@ it('can create a new MigrationBuilder instance', function () {
 it('can map models to blueprints', function () {
     $mapper = MigrationBuilder::mapAll(ModelInfo::forAllModels('app', config('auto-migration.base_path') ?? app_path()));
 
-    $blueprintBuilder = $mapper->getModelBlueprintBuilders()->first();
+    $blueprintBuilder = $mapper->getModelMappers()->first();
     expect($blueprintBuilder)
         ->toBeInstanceOf(ModelMapper::class)
         ->and($blueprintBuilder->getBlueprint())
@@ -30,7 +30,7 @@ it('can map models to blueprints', function () {
 });
 it('can generate the right columns', function () {
     $mapper = MigrationBuilder::mapAll(ModelInfo::forAllModels('app', config('auto-migration.base_path') ?? app_path()));
-    $blueprint = $mapper->getModelBlueprintBuilders()->first()->getBlueprint();
+    $blueprint = $mapper->getModelMappers()->first()->getBlueprint();
     expect($blueprint->getColumns())
         ->toHaveCount(8);
     $idColumn = $blueprint->getColumns()[0];

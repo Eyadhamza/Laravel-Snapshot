@@ -7,6 +7,7 @@ use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Index;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\AttributeEntity;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\ColumnMapper;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\ForeignKeys\ForeignKeyMapper;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes\IndexMapper;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Schema\ColumnDefinition;
@@ -37,9 +38,11 @@ class ModelMapper extends Mapper
                 return $this->mapAttribute($attribute);
             });
 
-        $this->foreignKeys = collect();
+        $this->foreignKeys = $this->getAttributesOfForeignKeyType(new ReflectionClass($modelInfo->class))
+            ->map(function (ReflectionAttribute $attribute) {
+                return $this->mapAttribute($attribute);
+            });
 
-        $this->mappedBlueprint = collect();
 
         $this->generator = new MigrationGenerator($modelInfo->tableName);
     }
@@ -75,7 +78,14 @@ class ModelMapper extends Mapper
             });
     }
 
-    private function mapAttribute(ReflectionAttribute $reflectionAttribute): ColumnMapper|IndexMapper
+    private function getAttributesOfForeignKeyType(ReflectionClass $param)
+    {
+        return collect($param->getAttributes())
+            ->filter(function (ReflectionAttribute $attribute) {
+                return is_subclass_of($attribute->getName(), ForeignKeyMapper::class);
+            });
+    }
+    private function mapAttribute(ReflectionAttribute $reflectionAttribute): AttributeEntity
     {
         return $reflectionAttribute
             ->newInstance()
@@ -105,15 +115,16 @@ class ModelMapper extends Mapper
 
     protected function mapForeignKeys(): self
     {
-        $this->foreignKeys = $this->foreignKeys->mapWithKeys(function (ForeignKeyConstraint $foreignKey) {
-            return new ForeignKeyDefinition($this->mapToForeignKey($foreignKey));
+        $this->foreignKeys = $this->foreignKeys->mapWithKeys(function (ForeignKeyMapper $foreignKey) {
+            return [
+                $foreignKey->getName() => new ForeignKeyDefinition($this->mapToColumn($foreignKey))
+            ];
         });
         return $this;
     }
 
-    protected function mapToColumn(AttributeEntity|Column $column): array
+    protected function mapToColumn(Column|AttributeEntity $column): array
     {
-        dump($column);
         $rules = [];
         $rules['type'] = $column->getType();
         $rules['name'] = $column->getName();
@@ -131,7 +142,7 @@ class ModelMapper extends Mapper
         return $rules;
     }
 
-    protected function mapToIndex(Index|AttributeEntity $index): array
+    protected function mapToIndex(Index|IndexMapper $index): array
     {
         $this->generator->addIndex($index);
         return [
@@ -141,22 +152,15 @@ class ModelMapper extends Mapper
         ];
     }
 
-    protected function mapToForeignKey(ForeignKeyConstraint|AttributeEntity $foreignKey): array
+    protected function mapToForeignKey(ForeignKeyConstraint|ForeignKeyMapper $foreignKey): array
     {
-        $this->generator->addForeignKey($foreignKey);
-        return [
-            'name' => $foreignKey->getName(),
-            'columns' => $foreignKey->getColumns(),
-            'referencedTable' => $foreignKey->getForeignTableName(),
-            'referencedColumns' => $foreignKey->getForeignColumns(),
-            'onDelete' => $foreignKey->onDelete(),
-            'onUpdate' => $foreignKey->onUpdate(),
-        ];
+        return [];
     }
 
     public function getMigrationGenerator(): MigrationGenerator
     {
         return $this->generator;
     }
+
 
 }

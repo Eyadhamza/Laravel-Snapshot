@@ -42,7 +42,7 @@ class AttributeEntity
     }
     public function get($key)
     {
-        $method = 'get' . Str::camel($key);
+        $method = 'get' . Str::studly($key);
         return $this->$method();
     }
 }

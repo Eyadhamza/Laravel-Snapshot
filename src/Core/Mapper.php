@@ -6,6 +6,9 @@ use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Index;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\AttributeEntity;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\ColumnMapper;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\ForeignKeys\ForeignKeyMapper;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes\IndexMapper;
 use Illuminate\Support\Collection;
 
 abstract class Mapper
@@ -52,8 +55,8 @@ abstract class Mapper
     abstract protected function mapIndexes(): self;
     abstract protected function mapForeignKeys(): self;
     abstract protected function mapToColumn(Column|AttributeEntity $column): array;
-    abstract protected function mapToIndex(Index|AttributeEntity $index): array;
-    abstract protected function mapToForeignKey(ForeignKeyConstraint|AttributeEntity $foreignKey): array;
+    abstract protected function mapToIndex(Index|IndexMapper $index): array;
+    abstract protected function mapToForeignKey(ForeignKeyConstraint|ForeignKeyMapper $foreignKey): array;
     public function __construct(string $tableName)
     {
         $this->tableName = $tableName;

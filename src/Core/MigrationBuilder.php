@@ -2,23 +2,17 @@
 
 namespace Eyadhamza\LaravelAutoMigration\Core;
 
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\ColumnMapper;
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes\IndexMapper;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Str;
-use ReflectionAttribute;
-use ReflectionClass;
 use Spatie\ModelInfo\ModelInfo;
 
 class MigrationBuilder
 {
-    private Collection $modelBlueprintBuilders;
+    private Collection $modelMappers;
 
     public function __construct(Collection $modelBlueprintBuilder)
     {
-        $this->modelBlueprintBuilders = $modelBlueprintBuilder;
+        $this->modelMappers = $modelBlueprintBuilder;
     }
 
     public static function make(Collection $modelBlueprintBuilder): self
@@ -28,17 +22,15 @@ class MigrationBuilder
 
     public static function mapAll(Collection $models): self
     {
-
         return MigrationBuilder::make($models)
             ->mapModels()
             ->ensureExecutionOrder()
             ->buildMigrations();
-
     }
 
     public function mapModels(): self
     {
-        $this->modelBlueprintBuilders = $this->modelBlueprintBuilders->map(function (ModelInfo $model) {
+        $this->modelMappers = $this->modelMappers->map(function (ModelInfo $model) {
             return ModelMapper::make($model)->map();
         });
         return $this;
@@ -46,14 +38,13 @@ class MigrationBuilder
 
     public function buildMigrations(): self
     {
-        $this->modelBlueprintBuilders->each(function (ModelMapper $modelBlueprintBuilder) {
-            $tableName = $modelBlueprintBuilder->getTableName();
-
+        $this->modelMappers->map(function (ModelMapper $modelMapper) {
+            $tableName = $modelMapper->getTableName();
             if (!Schema::hasTable($tableName)) {
-                $this->buildFirstMigration($modelBlueprintBuilder);
+                $this->buildFirstMigration($modelMapper);
                 return $this;
             }
-            $this->buildUpdatedMigration($modelBlueprintBuilder);
+            $this->buildUpdatedMigration($modelMapper);
 
             return $this;
         });
@@ -93,10 +84,10 @@ class MigrationBuilder
 
     private function ensureExecutionOrder(): self
     {
-        $this->modelBlueprintBuilders = $this->modelBlueprintBuilders->map(function (ModelMapper $model) {
-            $model->getForeignKeys()->each(function ($command) use ($model) {
-                $relatedModel = $this->modelBlueprintBuilders->first(function ($modelWithForeign) use ($command) {
-                    return $modelWithForeign->getBlueprint()->getTable() == $command->get('on');
+        $this->modelMappers = $this->modelMappers->map(function (ModelMapper $model) {
+            $model->getForeignKeys()->each(function ($foreignKey) use ($model) {
+                $relatedModel = $this->modelMappers->first(function (Mapper $modelWithForeign) use ($foreignKey) {
+                    return $modelWithForeign->getTableName() == $foreignKey->get('constrained');
                 });
                 if ($relatedModel) {
                     $model->setExecutionOrder($relatedModel->getExecutionOrder() + 1);
@@ -108,9 +99,9 @@ class MigrationBuilder
         return $this;
     }
 
-    public function getModelBlueprintBuilders(): Collection
+    public function getModelMappers(): Collection
     {
-        return $this->modelBlueprintBuilders;
+        return $this->modelMappers;
     }
 }
 

@@ -3,6 +3,7 @@
 namespace Eyadhamza\LaravelAutoMigration\Core;
 
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\AttributeEntity;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\ForeignKeys\ForeignKeyMapper;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes\IndexMapper;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Fluent;
@@ -65,7 +66,6 @@ class MigrationGenerator
         $columnName = $column->get('name');
 
         $mappedColumn = "\$table" . "->$columnType" . "('$columnName')";
-        dd($attributes);
         collect($attributes)
             ->reject(fn($value, $attribute) => $this->attributesToBeSkipped($attribute))
             ->reject(fn($value, $attribute) => $this->noChangeHappened($attribute))
@@ -92,7 +92,7 @@ class MigrationGenerator
     public function buildIndex(Fluent $matchedIndex, Collection $modifiedAttributes): self
     {
         $indexType = $matchedIndex->get('name');
-        $indexColumns = $this->getIndexColumns($matchedIndex);
+        $indexColumns = $this->getColumns($matchedIndex);
         $mappedIndex = "\$table" . "->$indexType" . "($indexColumns)";
         collect($modifiedAttributes)->filter(function ($value, $attribute) use ($matchedIndex) {
             return $value !== $matchedIndex->get($attribute);
@@ -105,14 +105,14 @@ class MigrationGenerator
 
     public function addIndex(Fluent|AttributeEntity $index): self
     {
-        $indexNames = $this->getIndexColumns($index);
+        $indexNames = $this->getColumns($index);
         $this->generated->add("\$table->index($indexNames);");
         return $this;
     }
 
     public function removeIndex(Fluent $index): self
     {
-        $indexNames = $this->getIndexColumns($index);
+        $indexNames = $this->getColumns($index);
         $this->generated->add("\$table->dropIndex($indexNames);");
 
         return $this;
@@ -120,7 +120,7 @@ class MigrationGenerator
 
     public function buildForeignKey(Fluent $foreignKey, Collection $modifiedAttributes): self
     {
-        $foreignKeyColumns = $this->getIndexColumns($foreignKey);
+        $foreignKeyColumns = $this->getColumns($foreignKey);
         $mappedForeignKey = "\$table" . "->foreign" . "($foreignKeyColumns)";
          collect($modifiedAttributes)->filter(function ($value, $attribute) use ($foreignKey) {
             return $value !== $foreignKey->get($attribute);
@@ -131,23 +131,23 @@ class MigrationGenerator
         return $this;
     }
 
-    public function addForeignKey(Fluent $foreignKey): static
+    public function addForeignKey(ForeignKeyMapper $foreignKey): static
     {
-        $foreignKeyColumns = $this->getIndexColumns($foreignKey);
+        $columnName = $foreignKey->getName();
         foreach ($foreignKey->get('rules') as $rule => $value) {
             if ($this->inForeignRules($value)) {
-                $foreignKeyColumns = $foreignKeyColumns . "->$value('$rule')";
+                $columnName = $columnName . "->$value('$rule')";
                 continue;
             }
-            $foreignKeyColumns = $foreignKeyColumns . "->$rule('$value');";
+            $columnName = $columnName . "->$rule('$value');";
         }
-        $this->generated->add($foreignKeyColumns);
+        $this->generated->add($columnName);
         return $this;
     }
 
     public function removeForeignKey(Fluent $foreignKey): self
     {
-        $foreignKeyColumns = $this->getIndexColumns($foreignKey);
+        $foreignKeyColumns = $this->getColumns($foreignKey);
         $this->generated->add("\$table->dropForeign($foreignKeyColumns);");
         return $this;
     }
@@ -178,7 +178,7 @@ class MigrationGenerator
     }
 
 
-    private function getIndexColumns(Fluent|IndexMapper $matchedIndex): string
+    private function getColumns(ForeignKeyMapper|IndexMapper $matchedIndex): string
     {
         if (is_string($matchedIndex->get('columns'))) {
             return "'{$matchedIndex->get('columns')}'";
@@ -193,7 +193,4 @@ class MigrationGenerator
     {
         return is_array($columnName) ? "['" . implode("','", $columnName) . "']" : "'$columnName'";
     }
-
-
-
 }
