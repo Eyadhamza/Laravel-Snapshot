@@ -117,9 +117,7 @@ class DoctrineMapper extends Mapper
     {
         return collect([
             'name' => $foreignKey->getName(),
-            'localColumns' => $foreignKey->getLocalColumns(),
-            'foreignColumns' => $foreignKey->getForeignColumns(),
-            'foreignTableName' => $foreignKey->getForeignTableName(),
+            'column' => $foreignKey->getLocalColumns()[0],
             'onDelete' => $foreignKey->getOption('onDelete'),
             'onUpdate' => $foreignKey->getOption('onUpdate'),
         ])->filter()->toArray();

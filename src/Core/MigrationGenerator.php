@@ -5,6 +5,8 @@ namespace Eyadhamza\LaravelAutoMigration\Core;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\AttributeEntity;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\ForeignKeys\ForeignKeyMapper;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes\IndexMapper;
+use Illuminate\Database\Schema\ForeignKeyDefinition;
+use Illuminate\Database\Schema\IndexDefinition;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Fluent;
 use Illuminate\Support\Str;
@@ -131,9 +133,13 @@ class MigrationGenerator
         return $this;
     }
 
-    public function addForeignKey(ForeignKeyMapper $foreignKey): static
+    public function addForeignKey(AttributeEntity|ForeignKeyDefinition $foreignKey): static
     {
-        $columnName = $foreignKey->getName();
+        $columnName = $foreignKey->get('name');
+        if (empty($foreignKey->get('rules'))) {
+            $this->generated->add("\$table->foreign('$columnName');");
+            return $this;
+        }
         foreach ($foreignKey->get('rules') as $rule => $value) {
             if ($this->inForeignRules($value)) {
                 $columnName = $columnName . "->$value('$rule')";
@@ -145,10 +151,10 @@ class MigrationGenerator
         return $this;
     }
 
-    public function removeForeignKey(Fluent $foreignKey): self
+    public function removeForeignKey(ForeignKeyDefinition $foreignKey): self
     {
-        $foreignKeyColumns = $this->getColumns($foreignKey);
-        $this->generated->add("\$table->dropForeign($foreignKeyColumns);");
+        $foreignKeyName = $foreignKey->get('name');
+        $this->generated->add("\$table->dropForeign('$foreignKeyName');");
         return $this;
     }
 
@@ -178,7 +184,7 @@ class MigrationGenerator
     }
 
 
-    private function getColumns(ForeignKeyMapper|IndexMapper $matchedIndex): string
+    private function getColumns(AttributeEntity|IndexDefinition $matchedIndex): string
     {
         if (is_string($matchedIndex->get('columns'))) {
             return "'{$matchedIndex->get('columns')}'";
@@ -189,7 +195,7 @@ class MigrationGenerator
         return "['" . implode("','" , $matchedIndex->get('columns')) . "']";
     }
 
-    private function getColumnNameOrNames(string|array $columnName): string
+    private function getColumnNameOrNames(string|array|null $columnName): string
     {
         return is_array($columnName) ? "['" . implode("','", $columnName) . "']" : "'$columnName'";
     }

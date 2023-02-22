@@ -9,11 +9,12 @@ use Eyadhamza\LaravelAutoMigration\Core\Attributes\AttributeEntity;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\ColumnMapper;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\ForeignKeys\ForeignKeyMapper;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes\IndexMapper;
+use Illuminate\Database\Schema\ForeignKeyDefinition;
 use Illuminate\Support\Collection;
 
 abstract class Mapper
 {
-    protected int $executionOrder = 0;
+    protected int $executionOrder = 1;
     private string $tableName;
     protected Collection $columns;
     protected Collection $indexes;
@@ -49,6 +50,13 @@ abstract class Mapper
     public function getColumns(): Collection
     {
         return $this->columns;
+    }
+
+    public function hasForeignKeyTo(string $getTableName): bool
+    {
+        return $this->foreignKeys->contains(function (ForeignKeyDefinition $foreignKey) use ($getTableName) {
+            return $foreignKey->get('constrained') === $getTableName;
+        });
     }
 
     abstract protected function mapColumns(): self;

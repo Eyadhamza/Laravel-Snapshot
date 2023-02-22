@@ -74,8 +74,8 @@ class Comparer
 
     private function addNewColumns(): self
     {
-        $this->addedColumns = $this->addedColumns->map(function (Fluent $column) {
-            return  $this->migrationGenerator->addColumn($column);
+        $this->addedColumns = $this->addedColumns->map(function (ColumnDefinition $column) {
+            return $this->migrationGenerator->addColumn($column);
         });
         return $this;
     }

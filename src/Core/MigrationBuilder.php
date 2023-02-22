@@ -2,6 +2,7 @@
 
 namespace Eyadhamza\LaravelAutoMigration\Core;
 
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\ForeignKeys\ForeignKeyMapper;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 use Spatie\ModelInfo\ModelInfo;
@@ -84,20 +85,33 @@ class MigrationBuilder
 
     private function ensureExecutionOrder(): self
     {
-        $this->modelMappers = $this->modelMappers->map(function (ModelMapper $model) {
-            $model->getForeignKeys()->each(function ($foreignKey) use ($model) {
-                $relatedModel = $this->modelMappers->first(function (Mapper $modelWithForeign) use ($foreignKey) {
-                    return $modelWithForeign->getTableName() == $foreignKey->get('constrained');
-                });
-                if ($relatedModel) {
-                    $model->setExecutionOrder($relatedModel->getExecutionOrder() + 1);
+        $modelMappers = collect();
+        $processed = collect();
+
+        while ($this->modelMappers->isNotEmpty()) {
+            $this->modelMappers->each(function (ModelMapper $model) use ($modelMappers, $processed) {
+                if ($model->getForeignKeys()->isEmpty() || $model->getForeignKeys()->every(function ($key) use ($processed) {
+                        return $processed->contains($key->get('constrained'));
+                    })) {
+                    $modelMappers->push($model);
+                    $processed->push($model->getTableName());
+                    $this->modelMappers = $this->modelMappers->reject(function ($m) use ($model) {
+                        return $m->getTableName() === $model->getTableName();
+                    });
                 }
             });
-            return $model;
-        })->sortBy(fn($data) => $data->getExecutionOrder())->values();
+        }
+
+        $this->modelMappers = $modelMappers->values();
+        $this->modelMappers->each(function (ModelMapper $model, $index) {
+            $model->setExecutionOrder($index + 1);
+        });
 
         return $this;
     }
+
+
+
 
     public function getModelMappers(): Collection
     {
