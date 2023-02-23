@@ -4,9 +4,8 @@ namespace Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes;
 
 use Attribute;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\AttributeEntity;
-use Eyadhamza\LaravelAutoMigration\Core\Rules;
-use Eyadhamza\LaravelAutoMigration\Core\Constants\AttributeToColumn;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Fluent;
 use Illuminate\Support\Str;
 
 
@@ -15,25 +14,36 @@ class IndexMapper extends AttributeEntity
 {
     private string|array $columns;
     private string|null $algorithm;
+    private Fluent $definition;
 
-    public function __construct($columns, $name = null, $algorithm = null)
+    public function __construct($columns, $algorithm = null)
     {
-        parent::__construct($name);
+        parent::__construct("");
         $this->columns = $columns;
         $this->algorithm = $algorithm;
     }
 
+    public function setDefinition(string $tableName): self
+    {
+        $this->definition = (new Blueprint($tableName))->index($this->columns);
+        $this->setName($this->definition->get('index'));
+        return $this;
+    }
+    public function setName($name): self
+    {
+        $this->name = $name;
+
+        return $this;
+    }
     public static function make(IndexMapper $modelProperty): self
     {
 
-        return new self($modelProperty->getColumns(), $modelProperty->getName(), $modelProperty->getAlgorithm());
+        return new self($modelProperty->getColumns(), $modelProperty->getAlgorithm());
     }
-
     public function getName(): mixed
     {
-        return $this->columns;
+        return $this->name;
     }
-
     public function getColumns(): array|string
     {
         return $this->columns;

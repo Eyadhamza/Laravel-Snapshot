@@ -4,6 +4,8 @@ namespace Eyadhamza\LaravelAutoMigration\Core;
 
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes\IndexMapper;
 use Illuminate\Database\Schema\ColumnDefinition;
+use Illuminate\Database\Schema\ForeignKeyDefinition;
+use Illuminate\Database\Schema\IndexDefinition;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Fluent;
 
@@ -12,13 +14,13 @@ class Comparer
     private MigrationGenerator $migrationGenerator;
     private Collection $addedColumns;
     private Collection $removedColumns;
-    private Collection $modifiedColumns;
+    private Collection $intersectedColumns;
     private Collection $addedIndexes;
     private Collection $removedIndexes;
-    private Collection $modifiedIndexes;
+    private Collection $intersectedIndexes;
     private Collection $addedForeignKeys;
     private Collection $removedForeignKeys;
-    private Collection $modifiedForeignKeys;
+    private Collection $intersectedForeignKeys;
 
     public function __construct(DoctrineMapper $doctrineMapper, ModelMapper $modelMapper)
     {
@@ -26,15 +28,13 @@ class Comparer
 
         $this->addedColumns = $modelMapper->getColumns()->diffKeys($doctrineMapper->getColumns());
         $this->removedColumns = $doctrineMapper->getColumns()->diffKeys($modelMapper->getColumns());
-        $this->modifiedColumns = $modelMapper->getColumns()->intersectByKeys($doctrineMapper->getColumns());
-
+        $this->intersectedColumns = $modelMapper->getColumns()->intersectByKeys($doctrineMapper->getColumns());
         $this->addedIndexes = $modelMapper->getIndexes()->diffKeys($doctrineMapper->getIndexes());
         $this->removedIndexes = $doctrineMapper->getIndexes()->diffKeys($modelMapper->getIndexes());
-        $this->modifiedIndexes = $modelMapper->getIndexes()->intersectByKeys($doctrineMapper->getIndexes());
-
+        $this->intersectedIndexes = $modelMapper->getIndexes()->intersectByKeys($doctrineMapper->getIndexes());
         $this->addedForeignKeys = $modelMapper->getForeignKeys()->diffKeys($doctrineMapper->getForeignKeys());
         $this->removedForeignKeys = $doctrineMapper->getForeignKeys()->diffKeys($modelMapper->getForeignKeys());
-        $this->modifiedForeignKeys = $modelMapper->getForeignKeys()->intersectByKeys($doctrineMapper->getForeignKeys());
+        $this->intersectedForeignKeys = $modelMapper->getForeignKeys()->intersectByKeys($doctrineMapper->getForeignKeys());
 
     }
 
@@ -61,7 +61,7 @@ class Comparer
 
     private function compareModifiedColumns(): self
     {
-        $this->modifiedColumns = $this->modifiedColumns->map(function (Fluent $column) {
+        $this->intersectedColumns = $this->intersectedColumns->map(function (Fluent $column) {
             $modifiedAttributes = $this->getModifiedAttributes($column);
             if ($modifiedAttributes->isNotEmpty()) {
                 return $this->migrationGenerator->modifyColumn($column, $modifiedAttributes);
@@ -90,7 +90,7 @@ class Comparer
 
     private function compareModifiedIndexes(): self
     {
-        $this->modifiedIndexes = $this->modifiedIndexes->map(function (Fluent $index) {
+        $this->intersectedIndexes = $this->intersectedIndexes->map(function (IndexDefinition $index) {
             $modifiedAttributes = $this->getModifiedAttributes($index);
             if ($modifiedAttributes->isNotEmpty()) {
                 return $this->migrationGenerator->buildIndex($index, $modifiedAttributes);
@@ -111,7 +111,7 @@ class Comparer
 
     private function removeOldIndexes(): self
     {
-        $this->removedIndexes = $this->removedIndexes->map(function (Fluent $index) {
+        $this->removedIndexes = $this->removedIndexes->map(function (IndexDefinition $index) {
             return $this->migrationGenerator->removeIndex($index);
         });
         return $this;
@@ -120,7 +120,7 @@ class Comparer
 
     private function compareModifiedForeignKeys(): self
     {
-        $this->modifiedForeignKeys = $this->modifiedForeignKeys->map(function (Fluent $foreignKey) {
+        $this->intersectedForeignKeys = $this->intersectedForeignKeys->map(function (ForeignKeyDefinition $foreignKey) {
             $modifiedAttributes = $this->getModifiedAttributes($foreignKey);
             if ($modifiedAttributes->isNotEmpty()) {
                 return $this->migrationGenerator->buildForeignKey($foreignKey, $modifiedAttributes);
@@ -133,7 +133,7 @@ class Comparer
 
     private function addNewForeignKeys(): self
     {
-        $this->addedForeignKeys = $this->addedForeignKeys->map(function (Fluent $foreignKey) {
+        $this->addedForeignKeys = $this->addedForeignKeys->map(function (ForeignKeyDefinition $foreignKey) {
             return $this->migrationGenerator->addForeignKey($foreignKey);
         });
         return $this;
@@ -141,7 +141,7 @@ class Comparer
 
     private function removeOldForeignKeys(): self
     {
-        $this->removedForeignKeys = $this->removedForeignKeys->map(function (Fluent $foreignKey) {
+        $this->removedForeignKeys = $this->removedForeignKeys->map(function (ForeignKeyDefinition $foreignKey) {
             return $this->migrationGenerator->removeForeignKey($foreignKey);
         });
         return $this;

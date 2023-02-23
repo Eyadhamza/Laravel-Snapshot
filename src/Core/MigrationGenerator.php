@@ -59,6 +59,7 @@ class MigrationGenerator
             $mappedColumn = $mappedColumn . "->$rule('$value')";
         }
         $this->generated->add($mappedColumn . ";");
+
         return $this;
     }
 
@@ -91,7 +92,7 @@ class MigrationGenerator
         return $this;
     }
 
-    public function buildIndex(Fluent $matchedIndex, Collection $modifiedAttributes): self
+    public function buildIndex(IndexDefinition $matchedIndex, Collection $modifiedAttributes): self
     {
         $indexType = $matchedIndex->get('name');
         $indexColumns = $this->getColumns($matchedIndex);
@@ -112,7 +113,7 @@ class MigrationGenerator
         return $this;
     }
 
-    public function removeIndex(Fluent $index): self
+    public function removeIndex(IndexDefinition $index): self
     {
         $indexNames = $this->getColumns($index);
         $this->generated->add("\$table->dropIndex($indexNames);");
@@ -120,10 +121,10 @@ class MigrationGenerator
         return $this;
     }
 
-    public function buildForeignKey(Fluent $foreignKey, Collection $modifiedAttributes): self
+    public function buildForeignKey(ForeignKeyDefinition $foreignKey, Collection $modifiedAttributes): self
     {
-        $foreignKeyColumns = $this->getColumns($foreignKey);
-        $mappedForeignKey = "\$table" . "->foreign" . "($foreignKeyColumns)";
+        $foreignKeyColumn = $foreignKey->get('name');
+        $mappedForeignKey = "\$table" . "->foreign" . "($foreignKeyColumn)";
          collect($modifiedAttributes)->filter(function ($value, $attribute) use ($foreignKey) {
             return $value !== $foreignKey->get($attribute);
         })->map(function ($value, $attribute) use ($mappedForeignKey) {
@@ -135,7 +136,7 @@ class MigrationGenerator
 
     public function addForeignKey(AttributeEntity|ForeignKeyDefinition $foreignKey): static
     {
-        $columnName = $foreignKey->get('name');
+        $columnName = $foreignKey->get('columns');
         if (empty($foreignKey->get('rules'))) {
             $this->generated->add("\$table->foreign('$columnName');");
             return $this;

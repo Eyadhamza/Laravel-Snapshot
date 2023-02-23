@@ -15,7 +15,7 @@ use Illuminate\Support\Collection;
 abstract class Mapper
 {
     protected int $executionOrder = 1;
-    private string $tableName;
+    protected string $tableName;
     protected Collection $columns;
     protected Collection $indexes;
     protected Collection $foreignKeys;
@@ -69,8 +69,6 @@ abstract class Mapper
     {
         $this->tableName = $tableName;
     }
-
-
 
     public function getTableName(): string
     {

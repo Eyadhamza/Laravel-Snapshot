@@ -13,6 +13,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Schema\ColumnDefinition;
 use Illuminate\Database\Schema\ForeignKeyDefinition;
 use Illuminate\Database\Schema\IndexDefinition;
+use Illuminate\Http\Resources\MissingValue;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Fluent;
 use ReflectionAttribute;
@@ -35,12 +36,15 @@ class ModelMapper extends Mapper
 
         $this->indexes = $this->getAttributesOfIndexType(new ReflectionClass($modelInfo->class))
             ->map(function (ReflectionAttribute $attribute) {
-                return $this->mapAttribute($attribute);
+                return $this
+                    ->mapAttribute($attribute)
+                    ->setDefinition($this->tableName);
             });
-
         $this->foreignKeys = $this->getAttributesOfForeignKeyType(new ReflectionClass($modelInfo->class))
             ->map(function (ReflectionAttribute $attribute) {
-                return $this->mapAttribute($attribute);
+                return $this
+                    ->mapAttribute($attribute)
+                    ->setDefinition($this->tableName);
             });
 
 
@@ -90,7 +94,6 @@ class ModelMapper extends Mapper
         return $reflectionAttribute
             ->newInstance()
             ->setType($reflectionAttribute->getName());
-
     }
 
     protected function mapColumns(): self
@@ -108,7 +111,9 @@ class ModelMapper extends Mapper
     protected function mapIndexes(): self
     {
         $this->indexes = $this->indexes->mapWithKeys(function (IndexMapper $index) {
-            return new IndexDefinition($this->mapToIndex($index));
+            return [
+                $index->getName() => new IndexDefinition($this->mapToIndex($index))
+            ];
         });
         return $this;
     }
@@ -117,7 +122,7 @@ class ModelMapper extends Mapper
     {
         $this->foreignKeys = $this->foreignKeys->mapWithKeys(function (ForeignKeyMapper $foreignKey) {
             return [
-                $foreignKey->getName() => new ForeignKeyDefinition($this->mapToColumn($foreignKey))
+                $foreignKey->getName() => new ForeignKeyDefinition($this->mapToForeignKey($foreignKey))
             ];
         });
         return $this;
@@ -154,7 +159,23 @@ class ModelMapper extends Mapper
 
     protected function mapToForeignKey(ForeignKeyConstraint|ForeignKeyMapper $foreignKey): array
     {
-        return [];
+        $rules = [];
+        if ($foreignKey->getRules() === null) {
+            return $rules;
+        }
+        foreach ($foreignKey->getRules() as $key => $value) {
+            if (is_int($key)) {
+                $rules[$value] = true;
+                continue;
+            }
+            $rules[$key] = $value;
+        }
+        $this->generator->addForeignKey($foreignKey);
+        return array_merge([
+            'name' => $foreignKey->getName(),
+            'type' => $foreignKey->getType(),
+            'columns' => $foreignKey->getColumns(),
+        ],$rules);
     }
 
     public function getMigrationGenerator(): MigrationGenerator

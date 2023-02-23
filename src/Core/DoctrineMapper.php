@@ -6,11 +6,8 @@ use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Index;
-use Doctrine\DBAL\Schema\Table;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\AttributeEntity;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Schema\ColumnDefinition;
-use Illuminate\Database\Schema\ForeignIdColumnDefinition;
 use Illuminate\Database\Schema\ForeignKeyDefinition;
 use Illuminate\Database\Schema\IndexDefinition;
 use Illuminate\Support\Facades\Schema;
@@ -50,7 +47,9 @@ class DoctrineMapper extends Mapper
 
     public function mapColumns(): static
     {
-        $this->columns = $this->columns->map(fn(Column $column) => new ColumnDefinition($this->mapToColumn($column)));
+        $this->columns = $this
+            ->columns
+            ->map(fn(Column $column) => new ColumnDefinition($this->mapToColumn($column)));
         return $this;
     }
 
@@ -64,7 +63,7 @@ class DoctrineMapper extends Mapper
     public function mapForeignKeys(): static
     {
         $this->foreignKeys = $this->foreignKeys
-            ->map(fn(ForeignKeyConstraint $foreignKey) => new ForeignKeyDefinition($this->mapToForeignKey($foreignKey)));
+            ->mapWithKeys(fn(ForeignKeyConstraint $foreignKey) => new ForeignKeyDefinition($this->mapToForeignKey($foreignKey)));
         return $this;
     }
 
