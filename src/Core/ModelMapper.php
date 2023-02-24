@@ -7,6 +7,7 @@ use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Index;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\AttributeEntity;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\ColumnMapper;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\ForeignId;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\ForeignKeys\ForeignKeyMapper;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes\IndexMapper;
 use Illuminate\Database\Schema\Blueprint;
@@ -69,6 +70,9 @@ class ModelMapper extends Mapper
     {
         return collect($reflectionClass->getAttributes())
             ->filter(function (ReflectionAttribute $attribute) {
+                if ($attribute->getName() == ForeignId::class){
+                    $this->foreignKeys->push($attribute);
+                }
                 return is_subclass_of($attribute->getName(), ColumnMapper::class);
             });
     }

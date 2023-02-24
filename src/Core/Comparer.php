@@ -29,17 +29,18 @@ class Comparer
         $this->addedColumns = $modelMapper->getColumns()->diffKeys($doctrineMapper->getColumns());
         $this->removedColumns = $doctrineMapper->getColumns()->diffKeys($modelMapper->getColumns());
         $this->intersectedColumns = $modelMapper->getColumns()->intersectByKeys($doctrineMapper->getColumns());
-        dump([ 'addedColumns' => $this->addedColumns]);
-        dump([ 'removedColumns' => $this->removedColumns]);
-        dump([ 'intersectedColumns' => $this->intersectedColumns]);
+
         $this->addedIndexes = $modelMapper->getIndexes()->diffKeys($doctrineMapper->getIndexes());
         $this->removedIndexes = $doctrineMapper->getIndexes()->diffKeys($modelMapper->getIndexes());
         $this->intersectedIndexes = $modelMapper->getIndexes()->intersectByKeys($doctrineMapper->getIndexes());
-
+        dump([ '$doctrineMapper->getForeignKeys()' => $doctrineMapper->getForeignKeys()]);
+        dump([ '$modelMapper->getForeignKeys()' => $modelMapper->getForeignKeys()]);
         $this->addedForeignKeys = $modelMapper->getForeignKeys()->diffKeys($doctrineMapper->getForeignKeys());
         $this->removedForeignKeys = $doctrineMapper->getForeignKeys()->diffKeys($modelMapper->getForeignKeys());
         $this->intersectedForeignKeys = $modelMapper->getForeignKeys()->intersectByKeys($doctrineMapper->getForeignKeys());
-
+        dump([ 'addedForeignKeys' => $this->addedForeignKeys]);
+        dump([ 'removedForeignKeys' => $this->removedForeignKeys]);
+        dump([ 'intersectedForeignKeys' => $this->intersectedForeignKeys]);
     }
 
     public static function make(DoctrineMapper $doctrineMapper, ModelMapper $modelMapper): Comparer
