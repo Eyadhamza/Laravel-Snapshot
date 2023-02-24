@@ -32,6 +32,7 @@ class MigrationGenerator
         $generatedMigrationFile = $this->replaceStubMigrationFile($operation);
         file_put_contents($migrationFilePath, $generatedMigrationFile);
     }
+
     private function replaceStubMigrationFile(string $operation): string
     {
         $fileContent = file_get_contents("stubs/$operation-migration.stub");
@@ -40,7 +41,7 @@ class MigrationGenerator
         return Str::replace("{{ \$mappedColumns }}", $this->generated->join("\n \t \t \t"), $fileContent);
     }
 
-    public function addColumn(AttributeEntity|Fluent $column,string $columnName = null): self
+    public function addColumn(AttributeEntity|Fluent $column, string $columnName = null): self
     {
         $columnType = $column->get('type');
         $columnName = $column->get('name') ?? $columnName;
@@ -125,7 +126,7 @@ class MigrationGenerator
     {
         $foreignKeyColumn = $foreignKey->get('name');
         $mappedForeignKey = "\$table" . "->foreign" . "($foreignKeyColumn)";
-         collect($modifiedAttributes)->filter(function ($value, $attribute) use ($foreignKey) {
+        collect($modifiedAttributes)->filter(function ($value, $attribute) use ($foreignKey) {
             return $value !== $foreignKey->get($attribute);
         })->map(function ($value, $attribute) use ($mappedForeignKey) {
             return $mappedForeignKey . "->$attribute()" . "->change();";
@@ -137,18 +138,20 @@ class MigrationGenerator
     public function addForeignKey(AttributeEntity|ForeignKeyDefinition $foreignKey): static
     {
         $columnName = $foreignKey->get('columns');
-        if (empty($foreignKey->get('rules'))) {
-            $this->generated->add("\$table->foreign('$columnName');");
+        $generatedCommand = "\$table->foreignId('$columnName')";
+        $rules = $foreignKey->get('rules');
+        if (!$rules) {
+            $this->generated->add($generatedCommand . ';');
             return $this;
         }
-        foreach ($foreignKey->get('rules') as $rule => $value) {
+        foreach ($rules as $rule => $value) {
             if ($this->inForeignRules($value)) {
-                $columnName = $columnName . "->$value('$rule')";
+                $generatedCommand = $generatedCommand . "->$value()";
                 continue;
             }
-            $columnName = $columnName . "->$rule('$value');";
+            $generatedCommand = $generatedCommand . "->$rule('$value')";
         }
-        $this->generated->add($columnName);
+        $this->generated->add($generatedCommand . ';');
         return $this;
     }
 
@@ -190,10 +193,10 @@ class MigrationGenerator
         if (is_string($matchedIndex->get('columns'))) {
             return "'{$matchedIndex->get('columns')}'";
         }
-        if (! $matchedIndex->get('columns')) {
+        if (!$matchedIndex->get('columns')) {
             return '';
         }
-        return "['" . implode("','" , $matchedIndex->get('columns')) . "']";
+        return "['" . implode("','", $matchedIndex->get('columns')) . "']";
     }
 
     private function getColumnNameOrNames(string|array|null $columnName): string

@@ -25,7 +25,6 @@ class Comparer
     public function __construct(DoctrineMapper $doctrineMapper, ModelMapper $modelMapper)
     {
         $this->migrationGenerator = new MigrationGenerator($doctrineMapper->getTableName());
-
         $this->addedColumns = $modelMapper->getColumns()->diffKeys($doctrineMapper->getColumns());
         $this->removedColumns = $doctrineMapper->getColumns()->diffKeys($modelMapper->getColumns());
         $this->intersectedColumns = $modelMapper->getColumns()->intersectByKeys($doctrineMapper->getColumns());

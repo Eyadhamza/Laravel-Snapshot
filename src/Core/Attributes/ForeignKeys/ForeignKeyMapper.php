@@ -16,7 +16,7 @@ class ForeignKeyMapper extends AttributeEntity
     public string|array $columns;
     public ForeignKeyDefinition $definition;
 
-    public function __construct($columns, $rules = null)
+    public function __construct($columns, $rules = [])
     {
         parent::__construct("", $rules);
         $this->columns = $columns;

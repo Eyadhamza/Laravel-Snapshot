@@ -175,7 +175,7 @@ class ModelMapper extends Mapper
             'name' => $foreignKey->getName(),
             'type' => $foreignKey->getType(),
             'columns' => $foreignKey->getColumns(),
-        ],$rules);
+        ], $rules);
     }
 
     public function getMigrationGenerator(): MigrationGenerator

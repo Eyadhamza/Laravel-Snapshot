@@ -91,7 +91,7 @@ class MigrationBuilder
         while ($this->modelMappers->isNotEmpty()) {
             $this->modelMappers->each(function (ModelMapper $model) use ($modelMappers, $processed) {
                 if ($model->getForeignKeys()->isEmpty() || $model->getForeignKeys()->every(function ($key) use ($processed) {
-                        return $processed->contains($key->get('constrained'));
+                        return $processed->contains($key->get('constrained')) || $key->get('constrained') === null;
                     })) {
                     $modelMappers->push($model);
                     $processed->push($model->getTableName());
