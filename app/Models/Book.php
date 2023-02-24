@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\AsString;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\ForeignId;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Id;
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\ForeignKeys\ForeignId;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes\Index;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes\Unique;
 use Eyadhamza\LaravelAutoMigration\Core\Constants\Rule;
@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 #[AsString('title', [Rule::DEFAULT => 'Eyad Hamza'])]
 #[AsString('description', [Rule::NULLABLE])]
 #[ForeignId('author_id', [Rule::CONSTRAINED => 'savers', Rule::CASCADE_ON_DELETE, Rule::CASCADE_ON_UPDATE])]
-#[Unique(['title'])]
+#[Unique('title')]
 #[Index(['title', 'description'])]
 class Book extends Model
 {

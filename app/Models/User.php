@@ -3,9 +3,9 @@
 namespace App\Models;
 
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\AsString;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\ForeignId;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Id;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Timestamps;
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\ForeignKeys\ForeignId;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes\Index;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes\Unique;
 use Eyadhamza\LaravelAutoMigration\Core\Constants\Rule;
@@ -18,7 +18,7 @@ use Illuminate\Database\Eloquent\Model;
 #[Timestamps]
 #[Unique(['email'])]
 #[Index(['email'])]
-#[ForeignId('friend_id')]
+#[ForeignId('friend_id', [Rule::CONSTRAINED => 'friends', Rule::CASCADE_ON_DELETE, Rule::CASCADE_ON_UPDATE])]
 class User extends Model
 {
     /**

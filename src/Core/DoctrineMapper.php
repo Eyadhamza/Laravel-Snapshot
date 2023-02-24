@@ -11,6 +11,7 @@ use Illuminate\Database\Schema\ColumnDefinition;
 use Illuminate\Database\Schema\ForeignKeyDefinition;
 use Illuminate\Database\Schema\IndexDefinition;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 class DoctrineMapper extends Mapper
 {
@@ -26,10 +27,11 @@ class DoctrineMapper extends Mapper
 
         $this->columns = collect($doctrineTableDetails->getColumns());
 
-        $this->indexes = collect($doctrineTableDetails->getIndexes());
+        $this->indexes = collect($doctrineTableDetails->getIndexes())
+            ->reject(fn(Index $index) => $index->isPrimary())
+            ->reject(fn(Index $index) => Str::contains($index->getName(), 'foreign'));
 
         $this->foreignKeys = collect($doctrineTableDetails->getForeignKeys());
-
     }
 
     public function map(): self
@@ -63,7 +65,7 @@ class DoctrineMapper extends Mapper
     public function mapForeignKeys(): static
     {
         $this->foreignKeys = $this->foreignKeys
-            ->mapWithKeys(fn(ForeignKeyConstraint $foreignKey) => new ForeignKeyDefinition($this->mapToForeignKey($foreignKey)));
+            ->map(fn(ForeignKeyConstraint $foreignKey) => new ForeignKeyDefinition($this->mapToForeignKey($foreignKey)));
         return $this;
     }
 
@@ -116,9 +118,10 @@ class DoctrineMapper extends Mapper
     {
         return collect([
             'name' => $foreignKey->getName(),
-            'column' => $foreignKey->getLocalColumns()[0],
-            'onDelete' => $foreignKey->getOption('onDelete'),
-            'onUpdate' => $foreignKey->getOption('onUpdate'),
+            'constrained' => $foreignKey->getForeignTableName(),
+            'on' => $foreignKey->getForeignColumns(),
+            'onDelete' => $foreignKey->getOption('onDelete') == 'CASCADE',
+            'onUpdate' => $foreignKey->getOption('onUpdate') == 'CASCADE',
         ])->filter()->toArray();
     }
 

@@ -12,9 +12,9 @@ use Illuminate\Support\Str;
 #[Attribute(Attribute::IS_REPEATABLE | Attribute::TARGET_CLASS)]
 class IndexMapper extends AttributeEntity
 {
-    private string|array $columns;
-    private string|null $algorithm;
-    private Fluent $definition;
+    protected string|array $columns;
+    protected string|null $algorithm;
+    protected Fluent $definition;
 
     public function __construct($columns, $algorithm = null)
     {
@@ -25,6 +25,7 @@ class IndexMapper extends AttributeEntity
 
     public function setDefinition(string $tableName): self
     {
+        $this->columns = is_array($this->columns) ? $this->columns : [$this->columns];
         $this->definition = (new Blueprint($tableName))->index($this->columns);
         $this->setName($this->definition->get('index'));
         return $this;
@@ -37,7 +38,6 @@ class IndexMapper extends AttributeEntity
     }
     public static function make(IndexMapper $modelProperty): self
     {
-
         return new self($modelProperty->getColumns(), $modelProperty->getAlgorithm());
     }
     public function getName(): mixed

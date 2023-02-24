@@ -82,7 +82,7 @@ class ModelMapper extends Mapper
             });
     }
 
-    private function getAttributesOfForeignKeyType(ReflectionClass $param)
+    private function getAttributesOfForeignKeyType(ReflectionClass $param): Collection
     {
         return collect($param->getAttributes())
             ->filter(function (ReflectionAttribute $attribute) {
@@ -103,7 +103,6 @@ class ModelMapper extends Mapper
                 $column->getName() => new ColumnDefinition($this->mapToColumn($column))
             ];
         });
-
         return $this;
     }
 
@@ -143,13 +142,13 @@ class ModelMapper extends Mapper
             }
             $rules[$key] = $value;
         }
-        $this->generator->addColumn($column);
+        $this->generator->generateAddedCommand($column, $column->get('name'));
         return $rules;
     }
 
     protected function mapToIndex(Index|IndexMapper $index): array
     {
-        $this->generator->addIndex($index);
+        $this->generator->generateAddedCommand($index, $index->get('columns'));
         return [
             'name' => $index->getName(),
             'type' => $index->getType(),
@@ -170,7 +169,7 @@ class ModelMapper extends Mapper
             }
             $rules[$key] = $value;
         }
-        $this->generator->addForeignKey($foreignKey);
+        $this->generator->generateAddedCommand($foreignKey, $foreignKey->get('columns'));
         return array_merge([
             'name' => $foreignKey->getName(),
             'type' => $foreignKey->getType(),
@@ -182,6 +181,4 @@ class ModelMapper extends Mapper
     {
         return $this->generator;
     }
-
-
 }

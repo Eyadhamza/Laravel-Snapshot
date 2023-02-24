@@ -3,14 +3,14 @@
 namespace App\Models;
 
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\AsString;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\ForeignId;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Id;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Timestamps;
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\ForeignKeys\ForeignId;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes\Unique;
 use Eyadhamza\LaravelAutoMigration\Core\Constants\Rule;
 use Illuminate\Database\Eloquent\Model;
 
-#[Id('id', [Rule::AUTO_INCREMENT,Rule::UNIQUE,Rule::UNSIGNED])]
+#[Id('id')]
 #[AsString('name', [Rule::DEFAULT => 'Eyad Hamza'])]
 #[AsString('description')]
 #[AsString('email')]

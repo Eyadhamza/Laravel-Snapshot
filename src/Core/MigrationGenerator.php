@@ -27,44 +27,29 @@ class MigrationGenerator
         return new self($tableName);
     }
 
-    public function generateMigrationFile(string $migrationFilePath, string $operation): void
-    {
-        $generatedMigrationFile = $this->replaceStubMigrationFile($operation);
-        file_put_contents($migrationFilePath, $generatedMigrationFile);
-    }
-
-    private function replaceStubMigrationFile(string $operation): string
-    {
-        $fileContent = file_get_contents("stubs/$operation-migration.stub");
-        $fileContent = Str::replace("\$tableName", $this->tableName, $fileContent);
-
-        return Str::replace("{{ \$mappedColumns }}", $this->generated->join("\n \t \t \t"), $fileContent);
-    }
-
-    public function addColumn(AttributeEntity|Fluent $column, string $columnName = null): self
+    public function generateAddedCommand(AttributeEntity|Fluent $column, string|array|null $columnName): self
     {
         $columnType = $column->get('type');
-        $columnName = $column->get('name') ?? $columnName;
         $rules = $column->get('rules');
-        $mappedColumn = "\$table" . "->$columnType" . "({$this->getColumnNameOrNames($columnName)})";
+        $generatedCommand = "\$table" . "->$columnType" . "({$this->getColumnNameOrNames($columnName)})";
 
         if (!$rules) {
-            $this->generated->add($mappedColumn . ";");
+            $this->generated->add($generatedCommand . ";");
             return $this;
         }
         foreach ($rules as $rule => $value) {
             if ($this->inForeignRules($value) || is_int($rule)) {
-                $mappedColumn = $mappedColumn . "->$value()";
+                $generatedCommand = $generatedCommand . "->$value()";
                 continue;
             }
-            $mappedColumn = $mappedColumn . "->$rule('$value')";
+            $generatedCommand = $generatedCommand . "->$rule('$value')";
         }
-        $this->generated->add($mappedColumn . ";");
+        $this->generated->add($generatedCommand . ";");
 
         return $this;
     }
 
-    public function modifyColumn(Fluent $column, Collection $attributes): self
+    public function generateModifiedCommand(Fluent $column, Collection $attributes): self
     {
         $columnType = $column->get('type');
         $columnName = $column->get('name');
@@ -86,82 +71,70 @@ class MigrationGenerator
         return $this;
     }
 
-    public function removeColumn($column): self
+    public function generateRemovedCommand($column, string $type): self
     {
         $columnName = $column->get('name');
-        $this->generated->add("\$table->dropColumn('$columnName');");
+        $this->generated->add("\$table->$type('$columnName');");
         return $this;
     }
+//
+//    public function buildIndex(IndexDefinition $matchedIndex, Collection $modifiedAttributes): self
+//    {
+//        $indexType = $matchedIndex->get('name');
+//        $indexColumns = $this->getColumns($matchedIndex);
+//        $mappedIndex = "\$table" . "->$indexType" . "($indexColumns)";
+//        collect($modifiedAttributes)->filter(function ($value, $attribute) use ($matchedIndex) {
+//            return $value !== $matchedIndex->get($attribute);
+//        })->map(function ($value, $attribute) use ($indexType, $mappedIndex) {
+//            return $mappedIndex . "->$attribute()" . "->change();";
+//        });
+//        $this->generated->add($mappedIndex);
+//        return $this;
+//    }
 
-    public function buildIndex(IndexDefinition $matchedIndex, Collection $modifiedAttributes): self
+//    public function removeIndex(IndexDefinition $index): self
+//    {
+//        $indexNames = $this->getColumns($index);
+//        $this->generated->add("\$table->dropIndex($indexNames);");
+//
+//        return $this;
+//    }
+//
+//    public function buildForeignKey(ForeignKeyDefinition $foreignKey, Collection $modifiedAttributes): self
+//    {
+//        $foreignKeyColumn = $foreignKey->get('name');
+//        $mappedForeignKey = "\$table" . "->foreign" . "($foreignKeyColumn)";
+//        collect($modifiedAttributes)->filter(function ($value, $attribute) use ($foreignKey) {
+//            return $value !== $foreignKey->get($attribute);
+//        })->map(function ($value, $attribute) use ($mappedForeignKey) {
+//            return $mappedForeignKey . "->$attribute()" . "->change();";
+//        });
+//        $this->generated->add($mappedForeignKey);
+//        return $this;
+//    }
+//
+//
+//    public function removeForeignKey(ForeignKeyDefinition $foreignKey): self
+//    {
+//        $foreignKeyName = $foreignKey->get('name');
+//        $this->generated->add("\$table->dropForeign('$foreignKeyName');");
+//        return $this;
+//    }
+
+
+    public function generateMigrationFile(string $migrationFilePath, string $operation): void
     {
-        $indexType = $matchedIndex->get('name');
-        $indexColumns = $this->getColumns($matchedIndex);
-        $mappedIndex = "\$table" . "->$indexType" . "($indexColumns)";
-        collect($modifiedAttributes)->filter(function ($value, $attribute) use ($matchedIndex) {
-            return $value !== $matchedIndex->get($attribute);
-        })->map(function ($value, $attribute) use ($indexType, $mappedIndex) {
-            return $mappedIndex . "->$attribute()" . "->change();";
-        });
-        $this->generated->add($mappedIndex);
-        return $this;
+        $generatedMigrationFile = $this->replaceStubMigrationFile($operation);
+        file_put_contents($migrationFilePath, $generatedMigrationFile);
     }
 
-    public function addIndex(Fluent|AttributeEntity $index): self
+    private function replaceStubMigrationFile(string $operation): string
     {
-        $indexNames = $this->getColumns($index);
-        $this->generated->add("\$table->index($indexNames);");
-        return $this;
+        $fileContent = file_get_contents("stubs/$operation-migration.stub");
+        $fileContent = Str::replace("\$tableName", $this->tableName, $fileContent);
+
+        return Str::replace("{{ \$mappedColumns }}", $this->generated->join("\n \t \t \t"), $fileContent);
     }
-
-    public function removeIndex(IndexDefinition $index): self
-    {
-        $indexNames = $this->getColumns($index);
-        $this->generated->add("\$table->dropIndex($indexNames);");
-
-        return $this;
-    }
-
-    public function buildForeignKey(ForeignKeyDefinition $foreignKey, Collection $modifiedAttributes): self
-    {
-        $foreignKeyColumn = $foreignKey->get('name');
-        $mappedForeignKey = "\$table" . "->foreign" . "($foreignKeyColumn)";
-        collect($modifiedAttributes)->filter(function ($value, $attribute) use ($foreignKey) {
-            return $value !== $foreignKey->get($attribute);
-        })->map(function ($value, $attribute) use ($mappedForeignKey) {
-            return $mappedForeignKey . "->$attribute()" . "->change();";
-        });
-        $this->generated->add($mappedForeignKey);
-        return $this;
-    }
-
-    public function addForeignKey(AttributeEntity|ForeignKeyDefinition $foreignKey): static
-    {
-        $columnName = $foreignKey->get('columns');
-        $generatedCommand = "\$table->foreignId('$columnName')";
-        $rules = $foreignKey->get('rules');
-        if (!$rules) {
-            $this->generated->add($generatedCommand . ';');
-            return $this;
-        }
-        foreach ($rules as $rule => $value) {
-            if ($this->inForeignRules($value)) {
-                $generatedCommand = $generatedCommand . "->$value()";
-                continue;
-            }
-            $generatedCommand = $generatedCommand . "->$rule('$value')";
-        }
-        $this->generated->add($generatedCommand . ';');
-        return $this;
-    }
-
-    public function removeForeignKey(ForeignKeyDefinition $foreignKey): self
-    {
-        $foreignKeyName = $foreignKey->get('name');
-        $this->generated->add("\$table->dropForeign('$foreignKeyName');");
-        return $this;
-    }
-
     public function getGenerated()
     {
         return $this->generated->flatten()->filter()->values();

@@ -13,8 +13,8 @@ use Illuminate\Support\Str;
 #[Attribute(Attribute::IS_REPEATABLE | Attribute::TARGET_CLASS)]
 class ForeignKeyMapper extends AttributeEntity
 {
-    public string|array $columns;
-    public ForeignKeyDefinition $definition;
+    protected string|array $columns;
+    protected ForeignKeyDefinition|ForeignIdColumnDefinition $definition;
 
     public function __construct($columns, $rules = [])
     {
