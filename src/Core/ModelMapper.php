@@ -2,20 +2,10 @@
 
 namespace Eyadhamza\LaravelAutoMigration\Core;
 
-use Doctrine\DBAL\Schema\Column;
-use Doctrine\DBAL\Schema\ForeignKeyConstraint;
-use Doctrine\DBAL\Schema\Index;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\AttributeEntity;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\ColumnMapper;
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\ForeignId;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\ForeignKeys\ForeignKeyMapper;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes\IndexMapper;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Database\Schema\ColumnDefinition;
-use Illuminate\Database\Schema\ForeignKeyDefinition;
-use Illuminate\Database\Schema\IndexDefinition;
-use Illuminate\Http\Resources\MissingValue;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Fluent;
 use ReflectionAttribute;
 use ReflectionClass;
@@ -29,25 +19,11 @@ class ModelMapper extends Mapper
     {
         parent::__construct($modelInfo->tableName);
 
-        $attributes = $this->getAttributesOfColumnType(new ReflectionClass($modelInfo->class));
 
-        $this->columns = $attributes->map(function (ReflectionAttribute $attribute) {
-            return $this->mapAttribute($attribute);
-        });
+        $this->columns = $this->mapAttributes(ColumnMapper::class, $modelInfo);
+        $this->indexes = $this->mapAttributes(IndexMapper::class, $modelInfo);
 
-        $this->indexes = $this->getAttributesOfIndexType(new ReflectionClass($modelInfo->class))
-            ->map(function (ReflectionAttribute $attribute) {
-                return $this
-                    ->mapAttribute($attribute)
-                    ->setDefinition($this->tableName);
-            });
-        $this->foreignKeys = $this->getAttributesOfForeignKeyType(new ReflectionClass($modelInfo->class))
-            ->map(function (ReflectionAttribute $attribute) {
-                return $this
-                    ->mapAttribute($attribute)
-                    ->setDefinition($this->tableName);
-            });
-
+        $this->foreignKeys = $this->mapAttributes(ForeignKeyMapper::class, $modelInfo);
 
         $this->generator = new MigrationGenerator($modelInfo->tableName);
     }
@@ -57,128 +33,51 @@ class ModelMapper extends Mapper
         return new self($modelInfo);
     }
 
+    private function mapAttributes(string $type, ModelInfo $modelInfo)
+    {
+        $reflection = new ReflectionClass($modelInfo->class);
+
+        return collect($reflection->getAttributes())
+            ->filter(fn(ReflectionAttribute $attribute) => is_subclass_of($attribute->getName(), $type))
+            ->mapWithKeys(function (ReflectionAttribute $reflectionAttribute) use ($modelInfo) {
+                $attribute = $reflectionAttribute->newInstance();
+                return [
+                    $attribute->getName() => $attribute
+                        ->setType($reflectionAttribute->getName())
+                        ->setDefinition($modelInfo->tableName)
+                ];
+            });
+    }
+
+
     public function map(): self
     {
-        $this
-            ->mapColumns()
+        $this->mapColumns()
             ->mapIndexes()
             ->mapForeignKeys();
         return $this;
     }
 
-    public function getAttributesOfColumnType(ReflectionClass $reflectionClass): Collection
-    {
-        return collect($reflectionClass->getAttributes())
-            ->filter(function (ReflectionAttribute $attribute) {
-                if ($attribute->getName() == ForeignId::class){
-                    $this->foreignKeys->push($attribute);
-                }
-                return is_subclass_of($attribute->getName(), ColumnMapper::class);
-            });
-    }
-
-    public function getAttributesOfIndexType(ReflectionClass $reflectionClass): Collection
-    {
-
-        return collect($reflectionClass->getAttributes())
-            ->filter(function (ReflectionAttribute $attribute) {
-                return is_subclass_of($attribute->getName(), IndexMapper::class);
-            });
-    }
-
-    private function getAttributesOfForeignKeyType(ReflectionClass $param): Collection
-    {
-        return collect($param->getAttributes())
-            ->filter(function (ReflectionAttribute $attribute) {
-                return is_subclass_of($attribute->getName(), ForeignKeyMapper::class);
-            });
-    }
-    private function mapAttribute(ReflectionAttribute $reflectionAttribute): AttributeEntity
-    {
-        return $reflectionAttribute
-            ->newInstance()
-            ->setType($reflectionAttribute->getName());
-    }
-
     protected function mapColumns(): self
     {
-        $this->columns = $this->columns->mapWithKeys(function (ColumnMapper|Fluent $column) {
-            return [
-                $column->getName() => new ColumnDefinition($this->mapToColumn($column))
-            ];
-        });
+        $this->columns
+            ->each(fn(ColumnMapper $column) => $this->generator->generateAddedCommand($column, $column->getName()));
         return $this;
     }
 
 
     protected function mapIndexes(): self
     {
-        $this->indexes = $this->indexes->mapWithKeys(function (IndexMapper $index) {
-            return [
-                $index->getName() => new IndexDefinition($this->mapToIndex($index))
-            ];
-        });
+        $this->indexes
+            ->each(fn(IndexMapper $index) => $this->generator->generateAddedCommand($index, $index->getColumns()));
         return $this;
     }
 
     protected function mapForeignKeys(): self
     {
-        $this->foreignKeys = $this->foreignKeys->mapWithKeys(function (ForeignKeyMapper $foreignKey) {
-            return [
-                $foreignKey->getName() => new ForeignKeyDefinition($this->mapToForeignKey($foreignKey))
-            ];
-        });
+        $this->foreignKeys
+            ->each(fn(ForeignKeyMapper $foreignKey) => $this->generator->generateAddedCommand($foreignKey, $foreignKey->getColumns()));
         return $this;
-    }
-
-    protected function mapToColumn(Column|AttributeEntity $column): array
-    {
-        $rules = [];
-        $rules['type'] = $column->getType();
-        $rules['name'] = $column->getName();
-        if ($column->getRules() === null) {
-            return $rules;
-        }
-        foreach ($column->getRules() as $key => $value) {
-            if (is_int($key)) {
-                $rules[$value] = true;
-                continue;
-            }
-            $rules[$key] = $value;
-        }
-        $this->generator->generateAddedCommand($column, $column->get('name'));
-        return $rules;
-    }
-
-    protected function mapToIndex(Index|IndexMapper $index): array
-    {
-        $this->generator->generateAddedCommand($index, $index->get('columns'));
-        return [
-            'name' => $index->getName(),
-            'type' => $index->getType(),
-            'columns' => $index->getColumns(),
-        ];
-    }
-
-    protected function mapToForeignKey(ForeignKeyConstraint|ForeignKeyMapper $foreignKey): array
-    {
-        $rules = [];
-        if ($foreignKey->getRules() === null) {
-            return $rules;
-        }
-        foreach ($foreignKey->getRules() as $key => $value) {
-            if (is_int($key)) {
-                $rules[$value] = true;
-                continue;
-            }
-            $rules[$key] = $value;
-        }
-        $this->generator->generateAddedCommand($foreignKey, $foreignKey->get('columns'));
-        return array_merge([
-            'name' => $foreignKey->getName(),
-            'type' => $foreignKey->getType(),
-            'columns' => $foreignKey->getColumns(),
-        ], $rules);
     }
 
     public function getMigrationGenerator(): MigrationGenerator

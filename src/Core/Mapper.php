@@ -35,6 +35,11 @@ abstract class Mapper
         'polygon' => 'string',
         'sysname' => 'string',
     ];
+    public function __construct(string $tableName)
+    {
+        $this->tableName = $tableName;
+    }
+
     abstract public function map(): self;
 
     public function getForeignKeys(): Collection
@@ -52,23 +57,9 @@ abstract class Mapper
         return $this->columns;
     }
 
-    public function hasForeignKeyTo(string $getTableName): bool
-    {
-        return $this->foreignKeys->contains(function (ForeignKeyDefinition $foreignKey) use ($getTableName) {
-            return $foreignKey->get('constrained') === $getTableName;
-        });
-    }
-
     abstract protected function mapColumns(): self;
     abstract protected function mapIndexes(): self;
     abstract protected function mapForeignKeys(): self;
-    abstract protected function mapToColumn(Column|AttributeEntity $column): array;
-    abstract protected function mapToIndex(Index|IndexMapper $index): array;
-    abstract protected function mapToForeignKey(ForeignKeyConstraint|ForeignKeyMapper $foreignKey): array;
-    public function __construct(string $tableName)
-    {
-        $this->tableName = $tableName;
-    }
 
     public function getTableName(): string
     {

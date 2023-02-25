@@ -9,5 +9,6 @@ class Timestamps extends ColumnMapper
 {
     public function __construct()
     {
+        parent::__construct();
     }
 }

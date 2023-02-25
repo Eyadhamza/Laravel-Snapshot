@@ -5,31 +5,30 @@ namespace Eyadhamza\LaravelAutoMigration\Core\Attributes;
 use Attribute;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\ColumnMapper;
 use Eyadhamza\LaravelAutoMigration\Core\Constants\AttributeToColumn;
+use Eyadhamza\LaravelAutoMigration\Core\Constants\Rule;
+use Eyadhamza\LaravelAutoMigration\Core\MigrationGenerator;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Fluent;
 use Illuminate\Support\Str;
 
 #[Attribute(Attribute::IS_REPEATABLE | Attribute::TARGET_CLASS)]
-class AttributeEntity
+abstract class AttributeEntity
 {
-    protected mixed $name;
-    protected ?array $rules;
+    protected ?string $name;
     protected string $type;
-
+    protected ?array $rules;
+    protected Fluent $definition;
     public function __construct(string $name = null, array $rules = [])
     {
         $this->name = $name;
-        $this->rules = $rules;
+        $this->setRules($rules);
     }
 
-    public function getName(): mixed
+    public function getName(): ?string
     {
         return $this->name ?? null;
     }
 
-    public function getRules(): ?array
-    {
-        return $this->rules ?? null;
-    }
     public function getType(): string
     {
         return $this->type;
@@ -41,10 +40,17 @@ class AttributeEntity
 
         return $this;
     }
-    public function get($key)
+    abstract public function setDefinition(string $tableName): self;
+    public function getRules(): ?array
     {
-        $method = 'get' . Str::studly($key);
-        return $this->$method();
+        return $this->rules;
+    }
+
+    public function setRules(array $rules): self
+    {
+        $this->rules = Rule::map($rules);
+
+        return $this;
     }
 
 

@@ -19,10 +19,10 @@ abstract class Rule
 
 
     private static array $rules = [
-        Rule::AFTER ,
-        Rule::DEFAULT ,
-        Rule::NULLABLE ,
-        Rule::UNIQUE ,
+        Rule::AFTER,
+        Rule::DEFAULT,
+        Rule::NULLABLE,
+        Rule::UNIQUE,
         Rule::UNSIGNED,
         Rule::FIRST,
         Rule::CHANGE,
@@ -30,4 +30,20 @@ abstract class Rule
         Rule::AUTO_INCREMENT,
     ];
 
+    public static function map($rules = null): array
+    {
+        if ($rules === null) {
+            return $rules;
+        }
+
+        foreach ($rules as $key => $value) {
+            array_shift($rules);
+            if (is_int($key)) {
+                $rules[$value] = true;
+                continue;
+            }
+            $rules[$key] = $value;
+        }
+        return $rules;
+    }
 }

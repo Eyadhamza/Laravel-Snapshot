@@ -29,17 +29,17 @@ class MigrationGenerator
 
     public function generateAddedCommand(AttributeEntity|Fluent $column, string|array|null $columnName): self
     {
-        $columnType = $column->get('type');
-        $rules = $column->get('rules');
+        $columnType = $column->getType() ?? 'index';
+        $rules = $column->getRules();
         $generatedCommand = "\$table" . "->$columnType" . "({$this->getColumnNameOrNames($columnName)})";
-
-        if (!$rules) {
+        if (empty($rules)) {
             $this->generated->add($generatedCommand . ";");
             return $this;
         }
+
         foreach ($rules as $rule => $value) {
-            if ($this->inForeignRules($value) || is_int($rule)) {
-                $generatedCommand = $generatedCommand . "->$value()";
+            if ($this->inForeignRules($value) || $value === true) {
+                $generatedCommand = $generatedCommand . "->$rule()";
                 continue;
             }
             $generatedCommand = $generatedCommand . "->$rule('$value')";

@@ -6,7 +6,6 @@ use Attribute;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\AttributeEntity;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Fluent;
-use Illuminate\Support\Str;
 
 
 #[Attribute(Attribute::IS_REPEATABLE | Attribute::TARGET_CLASS)]
@@ -25,9 +24,10 @@ class IndexMapper extends AttributeEntity
 
     public function setDefinition(string $tableName): self
     {
-        $this->columns = is_array($this->columns) ? $this->columns : [$this->columns];
         $this->definition = (new Blueprint($tableName))->index($this->columns);
+
         $this->setName($this->definition->get('index'));
+
         return $this;
     }
     public function setName($name): self
@@ -40,10 +40,6 @@ class IndexMapper extends AttributeEntity
     {
         return new self($modelProperty->getColumns(), $modelProperty->getAlgorithm());
     }
-    public function getName(): mixed
-    {
-        return $this->name;
-    }
     public function getColumns(): array|string
     {
         return $this->columns;
@@ -52,10 +48,5 @@ class IndexMapper extends AttributeEntity
     private function getAlgorithm()
     {
         return $this->algorithm;
-    }
-    public function get($key)
-    {
-        $method = 'get' . Str::camel($key);
-        return $this->$method();
     }
 }
