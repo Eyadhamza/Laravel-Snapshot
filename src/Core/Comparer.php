@@ -79,7 +79,7 @@ class Comparer
 
     private function addNewColumns(): self
     {
-        $this->addedColumns = $this->addedColumns->map(function (ColumnDefinition $column) {
+        $this->addedColumns = $this->addedColumns->map(function (ColumnDefinition|ForeignKeyDefinition $column) {
             return $this->migrationGenerator->generateAddedCommand($column, $column->get('name'));
         });
         return $this;
@@ -87,7 +87,7 @@ class Comparer
 
     private function removeOldColumns(): self
     {
-        $this->removedColumns = $this->removedColumns->map(function (ColumnDefinition $column) {
+        $this->removedColumns = $this->removedColumns->map(function (ColumnDefinition|ForeignKeyDefinition $column) {
             return $this->migrationGenerator->generateRemovedCommand($column, 'dropColumn');
         });
         return $this;

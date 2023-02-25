@@ -5,6 +5,7 @@ namespace Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes;
 use Attribute;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\ColumnMapper;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Schema\IndexDefinition;
 use Illuminate\Support\Fluent;
 
 ;
@@ -14,8 +15,14 @@ class Unique extends IndexMapper
 {
     public function setDefinition(string $tableName): self
     {
-        $this->definition = (new Blueprint($tableName))->unique($this->columns);
-        $this->setName($this->definition->get('index'));
+        $indexKeyName = (new Blueprint($tableName))->unique($this->columns)->get('index');
+        $this->definition = new IndexDefinition([
+            'columns' => $this->columns,
+            'name' => $indexKeyName,
+            'type' => 'unique',
+        ]);
+
+        $this->setName($indexKeyName);
 
         return $this;
     }

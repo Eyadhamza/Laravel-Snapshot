@@ -53,5 +53,9 @@ abstract class AttributeEntity
         return $this;
     }
 
+    public function getDefinition(): Fluent
+    {
+        return $this->definition;
+    }
 
 }

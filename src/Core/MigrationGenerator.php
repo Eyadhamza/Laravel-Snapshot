@@ -3,9 +3,6 @@
 namespace Eyadhamza\LaravelAutoMigration\Core;
 
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\AttributeEntity;
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\ForeignKeys\ForeignKeyMapper;
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes\IndexMapper;
-use Illuminate\Database\Schema\ForeignKeyDefinition;
 use Illuminate\Database\Schema\IndexDefinition;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Fluent;
@@ -27,10 +24,10 @@ class MigrationGenerator
         return new self($tableName);
     }
 
-    public function generateAddedCommand(AttributeEntity|Fluent $column, string|array|null $columnName): self
+    public function generateAddedCommand(AttributeEntity|Fluent $column, string|array $columnName): self
     {
-        $columnType = $column->getType() ?? 'index';
-        $rules = $column->getRules();
+        $columnType = $column->get('type') ?? 'index';
+        $rules = $column->get('rules') ?? [];
         $generatedCommand = "\$table" . "->$columnType" . "({$this->getColumnNameOrNames($columnName)})";
         if (empty($rules)) {
             $this->generated->add($generatedCommand . ";");
@@ -77,51 +74,6 @@ class MigrationGenerator
         $this->generated->add("\$table->$type('$columnName');");
         return $this;
     }
-//
-//    public function buildIndex(IndexDefinition $matchedIndex, Collection $modifiedAttributes): self
-//    {
-//        $indexType = $matchedIndex->get('name');
-//        $indexColumns = $this->getColumns($matchedIndex);
-//        $mappedIndex = "\$table" . "->$indexType" . "($indexColumns)";
-//        collect($modifiedAttributes)->filter(function ($value, $attribute) use ($matchedIndex) {
-//            return $value !== $matchedIndex->get($attribute);
-//        })->map(function ($value, $attribute) use ($indexType, $mappedIndex) {
-//            return $mappedIndex . "->$attribute()" . "->change();";
-//        });
-//        $this->generated->add($mappedIndex);
-//        return $this;
-//    }
-
-//    public function removeIndex(IndexDefinition $index): self
-//    {
-//        $indexNames = $this->getColumns($index);
-//        $this->generated->add("\$table->dropIndex($indexNames);");
-//
-//        return $this;
-//    }
-//
-//    public function buildForeignKey(ForeignKeyDefinition $foreignKey, Collection $modifiedAttributes): self
-//    {
-//        $foreignKeyColumn = $foreignKey->get('name');
-//        $mappedForeignKey = "\$table" . "->foreign" . "($foreignKeyColumn)";
-//        collect($modifiedAttributes)->filter(function ($value, $attribute) use ($foreignKey) {
-//            return $value !== $foreignKey->get($attribute);
-//        })->map(function ($value, $attribute) use ($mappedForeignKey) {
-//            return $mappedForeignKey . "->$attribute()" . "->change();";
-//        });
-//        $this->generated->add($mappedForeignKey);
-//        return $this;
-//    }
-//
-//
-//    public function removeForeignKey(ForeignKeyDefinition $foreignKey): self
-//    {
-//        $foreignKeyName = $foreignKey->get('name');
-//        $this->generated->add("\$table->dropForeign('$foreignKeyName');");
-//        return $this;
-//    }
-
-
     public function generateMigrationFile(string $migrationFilePath, string $operation): void
     {
         $generatedMigrationFile = $this->replaceStubMigrationFile($operation);

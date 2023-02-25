@@ -25,13 +25,20 @@ class ForeignKeyMapper extends AttributeEntity
         parent::__construct("", $rules);
         $this->columns = $columns;
     }
-    public function setDefinition(string $tableName): Fluent
+    public function setDefinition(string $tableName): self
     {
-        $this->definition = (new Blueprint($tableName))->foreign($this->columns);
+        $this->columns = is_array($this->columns) ? $this->columns : [$this->columns];
+        $foreignKeyName = (new Blueprint($tableName))->foreign($this->columns)->get('index');
+        $this->definition = new ForeignKeyDefinition([
+            'columns' => $this->columns,
+            'name' => $foreignKeyName,
+            'type' => 'foreignId',
+            'rules' => $this->rules
+        ]);
 
-        $this->setName($this->definition->get('index'));
+        $this->setName($foreignKeyName);
 
-        return $this->definition;
+        return $this;
     }
     public function setName($name): self
     {

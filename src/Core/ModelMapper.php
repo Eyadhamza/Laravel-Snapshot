@@ -6,6 +6,10 @@ use Eyadhamza\LaravelAutoMigration\Core\Attributes\AttributeEntity;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\ColumnMapper;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\ForeignKeys\ForeignKeyMapper;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes\IndexMapper;
+use Illuminate\Database\Schema\ColumnDefinition;
+use Illuminate\Database\Schema\ForeignKeyDefinition;
+use Illuminate\Database\Schema\IndexDefinition;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Fluent;
 use ReflectionAttribute;
 use ReflectionClass;
@@ -20,11 +24,10 @@ class ModelMapper extends Mapper
         parent::__construct($modelInfo->tableName);
 
 
-        $this->columns = $this->mapAttributes(ColumnMapper::class, $modelInfo);
         $this->indexes = $this->mapAttributes(IndexMapper::class, $modelInfo);
-
         $this->foreignKeys = $this->mapAttributes(ForeignKeyMapper::class, $modelInfo);
-
+        $this->columns = $this->mapAttributes(ColumnMapper::class, $modelInfo);
+        $this->columns = $this->columns->merge($this->foreignKeys);
         $this->generator = new MigrationGenerator($modelInfo->tableName);
     }
 
@@ -40,11 +43,12 @@ class ModelMapper extends Mapper
         return collect($reflection->getAttributes())
             ->filter(fn(ReflectionAttribute $attribute) => is_subclass_of($attribute->getName(), $type))
             ->mapWithKeys(function (ReflectionAttribute $reflectionAttribute) use ($modelInfo) {
-                $attribute = $reflectionAttribute->newInstance();
+                $attribute = $reflectionAttribute
+                    ->newInstance()
+                    ->setType($reflectionAttribute->getName())
+                    ->setDefinition($modelInfo->tableName);
                 return [
-                    $attribute->getName() => $attribute
-                        ->setType($reflectionAttribute->getName())
-                        ->setDefinition($modelInfo->tableName)
+                    $attribute->getName() => $attribute->getDefinition()
                 ];
             });
     }
@@ -61,7 +65,7 @@ class ModelMapper extends Mapper
     protected function mapColumns(): self
     {
         $this->columns
-            ->each(fn(ColumnMapper $column) => $this->generator->generateAddedCommand($column, $column->getName()));
+            ->each(fn(ColumnDefinition|Fluent $column) => $this->generator->generateAddedCommand($column, $column->get('name')));
         return $this;
     }
 
@@ -69,14 +73,14 @@ class ModelMapper extends Mapper
     protected function mapIndexes(): self
     {
         $this->indexes
-            ->each(fn(IndexMapper $index) => $this->generator->generateAddedCommand($index, $index->getColumns()));
+            ->each(fn(IndexDefinition|Fluent $index) => $this->generator->generateAddedCommand($index, $index->get('columns')));
         return $this;
     }
 
     protected function mapForeignKeys(): self
     {
         $this->foreignKeys
-            ->each(fn(ForeignKeyMapper $foreignKey) => $this->generator->generateAddedCommand($foreignKey, $foreignKey->getColumns()));
+            ->each(fn(ForeignKeyDefinition|Fluent $foreignKey) => $this->generator->generateAddedCommand($foreignKey, $foreignKey->get('columns')));
         return $this;
     }
 

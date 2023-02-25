@@ -5,6 +5,8 @@ namespace Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes;
 use Attribute;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\AttributeEntity;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Schema\ForeignKeyDefinition;
+use Illuminate\Database\Schema\IndexDefinition;
 use Illuminate\Support\Fluent;
 
 
@@ -24,9 +26,15 @@ class IndexMapper extends AttributeEntity
 
     public function setDefinition(string $tableName): self
     {
-        $this->definition = (new Blueprint($tableName))->index($this->columns);
 
-        $this->setName($this->definition->get('index'));
+        $indexKeyName = (new Blueprint($tableName))->index($this->columns)->get('index');
+        $this->definition = new IndexDefinition([
+            'columns' => $this->columns,
+            'name' => $indexKeyName,
+            'type' => 'index',
+        ]);
+
+        $this->setName($indexKeyName);
 
         return $this;
     }

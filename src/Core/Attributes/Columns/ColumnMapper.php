@@ -23,8 +23,9 @@ class ColumnMapper extends AttributeEntity
     public function setDefinition(string $tableName): self
     {
         $this->definition = (new Blueprint($tableName))
-            ->addColumn($this->getType(), $this->getName(), $this->getRules());
-
+            ->addColumn($this->getType(), $this->getName(), [
+                'rules' => $this->rules
+            ]);
         return $this;
     }
 }
