@@ -14,13 +14,13 @@ class Comparer
     private MigrationGenerator $migrationGenerator;
     private Collection $addedColumns;
     private Collection $removedColumns;
-    private Collection $intersectedColumns;
+    private Collection $modifiedColumns;
     private Collection $addedIndexes;
     private Collection $removedIndexes;
-    private Collection $intersectedIndexes;
+    private Collection $modifiedIndexes;
     private Collection $addedForeignKeys;
     private Collection $removedForeignKeys;
-    private Collection $intersectedForeignKeys;
+    private Collection $modifiedForeignKeys;
 
     public function __construct(DoctrineMapper $doctrineMapper, ModelMapper $modelMapper)
     {
@@ -28,19 +28,13 @@ class Comparer
         $this->migrationGenerator = new MigrationGenerator($doctrineMapper->getTableName());
         $this->addedColumns = $modelMapper->getColumns()->diffKeys($doctrineMapper->getColumns());
         $this->removedColumns = $doctrineMapper->getColumns()->diffKeys($modelMapper->getColumns());
-        $this->intersectedColumns = $modelMapper->getColumns()->intersectByKeys($doctrineMapper->getColumns());
-
+        $this->modifiedColumns = $this->getModifiedAttributes($modelMapper->getColumns(), $doctrineMapper->getColumns());
         $this->addedIndexes = $modelMapper->getIndexes()->diffKeys($doctrineMapper->getIndexes());
         $this->removedIndexes = $doctrineMapper->getIndexes()->diffKeys($modelMapper->getIndexes());
-        $this->intersectedIndexes = $modelMapper->getIndexes()->intersectByKeys($doctrineMapper->getIndexes());
-        dump([ '$doctrineMapper->getForeignKeys()' => $doctrineMapper->getForeignKeys()]);
-        dump([ '$modelMapper->getForeignKeys()' => $modelMapper->getForeignKeys()]);
+        $this->modifiedIndexes = $this->getModifiedAttributes($modelMapper->getIndexes(), $doctrineMapper->getIndexes());
         $this->addedForeignKeys = $modelMapper->getForeignKeys()->diffKeys($doctrineMapper->getForeignKeys());
         $this->removedForeignKeys = $doctrineMapper->getForeignKeys()->diffKeys($modelMapper->getForeignKeys());
-        $this->intersectedForeignKeys = $modelMapper->getForeignKeys()->intersectByKeys($doctrineMapper->getForeignKeys());
-        dump([ 'addedForeignKeys' => $this->addedForeignKeys]);
-        dump([ 'removedForeignKeys' => $this->removedForeignKeys]);
-        dump([ 'intersectedForeignKeys' => $this->intersectedForeignKeys]);
+        $this->modifiedForeignKeys = $this->getModifiedAttributes($modelMapper->getForeignKeys(), $doctrineMapper->getForeignKeys());
     }
 
     public static function make(DoctrineMapper $doctrineMapper, ModelMapper $modelMapper): Comparer
@@ -50,13 +44,13 @@ class Comparer
 
     public function getMigrationGenerator(): MigrationGenerator
     {
-        $this->compareIntersectedColumns()
+        $this->compareModifiedColumns()
             ->addNewColumns()
             ->removeOldColumns()
-            ->compareIntersectedIndexes()
+            ->compareModifiedIndexes()
             ->addNewIndexes()
             ->removeOldIndexes()
-            ->compareIntersectedForeignKeys()
+            ->compareModifiedForeignKeys()
             ->addNewForeignKeys()
             ->removeOldForeignKeys();
 
@@ -64,16 +58,9 @@ class Comparer
 
     }
 
-    private function compareIntersectedColumns(): self
+    private function compareModifiedColumns(): self
     {
-        $this->intersectedColumns = $this->intersectedColumns->map(function (Fluent $column) {
-            $modifiedAttributes = $this->getIntersectedAttributes($column);
-            if ($modifiedAttributes->isNotEmpty()) {
-                return $this->migrationGenerator->generateModifiedCommand($column, $modifiedAttributes);
-            }
-            return $this;
-        });
-
+        // TODO: Implement compareModifiedColumns() method.
         return $this;
     }
 
@@ -93,16 +80,9 @@ class Comparer
         return $this;
     }
 
-    private function compareIntersectedIndexes(): self
+    private function compareModifiedIndexes(): self
     {
-        $this->intersectedIndexes = $this->intersectedIndexes->map(function (IndexDefinition $index) {
-            $modifiedAttributes = $this->getIntersectedAttributes($index);
-            if ($modifiedAttributes->isNotEmpty()) {
-                return $this->migrationGenerator->generateModifiedCommand($index, $modifiedAttributes);
-            }
-            return $this;
-        });
-
+        // TODO: Implement compareModifiedIndexes() method.
         return $this;
     }
 
@@ -122,23 +102,16 @@ class Comparer
         return $this;
     }
 
-    private function compareIntersectedForeignKeys(): self
+    private function compareModifiedForeignKeys(): self
     {
-        $this->intersectedForeignKeys = $this->intersectedForeignKeys->map(function (ForeignKeyDefinition $foreignKey) {
-            $modifiedAttributes = $this->getIntersectedAttributes($foreignKey);
-            if ($modifiedAttributes->isNotEmpty()) {
-                return $this->migrationGenerator->generateModifiedCommand($foreignKey, $modifiedAttributes);
-            }
-            return $this;
-        });
-
+        // TODO: Implement compareModifiedForeignKeys() method.
         return $this;
     }
 
     private function addNewForeignKeys(): self
     {
         $this->addedForeignKeys = $this->addedForeignKeys->map(function (ForeignKeyDefinition $foreignKey) {
-            return $this->migrationGenerator->generateAddedCommand($foreignKey,$foreignKey->get('columns'));
+            return $this->migrationGenerator->generateAddedCommand($foreignKey, $foreignKey->get('columns'));
         });
         return $this;
     }
@@ -151,10 +124,26 @@ class Comparer
         return $this;
     }
 
-    private function getIntersectedAttributes(Fluent $column): Collection
+
+    private function getModifiedAttributes(Collection $modelColumns, Collection $doctrineColumns): Collection
     {
-        return collect($column->getAttributes())->filter(function ($value, $attribute) use ($column) {
-            return $value !== $column->get($attribute);
-        });
+        $intersectedColumns = $modelColumns->intersectByKeys($doctrineColumns);
+        $diff = new Collection();
+        foreach ($intersectedColumns as $key => $column) {
+            $modelAttributes = $column->getAttributes();
+            $doctrineAttributes = $doctrineColumns->get($key)->getAttributes();
+            $modifiedAttributes = array_diff_assoc($modelAttributes, $doctrineAttributes);
+            if ($modifiedAttributes > 0) {
+                $diff->put($key, $modifiedAttributes);
+            }
+        }
+        return $diff;
     }
+
+    private function isAllowedAttribute(string $key): bool
+    {
+        return !in_array($key, ['name', 'type']);
+    }
+
+
 }

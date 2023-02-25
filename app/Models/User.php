@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\AsString;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Id;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Timestamp;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Timestamps;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\ForeignKeys\ForeignId;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes\Index;
@@ -15,7 +16,8 @@ use Illuminate\Database\Eloquent\Model;
 #[Id('id')]
 #[AsString('email')]
 #[AsString('password')]
-#[Timestamps]
+#[Timestamp('created_at')]
+#[Timestamp('updated_at')]
 #[Unique(['email'])]
 #[Index(['email'])]
 #[ForeignId('friend_id', [Rule::CONSTRAINED => 'friends', Rule::CASCADE_ON_DELETE, Rule::CASCADE_ON_UPDATE])]

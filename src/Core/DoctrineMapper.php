@@ -42,6 +42,7 @@ class DoctrineMapper extends Mapper
             ->mapForeignKeys()
             ->mapIndexes();
     }
+
     public static function make(string $tableName): self
     {
         return new self($tableName);
@@ -65,7 +66,9 @@ class DoctrineMapper extends Mapper
     public function mapForeignKeys(): static
     {
         $this->foreignKeys = $this->foreignKeys
-            ->map(fn(ForeignKeyConstraint $foreignKey) => new ForeignKeyDefinition($this->mapToForeignKey($foreignKey)));
+            ->mapWithKeys(fn(ForeignKeyConstraint $foreignKey) => [
+                $foreignKey->getLocalColumns()[0] => new ForeignKeyDefinition($this->mapToForeignKey($foreignKey))
+            ]);
         return $this;
     }
 
@@ -119,9 +122,9 @@ class DoctrineMapper extends Mapper
         return collect([
             'name' => $foreignKey->getName(),
             'constrained' => $foreignKey->getForeignTableName(),
-            'on' => $foreignKey->getForeignColumns(),
-            'onDelete' => $foreignKey->getOption('onDelete') == 'CASCADE',
-            'onUpdate' => $foreignKey->getOption('onUpdate') == 'CASCADE',
+            'columns' => $foreignKey->getLocalColumns(),
+            'cascadeOnDelete' => $foreignKey->getOption('onDelete') == 'CASCADE',
+            'cascadeOnUpdate' => $foreignKey->getOption('onUpdate') == 'CASCADE',
         ])->filter()->toArray();
     }
 

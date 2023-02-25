@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\AsString;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Id;
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Timestamp;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\Timestamps;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\ForeignKeys\ForeignId;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes\Unique;
@@ -15,7 +16,8 @@ use Illuminate\Database\Eloquent\Model;
 #[AsString('description')]
 #[AsString('email')]
 #[AsString('password')]
-#[Timestamps]
+#[Timestamp('created_at')]
+#[Timestamp('updated_at')]
 #[Unique('email')]
 #[ForeignId('user_id', [Rule::CONSTRAINED => 'users', Rule::CASCADE_ON_DELETE, Rule::CASCADE_ON_UPDATE])]
 class Saver extends Model

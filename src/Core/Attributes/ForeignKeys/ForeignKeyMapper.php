@@ -29,14 +29,14 @@ class ForeignKeyMapper extends AttributeEntity
     {
         $this->columns = is_array($this->columns) ? $this->columns : [$this->columns];
         $foreignKeyName = (new Blueprint($tableName))->foreign($this->columns)->get('index');
-        $this->definition = new ForeignKeyDefinition([
+        $this->definition = new ForeignKeyDefinition(array_merge([
             'columns' => $this->columns,
             'name' => $foreignKeyName,
             'type' => 'foreignId',
-            'rules' => $this->rules
-        ]);
+            'unsigned' => true,
+        ], $this->rules));
 
-        $this->setName($foreignKeyName);
+        $this->setName($this->columns[0]);
 
         return $this;
     }
