@@ -2,8 +2,7 @@
 
 namespace Eyadhamza\LaravelAutoMigration\Core;
 
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\AttributeEntity;
-use Illuminate\Database\Schema\IndexDefinition;
+use Eyadhamza\LaravelAutoMigration\Core\Constants\MigrationOperation;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Fluent;
 use Illuminate\Support\Str;
@@ -24,55 +23,30 @@ class MigrationGenerator
         return new self($tableName);
     }
 
-    public function generateAddedCommand(AttributeEntity|Fluent $column, string|array $columnName): self
+    public function generateCommand(Fluent $column, $operation): self
     {
-        $columnType = $column->get('type') ?? 'index';
-        $rules = $column->get('rules') ?? [];
-        $generatedCommand = "\$table" . "->$columnType" . "({$this->getColumnNameOrNames($columnName)})";
-        if (empty($rules)) {
-            $this->generated->add($generatedCommand . ";");
-            return $this;
-        }
+        $commandFormatter = MigrationCommandFormatter::make($column)
+            ->setOperation($operation)
+            ->setRules($this->getRules($column))
+            ->run();
 
-        foreach ($rules as $rule => $value) {
-            if ($this->inForeignRules($value) || $value === true) {
-                $generatedCommand = $generatedCommand . "->$rule()";
-                continue;
-            }
-            $generatedCommand = $generatedCommand . "->$rule('$value')";
-        }
-        $this->generated->add($generatedCommand . ";");
-
+        $this->generated->add($commandFormatter);
         return $this;
     }
 
-    public function generateModifiedCommand(Fluent $column, Collection $attributes): self
+    public function generateAddedCommand(Fluent $column): self
     {
-        $columnType = $column->get('type');
-        $columnName = $column->get('name');
-
-        $mappedColumn = "\$table" . "->$columnType" . "('$columnName')";
-        collect($attributes)
-            ->reject(fn($value, $attribute) => $this->attributesToBeSkipped($attribute))
-            ->reject(fn($value, $attribute) => $this->noChangeHappened($attribute))
-            ->map(function ($value, $attribute) use ($columnName, $columnType, $mappedColumn, $column) {
-                if ($this->attributesAsSecondArgument($attribute)) {
-                    return $value ? "\$table->$columnType('$columnName', $value)" . "->change();" : "";
-                }
-                if ($this->inForeignRules($attribute)) {
-                    return "";
-                }
-                return $mappedColumn . "->$attribute()" . "->change();";
-            });
-        $this->generated->add($mappedColumn);
-        return $this;
+        return $this->generateCommand($column, MigrationOperation::Add);
     }
 
-    public function generateRemovedCommand($column, string $type): self
+    public function generateRemovedCommand(Fluent $column): self
     {
-        $columnName = $column->get('name');
-        $this->generated->add("\$table->$type('$columnName');");
-        return $this;
+        return $this->generateCommand($column, MigrationOperation::Remove);
+    }
+
+    public function generateModifiedCommand(Fluent $column): self
+    {
+        return $this->generateCommand($column, MigrationOperation::Modify);
     }
     public function generateMigrationFile(string $migrationFilePath, string $operation): void
     {
@@ -85,47 +59,17 @@ class MigrationGenerator
         $fileContent = file_get_contents("stubs/$operation-migration.stub");
         $fileContent = Str::replace("\$tableName", $this->tableName, $fileContent);
 
-        return Str::replace("{{ \$mappedColumns }}", $this->generated->join("\n \t \t \t"), $fileContent);
+        return Str::replace("{{ \$mappedColumns }}", $this->getGenerated()->join("\n \t \t \t"), $fileContent);
     }
+
     public function getGenerated()
     {
         return $this->generated->flatten()->filter()->values();
     }
 
-    private function attributesAsSecondArgument($attribute): bool
+    private function getRules(Fluent $column): array
     {
-        return in_array($attribute, ['length', 'precision', 'scale']);
+        return array_filter($column->getAttributes(), fn($key,) => !in_array($key, ['type', 'name', 'columns']), ARRAY_FILTER_USE_KEY);
     }
 
-    private function inForeignRules($rule): bool
-    {
-        return in_array($rule, ['cascadeOnDelete', 'cascadeOnUpdate']);
-    }
-
-    private function attributesToBeSkipped(int|string|null $attribute): bool
-    {
-        return in_array($attribute, ['name', 'type']);
-    }
-
-    private function noChangeHappened($attribute): bool
-    {
-        return in_array($attribute, ['autoIncrement']);
-    }
-
-
-    private function getColumns(AttributeEntity|IndexDefinition $matchedIndex): string
-    {
-        if (is_string($matchedIndex->get('columns'))) {
-            return "'{$matchedIndex->get('columns')}'";
-        }
-        if (!$matchedIndex->get('columns')) {
-            return '';
-        }
-        return "['" . implode("','", $matchedIndex->get('columns')) . "']";
-    }
-
-    private function getColumnNameOrNames(string|array|null $columnName): string
-    {
-        return is_array($columnName) ? "['" . implode("','", $columnName) . "']" : "'$columnName'";
-    }
 }

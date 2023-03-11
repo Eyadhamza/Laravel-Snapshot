@@ -6,6 +6,7 @@ use Eyadhamza\LaravelAutoMigration\Core\Attributes\AttributeEntity;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\ColumnMapper;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\ForeignKeys\ForeignKeyMapper;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes\IndexMapper;
+use Eyadhamza\LaravelAutoMigration\Core\Constants\MigrationOperation;
 use Illuminate\Database\Schema\ColumnDefinition;
 use Illuminate\Database\Schema\ForeignKeyDefinition;
 use Illuminate\Database\Schema\IndexDefinition;
