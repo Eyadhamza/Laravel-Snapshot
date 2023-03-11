@@ -24,11 +24,12 @@ class ModelMapper extends Mapper
     {
         parent::__construct($modelInfo->tableName);
 
-
         $this->indexes = $this->mapAttributes(IndexMapper::class, $modelInfo);
         $this->foreignKeys = $this->mapAttributes(ForeignKeyMapper::class, $modelInfo);
-        $this->columns = $this->mapAttributes(ColumnMapper::class, $modelInfo);
-        $this->columns = $this->columns->merge($this->foreignKeys);
+        $this->columns = $this
+            ->mapAttributes(ColumnMapper::class, $modelInfo)
+            ->merge($this->foreignKeys);
+
         $this->generator = new MigrationGenerator($modelInfo->tableName);
     }
 
@@ -53,35 +54,13 @@ class ModelMapper extends Mapper
                 ];
             });
     }
-
-
     public function map(): self
     {
-        $this->mapColumns()
-            ->mapIndexes()
-            ->mapForeignKeys();
-        return $this;
-    }
-
-    protected function mapColumns(): self
-    {
         $this->columns
-            ->each(fn(ColumnDefinition|Fluent $column) => $this->generator->generateAddedCommand($column, $column->get('name')));
-        return $this;
-    }
+            ->each(fn(ColumnDefinition|Fluent $column) => $this->generator->generateAddedCommand($column));
 
-
-    protected function mapIndexes(): self
-    {
         $this->indexes
-            ->each(fn(IndexDefinition|Fluent $index) => $this->generator->generateAddedCommand($index, $index->get('columns')));
-        return $this;
-    }
-
-    protected function mapForeignKeys(): self
-    {
-        $this->foreignKeys
-            ->each(fn(ForeignKeyDefinition|Fluent $foreignKey) => $this->generator->generateAddedCommand($foreignKey, $foreignKey->get('columns')));
+            ->each(fn(IndexDefinition|Fluent $index) => $this->generator->generateAddedCommand($index));
         return $this;
     }
 

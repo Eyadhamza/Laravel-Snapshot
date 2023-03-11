@@ -9,7 +9,7 @@ use Illuminate\Support\Str;
 class MigrationCommandFormatter
 {
     private Fluent $column;
-    private string|array $columnName;
+    private string|array|null $columnName;
     private MigrationOperation $operation;
     private array $rules;
 

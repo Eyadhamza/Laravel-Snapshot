@@ -20,7 +20,7 @@ abstract class Mapper
     protected Collection $indexes;
     protected Collection $foreignKeys;
 
-    protected $typeMappings = [
+    protected array $typeMappings = [
         'bit' => 'string',
         'citext' => 'string',
         'enum' => 'string',
@@ -57,9 +57,6 @@ abstract class Mapper
         return $this->columns;
     }
 
-    abstract protected function mapColumns(): self;
-    abstract protected function mapIndexes(): self;
-    abstract protected function mapForeignKeys(): self;
 
     public function getTableName(): string
     {

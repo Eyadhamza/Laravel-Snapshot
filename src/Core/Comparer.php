@@ -2,6 +2,7 @@
 
 namespace Eyadhamza\LaravelAutoMigration\Core;
 
+use Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes\Index;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes\IndexMapper;
 use Illuminate\Database\Schema\ColumnDefinition;
 use Illuminate\Database\Schema\ForeignKeyDefinition;
@@ -17,7 +18,6 @@ class Comparer
 
     public function __construct(DoctrineMapper $doctrineMapper, ModelMapper $modelMapper)
     {
-
         $this->migrationGenerator = new MigrationGenerator($doctrineMapper->getTableName());
         $this->doctrineMapper = $doctrineMapper;
         $this->modelMapper = $modelMapper;
@@ -30,15 +30,7 @@ class Comparer
 
     public function getMigrationGenerator(): MigrationGenerator
     {
-        $this->modifyExistingColumns()
-            ->addNewColumns()
-            ->removeOldColumns()
-            ->compareModifiedIndexes()
-            ->addNewIndexes()
-            ->removeOldIndexes()
-            ->compareModifiedForeignKeys()
-            ->addNewForeignKeys()
-            ->removeOldForeignKeys();
+        $this->modifyExistingColumns()->addNewColumns()->removeOldColumns();
 
         return $this->migrationGenerator;
 
@@ -58,7 +50,7 @@ class Comparer
     {
         $addedColumns = $this->modelMapper->getColumns()->diffKeys($this->doctrineMapper->getColumns());
 
-        $addedColumns->map(function (ColumnDefinition|ForeignKeyDefinition $column) {
+        $addedColumns->map(function (ColumnDefinition|ForeignKeyDefinition|IndexDefinition $column) {
             return $this->migrationGenerator->generateAddedCommand($column);
         });
         return $this;
@@ -68,7 +60,7 @@ class Comparer
     {
         $removedColumns = $this->doctrineMapper->getColumns()->diffKeys($this->modelMapper->getColumns());
 
-        $removedColumns->map(function (ColumnDefinition|ForeignKeyDefinition $column) {
+        $removedColumns->map(function (ColumnDefinition|ForeignKeyDefinition|IndexDefinition $column) {
             return $this->migrationGenerator->generateRemovedCommand($column);
         });
         return $this;

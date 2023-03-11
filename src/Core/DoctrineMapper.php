@@ -24,6 +24,7 @@ class DoctrineMapper extends Mapper
         $this->registerTypeMappings($schema->getDatabasePlatform());
 
         $doctrineTableDetails = $schema->introspectTable($tableName);
+        $this->foreignKeys = collect($doctrineTableDetails->getForeignKeys());
 
         $this->columns = collect($doctrineTableDetails->getColumns());
 
@@ -31,7 +32,6 @@ class DoctrineMapper extends Mapper
             ->reject(fn(Index $index) => $index->isPrimary())
             ->reject(fn(Index $index) => Str::contains($index->getName(), 'foreign'));
 
-        $this->foreignKeys = collect($doctrineTableDetails->getForeignKeys());
     }
 
     public function map(): self
@@ -94,6 +94,7 @@ class DoctrineMapper extends Mapper
     {
         return collect([
             'name' => $column->getName(),
+            'type' => $this->mapToColumnType($column),
             'unsigned' => $column->getUnsigned(),
             'nullable' => $column->getNotnull() == false,
             'default' => $column->getDefault(),
