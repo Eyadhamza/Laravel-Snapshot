@@ -4,9 +4,8 @@ namespace Eyadhamza\LaravelAutoMigration\Core;
 
 use Eyadhamza\LaravelAutoMigration\Core\Constants\MigrationOperation;
 use Illuminate\Support\Fluent;
-use Illuminate\Support\Str;
 
-class MigrationCommandFormatter
+class MigrationFormatter
 {
     private Fluent $column;
     private string|array|null $columnName;
@@ -19,7 +18,7 @@ class MigrationCommandFormatter
         $this->columnName = $column->get('columns') ?? $column->get('name');
     }
 
-    public static function make(Fluent $column): MigrationCommandFormatter
+    public static function make(Fluent $column): MigrationFormatter
     {
         return new self($column);
     }
@@ -38,7 +37,7 @@ class MigrationCommandFormatter
         $columnType = $this->column->get('type') ?? 'index';
 
         if ($this->operation === MigrationOperation::Remove) {
-            $columnType = 'drop' . Str::studly($columnType);
+            $columnType = $this->generateDropCommand($columnType);
         }
 
         return "\$table" . "->$columnType" . "({$this->getColumnNameOrNames()})";
@@ -131,6 +130,17 @@ class MigrationCommandFormatter
                 ->join('');
 
         return $generatedCommand . "->change();";
+    }
+
+    private function generateDropCommand(string|\Closure $columnType): \Closure|string
+    {
+       return match ($columnType) {
+            'index' => 'dropIndex',
+            'foreign' => 'dropForeign',
+            'unique' => 'dropUnique',
+            'primary' => 'dropPrimary',
+            default => 'dropColumn',
+        };
     }
 
 

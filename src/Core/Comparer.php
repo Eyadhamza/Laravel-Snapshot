@@ -30,8 +30,13 @@ class Comparer
 
     public function getMigrationGenerator(): MigrationGenerator
     {
-        $this->modifyExistingColumns()->addNewColumns()->removeOldColumns();
-
+        $this
+            ->modifyExistingColumns()
+            ->addNewColumns()
+            ->removeOldColumns()
+            ->addNewIndexes()
+            ->removeOldIndexes()
+            ->compareModifiedIndexes();
         return $this->migrationGenerator;
 
     }

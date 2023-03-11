@@ -36,7 +36,6 @@ class DoctrineMapper extends Mapper
 
     public function map(): self
     {
-
         return $this
             ->mapColumns()
             ->mapForeignKeys()
@@ -90,7 +89,7 @@ class DoctrineMapper extends Mapper
         }
     }
 
-    protected function mapToColumn(Column|AttributeEntity $column): array
+    protected function mapToColumn(Column $column): array
     {
         return collect([
             'name' => $column->getName(),
@@ -107,7 +106,7 @@ class DoctrineMapper extends Mapper
         ])->filter()->toArray();
     }
 
-    private function mapToColumnType(Column|AttributeEntity $column): string
+    private function mapToColumnType(Column $column): string
     {
         return match ($column->getType()->getName()) {
             'datetime' => 'timestamp',
@@ -118,7 +117,7 @@ class DoctrineMapper extends Mapper
         };
     }
 
-    protected function mapToForeignKey(ForeignKeyConstraint|AttributeEntity $foreignKey): array
+    protected function mapToForeignKey(ForeignKeyConstraint $foreignKey): array
     {
         return collect([
             'name' => $foreignKey->getName(),
@@ -129,7 +128,7 @@ class DoctrineMapper extends Mapper
         ])->filter()->toArray();
     }
 
-    public function mapToIndex(Index|AttributeEntity $index): array
+    public function mapToIndex(Index $index): array
     {
         return collect([
             'name' => $index->getName(),

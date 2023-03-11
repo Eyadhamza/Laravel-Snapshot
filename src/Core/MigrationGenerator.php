@@ -25,7 +25,7 @@ class MigrationGenerator
 
     public function generateCommand(Fluent $column, $operation): self
     {
-        $commandFormatter = MigrationCommandFormatter::make($column)
+        $commandFormatter = MigrationFormatter::make($column)
             ->setOperation($operation)
             ->setRules($this->getRules($column))
             ->run();
