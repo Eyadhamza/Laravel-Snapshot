@@ -1,11 +1,5 @@
-# This is my package laravel-auto-migration
-
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/eyadhamza/laravel-auto-migration.svg?style=flat-square)](https://packagist.org/packages/eyadhamza/laravel-auto-migration)
-[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/eyadhamza/laravel-auto-migration/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/eyadhamza/laravel-auto-migration/actions?query=workflow%3Arun-tests+branch%3Amain)
-[![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/eyadhamza/laravel-auto-migration/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/eyadhamza/laravel-auto-migration/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
-[![Total Downloads](https://img.shields.io/packagist/dt/eyadhamza/laravel-auto-migration.svg?style=flat-square)](https://packagist.org/packages/eyadhamza/laravel-auto-migration)
-
-This is where your description should go. Limit it to a paragraph or two. Consider adding a small example.
+# Laravel Auto Migration
+WIP
 
 ## Support us
 
