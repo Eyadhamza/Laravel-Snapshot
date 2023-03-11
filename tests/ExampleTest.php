@@ -1,7 +1,7 @@
 <?php
 
 
-use Eyadhamza\LaravelAutoMigration\Core\MigrationBuilder;
+use Eyadhamza\LaravelEloquentMigration\Core\MigrationBuilder;
 use Illuminate\Support\Str;
 
 it('can test', function () {

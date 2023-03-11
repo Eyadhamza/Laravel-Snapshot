@@ -1,14 +1,14 @@
 <?php
 
-namespace Eyadhamza\LaravelAutoMigration;
+namespace Eyadhamza\LaravelEloquentMigration;
 
-use Eyadhamza\LaravelAutoMigration\Console\Commands\AutoMigrateResetCommand;
-use Eyadhamza\LaravelAutoMigration\Console\Commands\AutoMigrateRunCommand;
+use Eyadhamza\LaravelEloquentMigration\Console\Commands\AutoMigrateResetCommand;
+use Eyadhamza\LaravelEloquentMigration\Console\Commands\AutoMigrateRunCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
-use Eyadhamza\LaravelAutoMigration\Commands\LaravelAutoMigrationCommand;
+use Eyadhamza\LaravelEloquentMigration\Commands\LaravelEloquentMigrationCommand;
 
-class LaravelAutoMigrationServiceProvider extends PackageServiceProvider
+class LaravelEloquentMigrationServiceProvider extends PackageServiceProvider
 {
     public function configurePackage(Package $package): void
     {
@@ -26,6 +26,6 @@ class LaravelAutoMigrationServiceProvider extends PackageServiceProvider
                 AutoMigrateRunCommand::class,
             ])
             ->hasMigration('create_laravel-auto-migration_table')
-            ->hasCommand(LaravelAutoMigrationCommand::class);
+            ->hasCommand(LaravelEloquentMigrationCommand::class);
     }
 }

@@ -1,8 +1,8 @@
 <?php
 
-namespace Eyadhamza\LaravelAutoMigration\Core;
+namespace Eyadhamza\LaravelEloquentMigration\Core;
 
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\ForeignKeys\ForeignKeyMapper;
+use Eyadhamza\LaravelEloquentMigration\Core\Attributes\ForeignKeys\ForeignKeyMapper;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 use Spatie\ModelInfo\ModelInfo;

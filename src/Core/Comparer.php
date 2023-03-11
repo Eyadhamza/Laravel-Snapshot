@@ -1,8 +1,8 @@
 <?php
 
-namespace Eyadhamza\LaravelAutoMigration\Core;
+namespace Eyadhamza\LaravelEloquentMigration\Core;
 
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes\IndexMapper;
+use Eyadhamza\LaravelEloquentMigration\Core\Attributes\Indexes\IndexMapper;
 use Illuminate\Database\Schema\ColumnDefinition;
 use Illuminate\Database\Schema\ForeignKeyDefinition;
 use Illuminate\Database\Schema\IndexDefinition;

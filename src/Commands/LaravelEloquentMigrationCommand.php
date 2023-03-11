@@ -1,10 +1,10 @@
 <?php
 
-namespace Eyadhamza\LaravelAutoMigration\Commands;
+namespace Eyadhamza\LaravelEloquentMigration\Commands;
 
 use Illuminate\Console\Command;
 
-class LaravelAutoMigrationCommand extends Command
+class LaravelEloquentMigrationCommand extends Command
 {
     public $signature = 'laravel-auto-migration';
 

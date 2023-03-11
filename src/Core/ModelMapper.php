@@ -1,12 +1,12 @@
 <?php
 
-namespace Eyadhamza\LaravelAutoMigration\Core;
+namespace Eyadhamza\LaravelEloquentMigration\Core;
 
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\AttributeEntity;
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\ColumnMapper;
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\ForeignKeys\ForeignKeyMapper;
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes\IndexMapper;
-use Eyadhamza\LaravelAutoMigration\Core\Constants\MigrationOperation;
+use Eyadhamza\LaravelEloquentMigration\Core\Attributes\AttributeEntity;
+use Eyadhamza\LaravelEloquentMigration\Core\Attributes\Columns\ColumnMapper;
+use Eyadhamza\LaravelEloquentMigration\Core\Attributes\ForeignKeys\ForeignKeyMapper;
+use Eyadhamza\LaravelEloquentMigration\Core\Attributes\Indexes\IndexMapper;
+use Eyadhamza\LaravelEloquentMigration\Core\Constants\MigrationOperation;
 use Illuminate\Database\Schema\ColumnDefinition;
 use Illuminate\Database\Schema\ForeignKeyDefinition;
 use Illuminate\Database\Schema\IndexDefinition;

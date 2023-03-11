@@ -1,8 +1,8 @@
 <?php
 
-namespace Eyadhamza\LaravelAutoMigration\Core;
+namespace Eyadhamza\LaravelEloquentMigration\Core;
 
-use Eyadhamza\LaravelAutoMigration\Core\Constants\MigrationOperation;
+use Eyadhamza\LaravelEloquentMigration\Core\Constants\MigrationOperation;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Fluent;
 use Illuminate\Support\Str;

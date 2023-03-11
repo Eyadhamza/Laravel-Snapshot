@@ -1,6 +1,6 @@
 <?php
 
-namespace Eyadhamza\LaravelAutoMigration\Console\Commands;
+namespace Eyadhamza\LaravelEloquentMigration\Console\Commands;
 
 use Illuminate\Console\Command;
 

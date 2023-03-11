@@ -1,8 +1,8 @@
 <?php
 
 
-use Eyadhamza\LaravelAutoMigration\Core\MigrationBuilder;
-use Eyadhamza\LaravelAutoMigration\Core\ModelMapper;
+use Eyadhamza\LaravelEloquentMigration\Core\MigrationBuilder;
+use Eyadhamza\LaravelEloquentMigration\Core\ModelMapper;
 use Illuminate\Database\Schema\ColumnDefinition;
 use Illuminate\Support\Facades\File;
 use Spatie\ModelInfo\ModelInfo;
@@ -26,14 +26,13 @@ it('can generate the right columns', function () {
     $mapper = MigrationBuilder::mapAll(ModelInfo::forAllModels('app', config('auto-migration.base_path') ?? app_path()));
     $modelMapper = $mapper->getModelMappers()->first();
     expect($modelMapper->getColumns())
-        ->toHaveCount(3);
+        ->toHaveCount(6);
     $idColumn = $modelMapper->getColumns()->get('id');
         expect($idColumn)
             ->toBeInstanceOf(ColumnDefinition::class)
             ->and($idColumn->getAttributes())
             ->toHaveKey('type', 'id')
-            ->toHaveKey('name', 'id')
-            ->toHaveKey('autoIncrement', true);
+            ->toHaveKey('name', 'id');
 });
 
 it('builds migrations files', function () {

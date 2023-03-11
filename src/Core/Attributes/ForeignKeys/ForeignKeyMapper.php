@@ -1,12 +1,12 @@
 <?php
 
-namespace Eyadhamza\LaravelAutoMigration\Core\Attributes\ForeignKeys;
+namespace Eyadhamza\LaravelEloquentMigration\Core\Attributes\ForeignKeys;
 
 use Attribute;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\AttributeEntity;
-use Eyadhamza\LaravelAutoMigration\Core\Constants\AttributeToColumn;
-use Eyadhamza\LaravelAutoMigration\Core\Constants\Rule;
+use Eyadhamza\LaravelEloquentMigration\Core\Attributes\AttributeEntity;
+use Eyadhamza\LaravelEloquentMigration\Core\Constants\AttributeToColumn;
+use Eyadhamza\LaravelEloquentMigration\Core\Constants\Rule;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Schema\ForeignIdColumnDefinition;
 use Illuminate\Database\Schema\ForeignKeyDefinition;

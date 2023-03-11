@@ -1,9 +1,9 @@
 <?php
 
-namespace Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes;
+namespace Eyadhamza\LaravelEloquentMigration\Core\Attributes\Indexes;
 
 use Attribute;
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\ColumnMapper;
+use Eyadhamza\LaravelEloquentMigration\Core\Attributes\Columns\ColumnMapper;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Schema\IndexDefinition;
 use Illuminate\Support\Fluent;

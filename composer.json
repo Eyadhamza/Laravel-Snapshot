@@ -1,10 +1,10 @@
 {
-    "name": "eyadhamza/laravel-auto-migration",
+    "name": "eyadhamza/laravel-eloquent-migration",
     "description": "This is my package laravel-auto-migration",
     "keywords": [
         "Eyadhamza",
         "laravel",
-        "laravel-auto-migration"
+        "laravel-eloquent-migration"
     ],
     "homepage": "https://github.com/eyadhamza/laravel-auto-migration",
     "license": "MIT",
@@ -32,14 +32,14 @@
     },
     "autoload": {
         "psr-4": {
-            "Eyadhamza\\LaravelAutoMigration\\": "src",
-            "Eyadhamza\\LaravelAutoMigration\\Database\\Factories\\": "database/factories",
+            "Eyadhamza\\LaravelEloquentMigration\\": "src",
+            "Eyadhamza\\LaravelEloquentMigration\\Database\\Factories\\": "database/factories",
             "App\\": "app/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Eyadhamza\\LaravelAutoMigration\\Tests\\": "tests"
+            "Eyadhamza\\LaravelEloquentMigration\\Tests\\": "tests"
         }
     },
     "scripts": {
@@ -59,10 +59,10 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Eyadhamza\\LaravelAutoMigration\\LaravelAutoMigrationServiceProvider"
+                "Eyadhamza\\LaravelEloquentMigration\\LaravelEloquentMigrationServiceProvider"
             ],
             "aliases": {
-                "LaravelAutoMigration": "Eyadhamza\\LaravelAutoMigration\\Facades\\LaravelAutoMigration"
+                "LaravelEloquentMigration": "Eyadhamza\\LaravelEloquentMigration\\Facades\\LaravelEloquentMigration"
             }
         }
     },

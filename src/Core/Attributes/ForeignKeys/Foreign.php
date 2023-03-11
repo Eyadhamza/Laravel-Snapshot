@@ -1,9 +1,9 @@
 <?php
 
-namespace Eyadhamza\LaravelAutoMigration\Core\Attributes\ForeignKeys;
+namespace Eyadhamza\LaravelEloquentMigration\Core\Attributes\ForeignKeys;
 
 use Attribute;
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\ColumnMapper;
+use Eyadhamza\LaravelEloquentMigration\Core\Attributes\Columns\ColumnMapper;
 
 ;
 

@@ -1,12 +1,12 @@
 <?php
 
-namespace Eyadhamza\LaravelAutoMigration\Core\Attributes;
+namespace Eyadhamza\LaravelEloquentMigration\Core\Attributes;
 
 use Attribute;
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns\ColumnMapper;
-use Eyadhamza\LaravelAutoMigration\Core\Constants\AttributeToColumn;
-use Eyadhamza\LaravelAutoMigration\Core\Constants\Rule;
-use Eyadhamza\LaravelAutoMigration\Core\MigrationGenerator;
+use Eyadhamza\LaravelEloquentMigration\Core\Attributes\Columns\ColumnMapper;
+use Eyadhamza\LaravelEloquentMigration\Core\Constants\AttributeToColumn;
+use Eyadhamza\LaravelEloquentMigration\Core\Constants\Rule;
+use Eyadhamza\LaravelEloquentMigration\Core\MigrationGenerator;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Fluent;
 use Illuminate\Support\Str;

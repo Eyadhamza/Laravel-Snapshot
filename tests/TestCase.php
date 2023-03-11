@@ -1,11 +1,11 @@
 <?php
 
-namespace Eyadhamza\LaravelAutoMigration\Tests;
+namespace Eyadhamza\LaravelEloquentMigration\Tests;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Orchestra\Testbench\TestCase as Orchestra;
-use Eyadhamza\LaravelAutoMigration\LaravelAutoMigrationServiceProvider;
+use Eyadhamza\LaravelEloquentMigration\LaravelEloquentMigrationServiceProvider;
 
 class TestCase extends Orchestra
 {
@@ -15,7 +15,7 @@ class TestCase extends Orchestra
         parent::setUp();
 
         Factory::guessFactoryNamesUsing(
-            fn(string $modelName) => 'Eyadhamza\\LaravelAutoMigration\\Database\\Factories\\' . class_basename($modelName) . 'Factory'
+            fn(string $modelName) => 'Eyadhamza\\LaravelEloquentMigration\\Database\\Factories\\' . class_basename($modelName) . 'Factory'
         );
     }
 
@@ -27,7 +27,7 @@ class TestCase extends Orchestra
     protected function getPackageProviders($app)
     {
         return [
-            LaravelAutoMigrationServiceProvider::class,
+            LaravelEloquentMigrationServiceProvider::class,
         ];
     }
 

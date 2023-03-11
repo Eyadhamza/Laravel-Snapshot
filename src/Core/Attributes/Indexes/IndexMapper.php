@@ -1,9 +1,9 @@
 <?php
 
-namespace Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes;
+namespace Eyadhamza\LaravelEloquentMigration\Core\Attributes\Indexes;
 
 use Attribute;
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\AttributeEntity;
+use Eyadhamza\LaravelEloquentMigration\Core\Attributes\AttributeEntity;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Schema\ForeignKeyDefinition;
 use Illuminate\Database\Schema\IndexDefinition;

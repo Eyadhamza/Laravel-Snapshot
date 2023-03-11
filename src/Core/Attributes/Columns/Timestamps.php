@@ -1,6 +1,6 @@
 <?php
 
-namespace Eyadhamza\LaravelAutoMigration\Core\Attributes\Columns;
+namespace Eyadhamza\LaravelEloquentMigration\Core\Attributes\Columns;
 
 use Attribute;
 use Illuminate\Database\Schema\Blueprint;

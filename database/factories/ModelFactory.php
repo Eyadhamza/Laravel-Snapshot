@@ -1,6 +1,6 @@
 <?php
 
-namespace Eyadhamza\LaravelAutoMigration\Database\Factories;
+namespace Eyadhamza\LaravelEloquentMigration\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 

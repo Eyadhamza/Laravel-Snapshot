@@ -1,6 +1,6 @@
 <?php
 
-namespace Eyadhamza\LaravelAutoMigration\Core\Attributes\ForeignKeys;
+namespace Eyadhamza\LaravelEloquentMigration\Core\Attributes\ForeignKeys;
 
 use Attribute;
 use Illuminate\Database\Schema\Blueprint;

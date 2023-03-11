@@ -1,6 +1,6 @@
 <?php
 
-use Eyadhamza\LaravelAutoMigration\Tests\TestCase;
+use Eyadhamza\LaravelEloquentMigration\Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(TestCase::class, RefreshDatabase::class)

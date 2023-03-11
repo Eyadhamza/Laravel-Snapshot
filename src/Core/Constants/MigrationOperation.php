@@ -1,6 +1,6 @@
 <?php
 
-namespace Eyadhamza\LaravelAutoMigration\Core\Constants;
+namespace Eyadhamza\LaravelEloquentMigration\Core\Constants;
 
 enum MigrationOperation : string
 {
