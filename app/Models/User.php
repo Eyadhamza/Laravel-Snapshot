@@ -20,7 +20,6 @@ use Illuminate\Database\Eloquent\Model;
 #[Timestamp('updated_at')]
 #[Unique(['email'])]
 #[Index(['email'])]
-#[ForeignId('friend_id', [Rule::CONSTRAINED => 'friends', Rule::CASCADE_ON_DELETE, Rule::CASCADE_ON_UPDATE])]
 class User extends Model
 {
     /**

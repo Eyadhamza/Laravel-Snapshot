@@ -2,7 +2,6 @@
 
 namespace Eyadhamza\LaravelAutoMigration\Core;
 
-use Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes\Index;
 use Eyadhamza\LaravelAutoMigration\Core\Attributes\Indexes\IndexMapper;
 use Illuminate\Database\Schema\ColumnDefinition;
 use Illuminate\Database\Schema\ForeignKeyDefinition;
@@ -96,34 +95,6 @@ class Comparer
         });
         return $this;
     }
-
-    private function compareModifiedForeignKeys(): self
-    {
-        // TODO: Implement compareModifiedForeignKeys() method.
-        return $this;
-    }
-
-    private function addNewForeignKeys(): self
-    {
-        $addedForeignKeys = $this->modelMapper->getForeignKeys()->diffKeys($this->doctrineMapper->getForeignKeys());
-
-        $addedForeignKeys->map(function (ForeignKeyDefinition $foreignKey) {
-            return $this->migrationGenerator->generateAddedCommand($foreignKey);
-        });
-        return $this;
-    }
-
-    private function removeOldForeignKeys(): self
-    {
-        $removedForeignKeys = $this->doctrineMapper->getForeignKeys()->diffKeys($this->modelMapper->getForeignKeys());
-
-        $removedForeignKeys->map(function (ForeignKeyDefinition $foreignKey) {
-            return $this->migrationGenerator->generateRemovedCommand($foreignKey, 'dropForeign');
-        });
-        return $this;
-    }
-
-
     private function getModifiedColumns(Collection $modelColumns, Collection $doctrineColumns): Collection
     {
         $intersectedColumns = $modelColumns->intersectByKeys($doctrineColumns);
