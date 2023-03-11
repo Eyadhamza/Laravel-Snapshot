@@ -1,4 +1,4 @@
-# Laravel Eloquent Migrations
+# Laravel Eloquent Migration
 Why do we write migrations? I mean seriously?
 
 ## Installation
@@ -6,14 +6,13 @@ Why do we write migrations? I mean seriously?
 You can install the package via composer:
 
 ```bash
-composer require eyadhamza/laravel-eloquent-migrations
+composer require eyadhamza/laravel-eloquent-migration
 ```
 
 ## Usage
 
 ```php
 $LaravelEloquentMigration = new Eyadhamza\LaravelEloquentMigration();
-echo $LaravelEloquentMigration->echoPhrase('Hello, Eyadhamza!');
 ```
 
 ## Testing
