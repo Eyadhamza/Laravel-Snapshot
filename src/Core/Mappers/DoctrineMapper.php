@@ -1,12 +1,11 @@
 <?php
 
-namespace Eyadhamza\LaravelEloquentMigration\Core;
+namespace Eyadhamza\LaravelEloquentMigration\Core\Mappers;
 
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Index;
-use Eyadhamza\LaravelEloquentMigration\Core\Attributes\AttributeEntity;
 use Illuminate\Database\Schema\ColumnDefinition;
 use Illuminate\Database\Schema\ForeignKeyDefinition;
 use Illuminate\Database\Schema\IndexDefinition;

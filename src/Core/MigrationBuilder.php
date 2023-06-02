@@ -2,7 +2,9 @@
 
 namespace Eyadhamza\LaravelEloquentMigration\Core;
 
-use Eyadhamza\LaravelEloquentMigration\Core\Attributes\ForeignKeys\ForeignKeyMapper;
+use Eyadhamza\LaravelEloquentMigration\Core\Mappers\Comparer;
+use Eyadhamza\LaravelEloquentMigration\Core\Mappers\DoctrineMapper;
+use Eyadhamza\LaravelEloquentMigration\Core\Mappers\ModelMapper;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 use Spatie\ModelInfo\ModelInfo;
@@ -109,9 +111,6 @@ class MigrationBuilder
 
         return $this;
     }
-
-
-
 
     public function getModelMappers(): Collection
     {

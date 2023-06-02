@@ -1,6 +1,5 @@
 <?php
 
-// config for Eyadhamza/LaravelEloquentMigration
 return [
-    'base_path' => 'C:\Users\Eyadh\Laravel-Auto-Migration',
+    'base_path' => 'C:\Users\Eyadh\PhpstormProjects\Laravel-Eloquent-Migration',
 ];

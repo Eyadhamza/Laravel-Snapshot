@@ -19,7 +19,6 @@ use Illuminate\Database\Eloquent\Model;
 #[Timestamp('created_at')]
 #[Timestamp('updated_at')]
 #[Unique('email')]
-#[ForeignId('user_id', [Rule::CONSTRAINED => 'users', Rule::CASCADE_ON_DELETE, Rule::CASCADE_ON_UPDATE])]
 class Saver extends Model
 {
     /**

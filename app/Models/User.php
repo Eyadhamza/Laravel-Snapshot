@@ -18,7 +18,6 @@ use Illuminate\Database\Eloquent\Model;
 #[AsString('password')]
 #[Timestamp('created_at')]
 #[Timestamp('updated_at')]
-#[Unique(['email'])]
 #[Index(['email'])]
 class User extends Model
 {

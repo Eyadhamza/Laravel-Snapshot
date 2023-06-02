@@ -1,14 +1,13 @@
 <?php
 
-namespace Eyadhamza\LaravelEloquentMigration\Core;
+namespace Eyadhamza\LaravelEloquentMigration\Core\Mappers;
 
-use Eyadhamza\LaravelEloquentMigration\Core\Attributes\AttributeEntity;
 use Eyadhamza\LaravelEloquentMigration\Core\Attributes\Columns\ColumnMapper;
 use Eyadhamza\LaravelEloquentMigration\Core\Attributes\ForeignKeys\ForeignKeyMapper;
 use Eyadhamza\LaravelEloquentMigration\Core\Attributes\Indexes\IndexMapper;
-use Eyadhamza\LaravelEloquentMigration\Core\Constants\MigrationOperation;
+use Eyadhamza\LaravelEloquentMigration\Core\Generators\MigrationCommandGenerator;
+use Eyadhamza\LaravelEloquentMigration\Core\Generators\MigrationGenerator;
 use Illuminate\Database\Schema\ColumnDefinition;
-use Illuminate\Database\Schema\ForeignKeyDefinition;
 use Illuminate\Database\Schema\IndexDefinition;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Fluent;
@@ -18,7 +17,7 @@ use Spatie\ModelInfo\ModelInfo;
 
 class ModelMapper extends Mapper
 {
-    private MigrationGenerator $generator;
+    private MigrationCommandGenerator $generator;
 
     public function __construct(ModelInfo $modelInfo)
     {
@@ -30,7 +29,7 @@ class ModelMapper extends Mapper
             ->mapAttributes(ColumnMapper::class, $modelInfo)
             ->merge($this->foreignKeys);
 
-        $this->generator = new MigrationGenerator($modelInfo->tableName);
+        $this->generator = new MigrationCommandGenerator($modelInfo->tableName);
     }
 
     public static function make(ModelInfo $modelInfo): self
@@ -54,6 +53,7 @@ class ModelMapper extends Mapper
                 ];
             });
     }
+
     public function map(): self
     {
         $this->columns
@@ -66,6 +66,7 @@ class ModelMapper extends Mapper
 
     public function getMigrationGenerator(): MigrationGenerator
     {
-        return $this->generator;
+        return MigrationGenerator::make($this->tableName)
+            ->setGeneratedCommands($this->generator->getGenerated());
     }
 }

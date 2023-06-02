@@ -1,6 +1,6 @@
 <?php
 
-namespace Eyadhamza\LaravelEloquentMigration\Core;
+namespace Eyadhamza\LaravelEloquentMigration\Core\Formatters;
 
 use Eyadhamza\LaravelEloquentMigration\Core\Constants\MigrationOperation;
 use Illuminate\Support\Fluent;
@@ -49,9 +49,9 @@ class MigrationFormatter
             return "'$this->columnName'";
         }
         if (is_array($this->columnName)) {
-             return count($this->columnName) === 1
-                 ? "'" . $this->columnName[0] . "'"
-                 : "['" . implode("','", $this->columnName) . "']";
+            return count($this->columnName) === 1
+                ? "'" . $this->columnName[0] . "'"
+                : "['" . implode("','", $this->columnName) . "']";
         }
 
         return "";
@@ -85,8 +85,6 @@ class MigrationFormatter
 
         return $this;
     }
-
-
 
     private function attributesAsSecondArgument($attribute): bool
     {
@@ -134,7 +132,7 @@ class MigrationFormatter
 
     private function generateDropCommand(string|\Closure $columnType): \Closure|string
     {
-       return match ($columnType) {
+        return match ($columnType) {
             'index' => 'dropIndex',
             'foreign' => 'dropForeign',
             'unique' => 'dropUnique',
@@ -142,6 +140,5 @@ class MigrationFormatter
             default => 'dropColumn',
         };
     }
-
 
 }

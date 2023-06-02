@@ -2,11 +2,11 @@
 
 namespace Eyadhamza\LaravelEloquentMigration;
 
-use Eyadhamza\LaravelEloquentMigration\Console\Commands\AutoMigrateResetCommand;
-use Eyadhamza\LaravelEloquentMigration\Console\Commands\AutoMigrateRunCommand;
+use Eyadhamza\LaravelEloquentMigration\Commands\AutoMigrateResetCommand;
+use Eyadhamza\LaravelEloquentMigration\Commands\AutoMigrateRunCommand;
+use Eyadhamza\LaravelEloquentMigration\Commands\LaravelEloquentMigrationCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
-use Eyadhamza\LaravelEloquentMigration\Commands\LaravelEloquentMigrationCommand;
 
 class LaravelEloquentMigrationServiceProvider extends PackageServiceProvider
 {

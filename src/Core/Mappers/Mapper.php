@@ -1,15 +1,7 @@
 <?php
 
-namespace Eyadhamza\LaravelEloquentMigration\Core;
+namespace Eyadhamza\LaravelEloquentMigration\Core\Mappers;
 
-use Doctrine\DBAL\Schema\Column;
-use Doctrine\DBAL\Schema\ForeignKeyConstraint;
-use Doctrine\DBAL\Schema\Index;
-use Eyadhamza\LaravelEloquentMigration\Core\Attributes\AttributeEntity;
-use Eyadhamza\LaravelEloquentMigration\Core\Attributes\Columns\ColumnMapper;
-use Eyadhamza\LaravelEloquentMigration\Core\Attributes\ForeignKeys\ForeignKeyMapper;
-use Eyadhamza\LaravelEloquentMigration\Core\Attributes\Indexes\IndexMapper;
-use Illuminate\Database\Schema\ForeignKeyDefinition;
 use Illuminate\Support\Collection;
 
 abstract class Mapper

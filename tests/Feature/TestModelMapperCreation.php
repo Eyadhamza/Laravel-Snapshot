@@ -1,8 +1,8 @@
 <?php
 
 
+use Eyadhamza\LaravelEloquentMigration\Core\Mappers\ModelMapper;
 use Eyadhamza\LaravelEloquentMigration\Core\MigrationBuilder;
-use Eyadhamza\LaravelEloquentMigration\Core\ModelMapper;
 use Illuminate\Database\Schema\ColumnDefinition;
 use Illuminate\Support\Facades\File;
 use Spatie\ModelInfo\ModelInfo;
@@ -10,13 +10,13 @@ use Spatie\ModelInfo\ModelInfo;
 
 it('can create a new MigrationBuilder instance', function () {
     $mapper = MigrationBuilder::mapAll(ModelInfo::forAllModels('app', config('auto-migration.base_path') ?? app_path()));
+
     expect($mapper)
         ->toBeInstanceOf(MigrationBuilder::class);
 });
 
 it('can map models to mapper objects', function () {
     $mapper = MigrationBuilder::mapAll(ModelInfo::forAllModels('app', config('auto-migration.base_path') ?? app_path()));
-
     $modelMapper = $mapper->getModelMappers()->first();
     expect($modelMapper)
         ->toBeInstanceOf(ModelMapper::class);
@@ -50,6 +50,6 @@ it('builds migrations files', function () {
         ->toContain('Schema::dropIfExists(\'users\');');
 });
 
-afterEach(function () {
-    File::deleteDirectory(database_path('migrations'), true);
-});
+//afterEach(function () {
+//    File::deleteDirectory(database_path('migrations'), true);
+//});

@@ -1,8 +1,10 @@
 <?php
 
-namespace Eyadhamza\LaravelEloquentMigration\Core;
+namespace Eyadhamza\LaravelEloquentMigration\Core\Mappers;
 
 use Eyadhamza\LaravelEloquentMigration\Core\Attributes\Indexes\IndexMapper;
+use Eyadhamza\LaravelEloquentMigration\Core\Generators\MigrationCommandGenerator;
+use Eyadhamza\LaravelEloquentMigration\Core\Generators\MigrationGenerator;
 use Illuminate\Database\Schema\ColumnDefinition;
 use Illuminate\Database\Schema\ForeignKeyDefinition;
 use Illuminate\Database\Schema\IndexDefinition;
@@ -11,13 +13,15 @@ use Illuminate\Support\Fluent;
 
 class Comparer
 {
-    private MigrationGenerator $migrationGenerator;
+    private MigrationCommandGenerator $migrationCommandGenerator;
     private DoctrineMapper $doctrineMapper;
     private ModelMapper $modelMapper;
+    private string $tableName;
 
     public function __construct(DoctrineMapper $doctrineMapper, ModelMapper $modelMapper)
     {
-        $this->migrationGenerator = new MigrationGenerator($doctrineMapper->getTableName());
+        $this->tableName = $doctrineMapper->getTableName();
+        $this->migrationCommandGenerator = new MigrationCommandGenerator($doctrineMapper->getTableName());
         $this->doctrineMapper = $doctrineMapper;
         $this->modelMapper = $modelMapper;
     }
@@ -36,8 +40,10 @@ class Comparer
             ->addNewIndexes()
             ->removeOldIndexes()
             ->compareModifiedIndexes();
-        return $this->migrationGenerator;
 
+
+        return MigrationGenerator::make($this->tableName)
+            ->setGeneratedCommands($this->migrationCommandGenerator->getGenerated());
     }
 
     private function modifyExistingColumns(): self
@@ -45,7 +51,7 @@ class Comparer
         $modifiedColumns = $this->getModifiedColumns($this->modelMapper->getColumns(), $this->doctrineMapper->getColumns());
 
         $modifiedColumns->map(function (ColumnDefinition|ForeignKeyDefinition $column) {
-            return $this->migrationGenerator->generateModifiedCommand($column);
+            return $this->migrationCommandGenerator->generateModifiedCommand($column);
         });
         return $this;
     }
@@ -55,7 +61,7 @@ class Comparer
         $addedColumns = $this->modelMapper->getColumns()->diffKeys($this->doctrineMapper->getColumns());
 
         $addedColumns->map(function (ColumnDefinition|ForeignKeyDefinition|IndexDefinition $column) {
-            return $this->migrationGenerator->generateAddedCommand($column);
+            return $this->migrationCommandGenerator->generateAddedCommand($column);
         });
         return $this;
     }
@@ -65,7 +71,7 @@ class Comparer
         $removedColumns = $this->doctrineMapper->getColumns()->diffKeys($this->modelMapper->getColumns());
 
         $removedColumns->map(function (ColumnDefinition|ForeignKeyDefinition|IndexDefinition $column) {
-            return $this->migrationGenerator->generateRemovedCommand($column);
+            return $this->migrationCommandGenerator->generateRemovedCommand($column);
         });
         return $this;
     }

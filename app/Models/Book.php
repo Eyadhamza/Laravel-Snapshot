@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 
 #[Id('id', [Rule::UNSIGNED, Rule::AUTO_INCREMENT])]
 #[AsString('title', [Rule::DEFAULT => 'Eyad Hamza'])]
+#[AsString('footer', [Rule::NULLABLE])]
 #[AsString('description', [Rule::NULLABLE])]
 #[ForeignId('author_id', [Rule::CONSTRAINED => 'savers', Rule::CASCADE_ON_DELETE, Rule::CASCADE_ON_UPDATE])]
 #[Unique('title')]

@@ -3,13 +3,9 @@
 namespace Eyadhamza\LaravelEloquentMigration\Core\Attributes;
 
 use Attribute;
-use Eyadhamza\LaravelEloquentMigration\Core\Attributes\Columns\ColumnMapper;
 use Eyadhamza\LaravelEloquentMigration\Core\Constants\AttributeToColumn;
 use Eyadhamza\LaravelEloquentMigration\Core\Constants\Rule;
-use Eyadhamza\LaravelEloquentMigration\Core\MigrationGenerator;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Fluent;
-use Illuminate\Support\Str;
 
 #[Attribute(Attribute::IS_REPEATABLE | Attribute::TARGET_CLASS)]
 abstract class AttributeEntity
