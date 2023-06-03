@@ -13,7 +13,6 @@ abstract class AttributeEntity
     protected ?string $name;
     protected string $type;
     protected ?array $rules;
-    protected Fluent $definition;
     public function __construct(string $name = null, array $rules = [])
     {
         $this->name = $name;
@@ -47,11 +46,6 @@ abstract class AttributeEntity
         $this->rules = Rule::map($rules);
 
         return $this;
-    }
-
-    public function getDefinition(): Fluent
-    {
-        return $this->definition;
     }
 
 }

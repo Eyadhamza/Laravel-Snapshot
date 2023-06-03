@@ -2,6 +2,9 @@
 
 namespace Eyadhamza\LaravelEloquentMigration\Core\Comparer;
 
+use Doctrine\DBAL\Schema\AbstractAsset;
+use Doctrine\DBAL\Schema\Column;
+use Eyadhamza\LaravelEloquentMigration\Core\Constants\MigrationOperationEnum;
 use Illuminate\Support\Arr;
 
 class AttributeComparer
@@ -16,15 +19,15 @@ class AttributeComparer
     private bool $isChanged = false;
     private array $allAttributes = [];
 
-    public function __construct(array $modelAttributes, array $doctrineAttributes)
+    public function __construct(AbstractAsset $modelColumn, AbstractAsset $doctrineColumn)
     {
-        $this->modelAttributes = $modelAttributes;
-        $this->doctrineAttributes = $doctrineAttributes;
+        $this->modelAttributes = $modelColumn->toArray();
+        $this->doctrineAttributes = $doctrineColumn->toArray();
     }
 
-    public static function make(array $modelAttributes, array $doctrineAttributes): AttributeComparer
+    public static function make(AbstractAsset $modelColumn, AbstractAsset $doctrineColumn): AttributeComparer
     {
-        return new self($modelAttributes, $doctrineAttributes);
+        return new self($modelColumn, $doctrineColumn);
     }
 
     public function run(): self
@@ -47,8 +50,8 @@ class AttributeComparer
     protected function compareChangedAttributesFromModel(): self
     {
         $this->changedAttributesFromModel = array_diff_assoc(
-            Arr::except($this->modelAttributes, 'columns'),
-            Arr::except($this->doctrineAttributes, 'columns')
+            Arr::except($this->modelAttributes, ['columns', 'type']),
+            Arr::except($this->doctrineAttributes, ['columns', 'type'])
         );
         return $this;
     }
@@ -56,8 +59,8 @@ class AttributeComparer
     protected function compareChangedAttributesFromDoctrine(): self
     {
         $this->changedAttributesFromDoctrine = array_diff_assoc(
-            Arr::except($this->doctrineAttributes, 'columns'),
-            Arr::except($this->modelAttributes, 'columns')
+            Arr::except($this->doctrineAttributes, ['columns', 'type']),
+            Arr::except($this->modelAttributes, ['columns', 'type'])
         );
         return $this;
     }
@@ -77,12 +80,12 @@ class AttributeComparer
         $this->isChanged = true;
 
         $this->allAttributes = [
-            'added' => $this->addedAttributes,
-            'changed' => [
+            MigrationOperationEnum::Add->value => $this->addedAttributes,
+            MigrationOperationEnum::Modify->value => [
                 'fromModel' => $this->changedAttributesFromModel,
                 'fromDoctrine' => $this->changedAttributesFromDoctrine,
             ],
-            'deleted' => $this->deletedAttributes,
+            MigrationOperationEnum::Remove->value => $this->deletedAttributes,
         ];
 
         return $this;

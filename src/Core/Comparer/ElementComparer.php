@@ -2,6 +2,7 @@
 
 namespace Eyadhamza\LaravelEloquentMigration\Core\Comparer;
 
+use Doctrine\DBAL\Schema\AbstractAsset;
 use Eyadhamza\LaravelEloquentMigration\Core\Constants\MigrationOperationEnum;
 use Illuminate\Database\Schema\ColumnDefinition;
 use Illuminate\Database\Schema\ForeignKeyDefinition;
@@ -57,13 +58,13 @@ class ElementComparer
     {
         $this->modifiedElements = $this->modelElements
             ->intersectByKeys($this->doctrineElements)
-            ->map(function (Fluent $modelElement, $key) {
+            ->map(function (AbstractAsset $modelElement, $key) {
                 $comparer = AttributeComparer::make(
-                    $modelElement->getAttributes(),
-                    $this->doctrineElements->get($key)->getAttributes()
+                    $modelElement,
+                    $this->doctrineElements->get($key)
                 )->run();
 
-                return $comparer->isChanged() ? $modelElement->attributes($comparer->getAllAttributes()) : null;
+                return $comparer->isChanged() ? $comparer->getAllAttributes() : null;
             })
             ->filter();
 

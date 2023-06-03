@@ -32,6 +32,7 @@ class ComparerManager extends Mapper
         $this->foreignKeys = $this->compareElements($this->modelMapper->getForeignKeys(), $this->doctrineMapper->getForeignKeys());
 
         $this->indexes = $this->compareElements($this->modelMapper->getIndexes(), $this->doctrineMapper->getIndexes());
+
         return $this;
     }
     public static function make(DoctrineMapper $doctrineMapper, ModelMapper $modelMapper): ComparerManager
@@ -41,12 +42,12 @@ class ComparerManager extends Mapper
 
     public function runGenerator(): MigrationGenerator
     {
-        $this->columns->each(fn($columns, $operation) => $this->generator->run($columns, MigrationOperationEnum::from($operation)));
+        $this->columns->each(fn($columns, $operation) => $this->generator->run($columns));
 
-        $this->foreignKeys->each(fn($foreignKeys, $operation) => $this->generator->run($foreignKeys, MigrationOperationEnum::from($operation)));
+        $this->foreignKeys->each(fn($foreignKeys, $operation) => $this->generator->run($foreignKeys));
 
-        $this->indexes->each(fn($indexes, $operation) => $this->generator->run($indexes, MigrationOperationEnum::from($operation)));
-
+        $this->indexes->each(fn($indexes, $operation) => $this->generator->run($indexes));
+        dd($this->generator->getGenerated());
         return MigrationGenerator::make($this->tableName)
             ->setGeneratedCommands($this->generator->getGenerated());
     }

@@ -10,18 +10,23 @@ use Illuminate\Support\Fluent;
 class MigrationCommandGenerator extends Generator
 {
 
-    public function run(Collection $elements, MigrationOperationEnum $operation): self
+    // I need to accept a certain format of data, we need to wrap the "to be created columns in an object TODO"
+    public function run(Collection $elements): self
     {
-        match ($operation) {
-            MigrationOperationEnum::Add => $elements->each(fn(Fluent $element) => $this->generateAddedCommand($element)),
-            MigrationOperationEnum::Remove => $elements->each(fn(Fluent $element) => $this->generateRemovedCommand($element)),
-            MigrationOperationEnum::Modify => $elements->each(fn(Fluent $element) => $this->generateModifiedCommand($element)),
-        };
+        dump($elements);
+        $elements
+            ->each(fn($operations, $element) => collect($operations)
+                ->each(fn($operands, $operation) => $this->generateCommand($element, MigrationOperationEnum::from($operation), $operands)));
 
         return $this;
     }
-    public function generateCommand(Fluent $column, $operation): self
+
+    public function generateCommand(string $columnName, MigrationOperationEnum $operation, array $operands): self
     {
+        if (empty($operands)) {
+            return $this;
+        }
+        dd($columnName, $operation);
         $commandFormatter = MigrationFormatter::make($column)
             ->setOperation($operation)
             ->setRules($this->getRules($column))

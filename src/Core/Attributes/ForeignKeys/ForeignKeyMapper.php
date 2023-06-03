@@ -18,7 +18,7 @@ class ForeignKeyMapper extends AttributeEntity
 {
     protected string|array $columns;
 
-    protected Fluent $definition;
+    protected ForeignKeyConstraint $definition;
 
     public function __construct($columns, $rules = [])
     {
@@ -28,15 +28,20 @@ class ForeignKeyMapper extends AttributeEntity
     public function setDefinition(string $tableName): self
     {
         $this->columns = is_array($this->columns) ? $this->columns : [$this->columns];
-        $foreignKeyName = (new Blueprint($tableName))->foreign($this->columns)->get('index');
-        $this->definition = new ForeignKeyDefinition(array_merge([
-            'columns' => $this->columns,
-            'name' => $foreignKeyName,
-            'type' => 'foreignId',
-            'unsigned' => true,
-        ], $this->rules));
+        $foreignKeyName = (new Blueprint($tableName))->foreign($this->columns);
+        $foreignTable = Str::before(Str::singular($foreignKeyName->get('columns')[0]),'_') . 's';
+        $this->definition = new ForeignKeyConstraint(
+            ['id'],
+            $foreignTable,
+            $this->columns,
+            $foreignKeyName->get('index'),
+            [
+                'onDelete' => 'cascade',
+                'onUpdate' => 'cascade',
+            ]
+        );
 
-        $this->setName($foreignKeyName);
+        $this->setName($foreignKeyName->get('index'));
 
         return $this;
     }
@@ -49,5 +54,10 @@ class ForeignKeyMapper extends AttributeEntity
     public function getColumns(): array|string
     {
         return $this->columns;
+    }
+
+    public function getDefinition(): ForeignKeyConstraint
+    {
+        return $this->definition;
     }
 }

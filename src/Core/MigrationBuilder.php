@@ -2,6 +2,7 @@
 
 namespace Eyadhamza\LaravelEloquentMigration\Core;
 
+use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Eyadhamza\LaravelEloquentMigration\Core\Comparer\ComparerManager;
 use Eyadhamza\LaravelEloquentMigration\Core\Mappers\DoctrineMapper;
 use Eyadhamza\LaravelEloquentMigration\Core\Mappers\ModelMapper;
@@ -94,8 +95,8 @@ class MigrationBuilder
 
         while ($this->modelMappers->isNotEmpty()) {
             $this->modelMappers->each(function (ModelMapper $model) use ($modelMappers, $processed) {
-                if ($model->getForeignKeys()->isEmpty() || $model->getForeignKeys()->every(function ($key) use ($processed) {
-                        return $processed->contains($key->get('constrained')) || $key->get('constrained') === null;
+                if ($model->getForeignKeys()->isEmpty() || $model->getForeignKeys()->every(function (ForeignKeyConstraint $key) use ($processed) {
+                        return $processed->contains($key->getForeignTableName()) || $key->getForeignTableName() === null;
                     })) {
                     $modelMappers->push($model);
                     $processed->push($model->getTableName());

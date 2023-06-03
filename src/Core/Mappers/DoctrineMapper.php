@@ -2,20 +2,9 @@
 
 namespace Eyadhamza\LaravelEloquentMigration\Core\Mappers;
 
-use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
-use Doctrine\DBAL\Schema\Column;
-use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Index;
 use Doctrine\DBAL\Schema\Table;
-use Eyadhamza\LaravelEloquentMigration\Core\Mappers\Definition\MapToColumnDefinition;
-use Eyadhamza\LaravelEloquentMigration\Core\Mappers\Definition\MapToForeignKeyDefinition;
-use Eyadhamza\LaravelEloquentMigration\Core\Mappers\Definition\MapToIndexDefinition;
-use Illuminate\Database\Schema\ColumnDefinition;
-use Illuminate\Database\Schema\ForeignKeyDefinition;
-use Illuminate\Database\Schema\IndexDefinition;
-use Illuminate\Pipeline\Pipeline;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
@@ -38,14 +27,7 @@ class DoctrineMapper extends Mapper
 
     public function map(): self
     {
-        return app(Pipeline::class)
-            ->send($this)
-            ->through([
-                MapToColumnDefinition::class,
-                MapToIndexDefinition::class,
-                MapToForeignKeyDefinition::class,
-            ])
-            ->thenReturn();
+        return $this;
     }
 
     public static function make(string $tableName): self
