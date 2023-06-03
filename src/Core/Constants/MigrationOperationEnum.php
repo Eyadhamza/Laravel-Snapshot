@@ -2,7 +2,7 @@
 
 namespace Eyadhamza\LaravelEloquentMigration\Core\Constants;
 
-enum MigrationOperation : string
+enum MigrationOperationEnum : string
 {
     case Add = 'add';
     case Remove = 'remove';

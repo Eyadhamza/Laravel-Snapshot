@@ -6,6 +6,7 @@ use Illuminate\Support\Str;
 
 class MigrationGenerator extends Generator
 {
+    // TODO: Generate Meaningful Migration File Name
     public function generateMigrationFile(string $migrationFilePath, string $operation): void
     {
         $generatedMigrationFile = $this->replaceStubMigrationFile($operation);

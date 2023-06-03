@@ -2,9 +2,7 @@
 
 namespace Eyadhamza\LaravelEloquentMigration;
 
-use Eyadhamza\LaravelEloquentMigration\Commands\AutoMigrateResetCommand;
-use Eyadhamza\LaravelEloquentMigration\Commands\AutoMigrateRunCommand;
-use Eyadhamza\LaravelEloquentMigration\Commands\LaravelEloquentMigrationCommand;
+use Eyadhamza\LaravelEloquentMigration\Commands\GenerateMigrationCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
@@ -18,14 +16,13 @@ class LaravelEloquentMigrationServiceProvider extends PackageServiceProvider
          * More info: https://github.com/spatie/laravel-package-tools
          */
         $package
-            ->name('laravel-auto-migration')
+            ->name('laravel-eloquent-migration')
             ->hasConfigFile()
             ->hasViews()
             ->hasCommands([
-                AutoMigrateResetCommand::class,
-                AutoMigrateRunCommand::class,
+                GenerateMigrationCommand::class
             ])
             ->hasMigration('create_laravel-auto-migration_table')
-            ->hasCommand(LaravelEloquentMigrationCommand::class);
+            ->hasCommand(GenerateMigrationCommand::class);
     }
 }

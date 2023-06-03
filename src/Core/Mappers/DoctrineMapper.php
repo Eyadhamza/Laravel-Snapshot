@@ -3,42 +3,49 @@
 namespace Eyadhamza\LaravelEloquentMigration\Core\Mappers;
 
 use Doctrine\DBAL\Platforms\AbstractPlatform;
+use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Index;
+use Doctrine\DBAL\Schema\Table;
+use Eyadhamza\LaravelEloquentMigration\Core\Mappers\Definition\MapToColumnDefinition;
+use Eyadhamza\LaravelEloquentMigration\Core\Mappers\Definition\MapToForeignKeyDefinition;
+use Eyadhamza\LaravelEloquentMigration\Core\Mappers\Definition\MapToIndexDefinition;
 use Illuminate\Database\Schema\ColumnDefinition;
 use Illuminate\Database\Schema\ForeignKeyDefinition;
 use Illuminate\Database\Schema\IndexDefinition;
+use Illuminate\Pipeline\Pipeline;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class DoctrineMapper extends Mapper
 {
+    private Table $doctrineTableDetails;
+    private AbstractSchemaManager $schema;
+
     public function __construct(string $tableName)
     {
         parent::__construct($tableName);
 
-        $schema = Schema::getConnection()->getDoctrineSchemaManager();
+        $this->schema = Schema::getConnection()->getDoctrineSchemaManager();
 
-        $this->registerTypeMappings($schema->getDatabasePlatform());
-
-        $doctrineTableDetails = $schema->introspectTable($tableName);
-        $this->foreignKeys = collect($doctrineTableDetails->getForeignKeys());
-
-        $this->columns = collect($doctrineTableDetails->getColumns());
-
-        $this->indexes = collect($doctrineTableDetails->getIndexes())
-            ->reject(fn(Index $index) => $index->isPrimary())
-            ->reject(fn(Index $index) => Str::contains($index->getName(), 'foreign'));
-
+        $this
+            ->setDoctrineTableDetails()
+            ->registerTypeMappings()
+            ->initializeMapper();
     }
 
     public function map(): self
     {
-        return $this
-            ->mapColumns()
-            ->mapForeignKeys()
-            ->mapIndexes();
+        return app(Pipeline::class)
+            ->send($this)
+            ->through([
+                MapToColumnDefinition::class,
+                MapToIndexDefinition::class,
+                MapToForeignKeyDefinition::class,
+            ])
+            ->thenReturn();
     }
 
     public static function make(string $tableName): self
@@ -46,94 +53,35 @@ class DoctrineMapper extends Mapper
         return new self($tableName);
     }
 
-    public function mapColumns(): static
+    protected function registerTypeMappings(): self
     {
-        $this->columns = $this
-            ->columns
-            ->map(fn(Column $column) => new ColumnDefinition($this->mapToColumn($column)));
-        return $this;
-    }
+        $platform = $this->schema->getDatabasePlatform();
 
-    public function mapIndexes(): static
-    {
-        $this->indexes = $this->indexes
-            ->map(fn(Index $index) => new IndexDefinition($this->mapAttributesToIndex($index)));
-        return $this;
-    }
-
-    public function mapForeignKeys(): static
-    {
-        $this->foreignKeys = $this->foreignKeys
-            ->mapWithKeys(fn(ForeignKeyConstraint $foreignKey) => [
-                $foreignKey->getLocalColumns()[0] => new ForeignKeyDefinition($this->mapToForeignKey($foreignKey))
-            ]);
-        return $this;
-    }
-
-    private function mapAttributesToIndex(Index $index): array
-    {
-        return collect([
-            'primary' => $index->isPrimary(),
-            'unique' => $index->isUnique(),
-            'name' => $index->getName(),
-            'algorithm' => $index->getFlags(),
-        ])->filter()->toArray();
-    }
-
-
-    protected function registerTypeMappings(AbstractPlatform $platform)
-    {
         foreach ($this->typeMappings as $type => $value) {
             $platform->registerDoctrineTypeMapping($type, $value);
         }
+
+        return $this;
     }
 
-    protected function mapToColumn(Column $column): array
+    private function setDoctrineTableDetails(): self
     {
-        return collect([
-            'name' => $column->getName(),
-            'type' => $this->mapToColumnType($column),
-            'unsigned' => $column->getUnsigned(),
-            'nullable' => $column->getNotnull() == false,
-            'default' => $column->getDefault(),
-            'length' => $column->getLength(),
-            'precision' => $column->getPrecision(),
-            'scale' => $column->getScale(),
-            'comment' => $column->getComment(),
-            'autoIncrement' => $column->getAutoincrement(),
-            'fixed' => $column->getFixed(),
-        ])->filter()->toArray();
+        $this->doctrineTableDetails = $this->schema->listTableDetails($this->tableName);
+
+        return $this;
     }
 
-    private function mapToColumnType(Column $column): string
+    private function initializeMapper(): self
     {
-        return match ($column->getType()->getName()) {
-            'datetime' => 'timestamp',
-            'bigint' => 'bigInteger',
-            'smallint' => 'smallInteger',
-            'tinyint' => 'tinyInteger',
-            default => $column->getType()->getName(),
-        };
+        $this->columns = collect($this->doctrineTableDetails->getColumns());
+
+        $this->indexes = collect($this->doctrineTableDetails->getIndexes())
+            ->reject(fn(Index $index) => $index->isPrimary())
+            ->reject(fn(Index $index) => Str::contains($index->getName(), 'foreign'));
+
+        $this->foreignKeys = collect($this->doctrineTableDetails->getForeignKeys());
+
+        return $this;
     }
 
-    protected function mapToForeignKey(ForeignKeyConstraint $foreignKey): array
-    {
-        return collect([
-            'name' => $foreignKey->getName(),
-            'constrained' => $foreignKey->getForeignTableName(),
-            'columns' => $foreignKey->getLocalColumns(),
-            'cascadeOnDelete' => $foreignKey->getOption('onDelete') == 'CASCADE',
-            'cascadeOnUpdate' => $foreignKey->getOption('onUpdate') == 'CASCADE',
-        ])->filter()->toArray();
-    }
-
-    public function mapToIndex(Index $index): array
-    {
-        return collect([
-            'name' => $index->getName(),
-            'columns' => $index->getColumns(),
-            'unique' => $index->isUnique(),
-            'algorithm' => $index->getFlags(),
-        ])->filter()->toArray();
-    }
 }

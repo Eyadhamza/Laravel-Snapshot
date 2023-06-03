@@ -36,7 +36,7 @@ class ForeignKeyMapper extends AttributeEntity
             'unsigned' => true,
         ], $this->rules));
 
-        $this->setName($this->columns[0]);
+        $this->setName($foreignKeyName);
 
         return $this;
     }

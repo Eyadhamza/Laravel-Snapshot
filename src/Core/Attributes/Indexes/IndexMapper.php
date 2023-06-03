@@ -29,9 +29,8 @@ class IndexMapper extends AttributeEntity
 
         $indexKeyName = (new Blueprint($tableName))->index($this->columns)->get('index');
         $this->definition = new IndexDefinition([
-            'columns' => $this->columns,
+            'columns' => is_array($this->columns) ? $this->columns : [$this->columns],
             'name' => $indexKeyName,
-            'type' => 'index',
         ]);
 
         $this->setName($indexKeyName);

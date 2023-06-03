@@ -17,9 +17,9 @@ class Unique extends IndexMapper
     {
         $indexKeyName = (new Blueprint($tableName))->unique($this->columns)->get('index');
         $this->definition = new IndexDefinition([
-            'columns' => $this->columns,
+            'columns' => is_array($this->columns) ? $this->columns : [$this->columns],
             'name' => $indexKeyName,
-            'type' => 'unique',
+            'unique' => true,
         ]);
 
         $this->setName($indexKeyName);

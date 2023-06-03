@@ -2,14 +2,14 @@
 
 namespace Eyadhamza\LaravelEloquentMigration\Core\Formatters;
 
-use Eyadhamza\LaravelEloquentMigration\Core\Constants\MigrationOperation;
+use Eyadhamza\LaravelEloquentMigration\Core\Constants\MigrationOperationEnum;
 use Illuminate\Support\Fluent;
 
 class MigrationFormatter
 {
     private Fluent $column;
     private string|array|null $columnName;
-    private MigrationOperation $operation;
+    private MigrationOperationEnum $operation;
     private array $rules;
 
     public function __construct(Fluent $column)
@@ -26,9 +26,9 @@ class MigrationFormatter
     public function run(): string|null
     {
         return match ($this->operation) {
-            MigrationOperation::Add => $this->generateAddCommand(),
-            MigrationOperation::Remove => $this->generateRemoveCommand(),
-            MigrationOperation::Modify => $this->generateModifyCommand(),
+            MigrationOperationEnum::Add => $this->generateAddCommand(),
+            MigrationOperationEnum::Remove => $this->generateRemoveCommand(),
+            MigrationOperationEnum::Modify => $this->generateModifyCommand(),
         };
     }
 
@@ -36,7 +36,7 @@ class MigrationFormatter
     {
         $columnType = $this->column->get('type') ?? 'index';
 
-        if ($this->operation === MigrationOperation::Remove) {
+        if ($this->operation === MigrationOperationEnum::Remove) {
             $columnType = $this->generateDropCommand($columnType);
         }
 
@@ -72,7 +72,7 @@ class MigrationFormatter
         return "->$rule($methodParameters)";
     }
 
-    public function setOperation(MigrationOperation $operation): self
+    public function setOperation(MigrationOperationEnum $operation): self
     {
         $this->operation = $operation;
 

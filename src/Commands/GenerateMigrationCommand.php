@@ -6,7 +6,7 @@ use Eyadhamza\LaravelEloquentMigration\Core\MigrationBuilder;
 use Illuminate\Console\Command;
 use Spatie\ModelInfo\ModelInfo;
 
-class LaravelEloquentMigrationCommand extends Command
+class GenerateMigrationCommand extends Command
 {
     public $signature = 'generate-migrations {--migrate}';
 

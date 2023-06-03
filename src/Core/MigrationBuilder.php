@@ -2,7 +2,7 @@
 
 namespace Eyadhamza\LaravelEloquentMigration\Core;
 
-use Eyadhamza\LaravelEloquentMigration\Core\Mappers\Comparer;
+use Eyadhamza\LaravelEloquentMigration\Core\Comparer\ComparerManager;
 use Eyadhamza\LaravelEloquentMigration\Core\Mappers\DoctrineMapper;
 use Eyadhamza\LaravelEloquentMigration\Core\Mappers\ModelMapper;
 use Illuminate\Support\Collection;
@@ -59,7 +59,7 @@ class MigrationBuilder
     {
         $tableName = $modelMapper->getTableName();
         $migrationFile = $this->setMigrationFileAsCreateTemplate($tableName, $modelMapper->getExecutionOrder());
-        $generator = $modelMapper->getMigrationGenerator();
+        $generator = $modelMapper->runGenerator();
         $generator->generateMigrationFile($migrationFile, 'create');
     }
 
@@ -67,7 +67,9 @@ class MigrationBuilder
     {
         $tableName = $modelMapper->getTableName();
         $doctrineMapper = DoctrineMapper::make($tableName)->map();
-        $generator = Comparer::make($doctrineMapper, $modelMapper)->getMigrationGenerator();
+        $generator = ComparerManager::make($doctrineMapper, $modelMapper)
+            ->map()
+            ->runGenerator();
         if ($generator->getGenerated()->isNotEmpty()) {
             $migrationFile = $this->setMigrationFileAsUpdateTemplate($tableName, $modelMapper->getExecutionOrder());
             $generator->generateMigrationFile($migrationFile, 'update');

@@ -33,7 +33,6 @@ abstract class Mapper
     }
 
     abstract public function map(): self;
-
     public function getForeignKeys(): Collection
     {
         return $this->foreignKeys;
@@ -63,6 +62,24 @@ abstract class Mapper
     public function setExecutionOrder(int $executionOrder): static
     {
         $this->executionOrder = $executionOrder;
+        return $this;
+    }
+
+    public function setColumns($columns): static
+    {
+        $this->columns = $columns;
+        return $this;
+    }
+
+    public function setIndexes($indexes): static
+    {
+        $this->indexes = $indexes;
+        return $this;
+    }
+
+    public function setForeignKeys($foreignKeys): static
+    {
+        $this->foreignKeys = $foreignKeys;
         return $this;
     }
 }
