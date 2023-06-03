@@ -11,11 +11,11 @@ use Eyadhamza\LaravelEloquentMigration\Core\Constants\Rule;
 use Illuminate\Database\Eloquent\Model;
 
 
-#[Id('id', [Rule::UNSIGNED, Rule::AUTO_INCREMENT])]
+#[Id]
 #[AsString('title', [Rule::DEFAULT => 'Eyad Hamza'])]
 #[AsString('footer', [Rule::NULLABLE])]
 #[AsString('description', [Rule::NULLABLE])]
-#[ForeignId('author_id', [Rule::CONSTRAINED => 'savers', Rule::CASCADE_ON_DELETE, Rule::CASCADE_ON_UPDATE])]
+#[ForeignId('user_id', [Rule::CASCADE_ON_DELETE, Rule::CASCADE_ON_UPDATE])]
 #[Unique('title')]
 #[Index(['title', 'description'])]
 class Book extends Model

@@ -42,7 +42,7 @@ class ElementComparer
     protected function addNew(): self
     {
         $this->addedElements = $this->modelElements->diffKeys($this->doctrineElements);
-        dump($this->addedElements);
+
         return $this;
     }
 
