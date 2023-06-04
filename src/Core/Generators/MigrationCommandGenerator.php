@@ -3,52 +3,61 @@
 namespace Eyadhamza\LaravelEloquentMigration\Core\Generators;
 
 use Eyadhamza\LaravelEloquentMigration\Core\Constants\MigrationOperationEnum;
+use Eyadhamza\LaravelEloquentMigration\Core\Formatters\AddCommandFormatter;
 use Eyadhamza\LaravelEloquentMigration\Core\Formatters\MigrationFormatter;
+use Eyadhamza\LaravelEloquentMigration\Core\Mappers\ElementToCommandMapper;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Fluent;
 
 class MigrationCommandGenerator extends Generator
 {
 
-    // I need to accept a certain format of data, we need to wrap the "to be created columns in an object TODO"
-    public function run(Collection $elements): self
-    {
-        dump($elements);
-        $elements
-            ->each(fn($operations, $element) => collect($operations)
-                ->each(fn($operands, $operation) => $this->generateCommand($element, MigrationOperationEnum::from($operation), $operands)));
+    private AddCommandFormatter $commandFormatter;
 
+    public function __construct($tableName)
+    {
+        parent::__construct($tableName);
+
+        $this->commandFormatter = new AddCommandFormatter();
+    }
+
+    public function run(Collection $elements, MigrationOperationEnum $operation): self
+    {
+        return match ($operation) {
+            MigrationOperationEnum::Add => $this->runAddedCommand($elements),
+            MigrationOperationEnum::Remove => $this->runRemovedCommand($elements),
+            MigrationOperationEnum::Modify => $this->runModifiedCommand($elements),
+        };
+    }
+    private function runAddedCommand(Collection $elements): static
+    {
+        $elements->each(fn($element) => $this->generateCommand($element, MigrationOperationEnum::Add));
         return $this;
     }
 
-    public function generateCommand(string $columnName, MigrationOperationEnum $operation, array $operands): self
+    private function runRemovedCommand(Collection $elements): static
     {
-        if (empty($operands)) {
-            return $this;
-        }
-        dd($columnName, $operation);
-        $commandFormatter = MigrationFormatter::make($column)
+        $elements->each(fn($element) => $this->generateCommand($element, MigrationOperationEnum::Remove));
+        return $this;
+    }
+
+    private function runModifiedCommand(Collection $elements): static
+    {
+        $elements->each(fn($element) => $this->generateCommand($element, MigrationOperationEnum::Modify));
+        return $this;
+    }
+
+    public function generateCommand(ElementToCommandMapper $element, MigrationOperationEnum $operation): self
+    {
+        $commandFormatter = $this->commandFormatter
+            ->setNameOrNames($element->getName())
             ->setOperation($operation)
-            ->setRules($this->getRules($column))
-            ->run();
+            ->setType($element->getElementType())
+            ->setOptions($element->toArray())
+            ->format();
 
         $this->generated->add($commandFormatter);
         return $this;
-    }
-
-    public function generateAddedCommand(Fluent $column): self
-    {
-        return $this->generateCommand($column, MigrationOperationEnum::Add);
-    }
-
-    public function generateRemovedCommand(Fluent $column): self
-    {
-        return $this->generateCommand($column, MigrationOperationEnum::Remove);
-    }
-
-    public function generateModifiedCommand(Fluent $column): self
-    {
-        return $this->generateCommand($column, MigrationOperationEnum::Modify);
     }
 
     private function getRules(Fluent $column): array

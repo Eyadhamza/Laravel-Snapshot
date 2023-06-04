@@ -6,23 +6,30 @@ use Doctrine\DBAL\Schema\AbstractAsset;
 use Doctrine\DBAL\Schema\Column;
 use Eyadhamza\LaravelEloquentMigration\Core\Constants\MigrationOperationEnum;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
 
 class AttributeComparer
 {
 
-    private array $modelAttributes;
-    private array $doctrineAttributes;
-    protected array $addedAttributes = [];
-    protected array $changedAttributesFromModel = [];
-    protected array $changedAttributesFromDoctrine = [];
-    protected array $deletedAttributes = [];
+    private Collection $modelAttributes;
+    private Collection $doctrineAttributes;
+    protected Collection $addedAttributes;
+    protected Collection $changedAttributesFromModel;
+    protected Collection $changedAttributesFromDoctrine;
+    protected Collection $deletedAttributes;
+
+    private Collection $allAttributes;
     private bool $isChanged = false;
-    private array $allAttributes = [];
 
     public function __construct(AbstractAsset $modelColumn, AbstractAsset $doctrineColumn)
     {
-        $this->modelAttributes = $modelColumn->toArray();
-        $this->doctrineAttributes = $doctrineColumn->toArray();
+        $this->modelAttributes = collect($modelColumn->toArray());
+        $this->doctrineAttributes = collect($doctrineColumn->toArray());
+        $this->addedAttributes = new Collection;
+        $this->changedAttributesFromModel = new Collection;
+        $this->changedAttributesFromDoctrine = new Collection;
+        $this->deletedAttributes = new Collection;
+        $this->allAttributes = new Collection;
     }
 
     public static function make(AbstractAsset $modelColumn, AbstractAsset $doctrineColumn): AttributeComparer
@@ -33,6 +40,8 @@ class AttributeComparer
     public function run(): self
     {
         return $this
+            ->compareType()
+            ->compareColumnsNames()
             ->compareAddedAttributes()
             ->compareChangedAttributesFromModel()
             ->compareChangedAttributesFromDoctrine()
@@ -42,32 +51,32 @@ class AttributeComparer
 
     protected function compareAddedAttributes(): self
     {
-        $this->addedAttributes = array_diff_key($this->modelAttributes, $this->doctrineAttributes);
+        $this->addedAttributes = $this->modelAttributes->diffKeys($this->doctrineAttributes);
 
         return $this;
     }
 
     protected function compareChangedAttributesFromModel(): self
     {
-        $this->changedAttributesFromModel = array_diff_assoc(
-            Arr::except($this->modelAttributes, ['columns', 'type']),
-            Arr::except($this->doctrineAttributes, ['columns', 'type'])
-        );
+        $this->changedAttributesFromModel = $this->modelAttributes
+            ->diffAssoc($this->doctrineAttributes)
+            ->diffKeys($this->deletedAttributes);
+
         return $this;
     }
 
     protected function compareChangedAttributesFromDoctrine(): self
     {
-        $this->changedAttributesFromDoctrine = array_diff_assoc(
-            Arr::except($this->doctrineAttributes, ['columns', 'type']),
-            Arr::except($this->modelAttributes, ['columns', 'type'])
-        );
+        $this->changedAttributesFromDoctrine = $this->doctrineAttributes
+            ->diffAssoc($this->modelAttributes)
+            ->diffKeys($this->addedAttributes);
+
         return $this;
     }
 
     protected function compareDeletedAttributes(): self
     {
-        $this->deletedAttributes = array_diff_key($this->doctrineAttributes, $this->modelAttributes);
+        $this->deletedAttributes = $this->doctrineAttributes->diffKeys($this->modelAttributes);
         return $this;
     }
 
@@ -79,14 +88,14 @@ class AttributeComparer
 
         $this->isChanged = true;
 
-        $this->allAttributes = [
+        $this->allAttributes = collect([
             MigrationOperationEnum::Add->value => $this->addedAttributes,
             MigrationOperationEnum::Modify->value => [
                 'fromModel' => $this->changedAttributesFromModel,
                 'fromDoctrine' => $this->changedAttributesFromDoctrine,
             ],
             MigrationOperationEnum::Remove->value => $this->deletedAttributes,
-        ];
+        ]);
 
         return $this;
     }
@@ -96,8 +105,25 @@ class AttributeComparer
         return $this->isChanged;
     }
 
-    public function getAllAttributes()
+    public function getAllAttributes(): Collection
     {
         return $this->allAttributes;
+    }
+
+    private function compareType(): self
+    {
+        $this->modelAttributes->pull('type');
+
+        $this->doctrineAttributes->pull('type');
+        //TODO: compare type
+        return $this;
+    }
+
+    private function compareColumnsNames(): self
+    {
+        $this->modelAttributes->pull('columns');
+        $this->doctrineAttributes->pull('columns');
+        //TODO: compare columns
+        return $this;
     }
 }

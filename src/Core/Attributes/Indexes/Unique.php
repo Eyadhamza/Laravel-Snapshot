@@ -3,14 +3,11 @@
 namespace Eyadhamza\LaravelEloquentMigration\Core\Attributes\Indexes;
 
 use Attribute;
-use Doctrine\DBAL\Schema\UniqueConstraint;
 use Eyadhamza\LaravelEloquentMigration\Core\Attributes\AttributeEntity;
-use Eyadhamza\LaravelEloquentMigration\Core\Attributes\Columns\ColumnMapper;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Database\Schema\IndexDefinition;
-use Illuminate\Support\Fluent;
 
-;
+use Doctrine\DBAL\Schema\UniqueConstraint;
+use Illuminate\Database\Schema\Blueprint;
+
 
 #[Attribute(Attribute::IS_REPEATABLE | Attribute::TARGET_CLASS)]
 class Unique extends AttributeEntity
@@ -51,4 +48,17 @@ class Unique extends AttributeEntity
     }
 
 
+    public function setOptions(array $options): AttributeEntity
+    {
+        $this->options = $options;
+
+        return $this;
+    }
+
+    public function setType(): AttributeEntity
+    {
+        $this->type = 'unique';
+
+        return $this;
+    }
 }

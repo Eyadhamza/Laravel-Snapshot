@@ -8,11 +8,6 @@ use Eyadhamza\LaravelEloquentMigration\Core\Attributes\Indexes\IndexMapper;
 use Eyadhamza\LaravelEloquentMigration\Core\Constants\MigrationOperationEnum;
 use Eyadhamza\LaravelEloquentMigration\Core\Generators\MigrationCommandGenerator;
 use Eyadhamza\LaravelEloquentMigration\Core\Generators\MigrationGenerator;
-use Illuminate\Database\Schema\ColumnDefinition;
-use Illuminate\Database\Schema\ForeignKeyDefinition;
-use Illuminate\Database\Schema\IndexDefinition;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Fluent;
 use ReflectionAttribute;
 use ReflectionClass;
 use Spatie\ModelInfo\ModelInfo;
@@ -54,16 +49,18 @@ class ModelMapper extends Mapper
             ->mapWithKeys(function (ReflectionAttribute $reflectionAttribute) use ($modelInfo) {
                 $attribute = $reflectionAttribute
                     ->newInstance()
-                    ->setType($reflectionAttribute->getName())
                     ->setDefinition($modelInfo->tableName);
+
                 return [
-                    $attribute->getName() => $attribute->getDefinition()
+                    $attribute->getName() => ElementToCommandMapper::make($attribute->getDefinition())
+                        ->setElementType($attribute->getType())
                 ];
             });
     }
 
     public function runGenerator(): MigrationGenerator
     {
+        dd($this->columns, $this->indexes, $this->foreignKeys);
         $this->generator
             ->run($this->columns, MigrationOperationEnum::Add)
             ->run($this->indexes, MigrationOperationEnum::Add)

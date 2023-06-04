@@ -3,18 +3,14 @@
 namespace Eyadhamza\LaravelEloquentMigration\Core\Attributes\ForeignKeys;
 
 use Attribute;
-use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Eyadhamza\LaravelEloquentMigration\Core\Attributes\AttributeEntity;
-use Eyadhamza\LaravelEloquentMigration\Core\Constants\AttributeToColumn;
-use Eyadhamza\LaravelEloquentMigration\Core\Constants\Rule;
+
+use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Database\Schema\ForeignIdColumnDefinition;
-use Illuminate\Database\Schema\ForeignKeyDefinition;
-use Illuminate\Support\Fluent;
 use Illuminate\Support\Str;
 
 #[Attribute(Attribute::IS_REPEATABLE | Attribute::TARGET_CLASS)]
-class ForeignKeyMapper extends AttributeEntity
+abstract class ForeignKeyMapper extends AttributeEntity
 {
     protected string|array $columns;
 
@@ -59,5 +55,12 @@ class ForeignKeyMapper extends AttributeEntity
     public function getDefinition(): ForeignKeyConstraint
     {
         return $this->definition;
+    }
+
+    public function setOptions(array $options): AttributeEntity
+    {
+        $this->options = $options;
+
+        return $this;
     }
 }

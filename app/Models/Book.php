@@ -7,15 +7,17 @@ use Eyadhamza\LaravelEloquentMigration\Core\Attributes\Columns\Id;
 use Eyadhamza\LaravelEloquentMigration\Core\Attributes\ForeignKeys\ForeignId;
 use Eyadhamza\LaravelEloquentMigration\Core\Attributes\Indexes\Index;
 use Eyadhamza\LaravelEloquentMigration\Core\Attributes\Indexes\Unique;
-use Eyadhamza\LaravelEloquentMigration\Core\Constants\Rule;
+use Eyadhamza\LaravelEloquentMigration\Core\Constants\ColumnOption;
+use Eyadhamza\LaravelEloquentMigration\Core\Constants\ForeignKeyOption;
 use Illuminate\Database\Eloquent\Model;
 
 
 #[Id]
-#[AsString('title', [Rule::DEFAULT => 'Eyad Hamza'])]
-#[AsString('footer', [Rule::NULLABLE])]
-#[AsString('description', [Rule::NULLABLE])]
-#[ForeignId('user_id', [Rule::CASCADE_ON_DELETE, Rule::CASCADE_ON_UPDATE])]
+#[AsString('title', [ColumnOption::DEFAULT => 'Eyad Hamza', ColumnOption::NULLABLE])]
+#[AsString('footer', [ColumnOption::NULLABLE])]
+#[AsString('test', [ColumnOption::NULLABLE])]
+#[AsString('description', [ColumnOption::NULLABLE])]
+#[ForeignId('user_id', [ForeignKeyOption::CASCADE_ON_DELETE, ForeignKeyOption::CASCADE_ON_UPDATE])]
 #[Unique('title')]
 #[Index(['title', 'description'])]
 class Book extends Model

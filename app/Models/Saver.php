@@ -8,12 +8,13 @@ use Eyadhamza\LaravelEloquentMigration\Core\Attributes\Columns\Timestamp;
 use Eyadhamza\LaravelEloquentMigration\Core\Attributes\Columns\Timestamps;
 use Eyadhamza\LaravelEloquentMigration\Core\Attributes\ForeignKeys\ForeignId;
 use Eyadhamza\LaravelEloquentMigration\Core\Attributes\Indexes\Unique;
-use Eyadhamza\LaravelEloquentMigration\Core\Constants\Rule;
+use Eyadhamza\LaravelEloquentMigration\Core\Constants\ColumnOption;
 use Illuminate\Database\Eloquent\Model;
 
 #[Id('id')]
-#[AsString('name', [Rule::DEFAULT => 'Eyad Hamza'])]
+#[AsString('name', [ColumnOption::DEFAULT => 'Eyad Hamza'])]
 #[AsString('description')]
+#[AsString('test', [ColumnOption::NULLABLE])]
 #[AsString('email')]
 #[AsString('password')]
 #[Timestamp('created_at')]

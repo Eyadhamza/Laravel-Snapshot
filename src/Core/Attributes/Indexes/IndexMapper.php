@@ -4,12 +4,13 @@ namespace Eyadhamza\LaravelEloquentMigration\Core\Attributes\Indexes;
 
 use Attribute;
 use Eyadhamza\LaravelEloquentMigration\Core\Attributes\AttributeEntity;
+
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Schema\IndexDefinition;
 
 
 #[Attribute(Attribute::IS_REPEATABLE | Attribute::TARGET_CLASS)]
-class IndexMapper extends AttributeEntity
+abstract class IndexMapper extends AttributeEntity
 {
     protected string|array $columns;
     protected string|null $algorithm;
@@ -42,11 +43,11 @@ class IndexMapper extends AttributeEntity
 
         return $this;
     }
-
-    public static function make(IndexMapper $modelProperty): self
-    {
-        return new self($modelProperty->getColumns(), $modelProperty->getAlgorithm());
-    }
+//
+//    public static function make(IndexMapper $modelProperty): self
+//    {
+//        return new self($modelProperty->getColumns(), $modelProperty->getAlgorithm());
+//    }
 
     public function getColumns(): array|string
     {
@@ -61,5 +62,12 @@ class IndexMapper extends AttributeEntity
     public function getDefinition(): \Doctrine\DBAL\Schema\Index
     {
         return $this->definition;
+    }
+
+    public function setOptions(array $options): AttributeEntity
+    {
+        $this->options = $options;
+
+        return $this;
     }
 }

@@ -42,12 +42,12 @@ class ComparerManager extends Mapper
 
     public function runGenerator(): MigrationGenerator
     {
-        $this->columns->each(fn($columns, $operation) => $this->generator->run($columns));
+        $this->columns->each(fn($columns, $operation) => $this->generator->run($columns, MigrationOperationEnum::from($operation)));
 
-        $this->foreignKeys->each(fn($foreignKeys, $operation) => $this->generator->run($foreignKeys));
+        $this->foreignKeys->each(fn($foreignKeys, $operation) => $this->generator->run($foreignKeys, MigrationOperationEnum::from($operation)));
 
-        $this->indexes->each(fn($indexes, $operation) => $this->generator->run($indexes));
-        dd($this->generator->getGenerated());
+        $this->indexes->each(fn($indexes, $operation) => $this->generator->run($indexes, MigrationOperationEnum::from($operation)));
+
         return MigrationGenerator::make($this->tableName)
             ->setGeneratedCommands($this->generator->getGenerated());
     }

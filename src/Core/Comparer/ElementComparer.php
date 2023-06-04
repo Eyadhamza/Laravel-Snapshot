@@ -4,6 +4,7 @@ namespace Eyadhamza\LaravelEloquentMigration\Core\Comparer;
 
 use Doctrine\DBAL\Schema\AbstractAsset;
 use Eyadhamza\LaravelEloquentMigration\Core\Constants\MigrationOperationEnum;
+use Eyadhamza\LaravelEloquentMigration\Core\Mappers\ElementToCommandMapper;
 use Illuminate\Database\Schema\ColumnDefinition;
 use Illuminate\Database\Schema\ForeignKeyDefinition;
 use Illuminate\Support\Collection;
@@ -42,14 +43,18 @@ class ElementComparer
 
     protected function addNew(): self
     {
-        $this->addedElements = $this->modelElements->diffKeys($this->doctrineElements);
+        $this->addedElements = $this->modelElements
+            ->diffKeys($this->doctrineElements)
+            ->map(fn(AbstractAsset $doctrineElement) => ElementToCommandMapper::make($doctrineElement));
 
         return $this;
     }
 
     protected function removeOld(): self
     {
-        $this->removedElements = $this->doctrineElements->diffKeys($this->modelElements);
+        $this->removedElements = $this->doctrineElements
+            ->diffKeys($this->modelElements)
+            ->map(fn(AbstractAsset $doctrineElement) => ElementToCommandMapper::make($doctrineElement));
 
         return $this;
     }
@@ -64,7 +69,7 @@ class ElementComparer
                     $this->doctrineElements->get($key)
                 )->run();
 
-                return $comparer->isChanged() ? $comparer->getAllAttributes() : null;
+                return $comparer->isChanged() ? ElementToCommandMapper::make($modelElement, $comparer->getAllAttributes()): null;
             })
             ->filter();
 
@@ -91,4 +96,5 @@ class ElementComparer
             MigrationOperationEnum::Remove->value => $this->modifiedElements,
         ]);
     }
+
 }

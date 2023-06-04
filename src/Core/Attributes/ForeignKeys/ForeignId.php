@@ -3,12 +3,18 @@
 namespace Eyadhamza\LaravelEloquentMigration\Core\Attributes\ForeignKeys;
 
 use Attribute;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Database\Schema\ForeignIdColumnDefinition;
-use Illuminate\Database\Schema\ForeignKeyDefinition;
+use Eyadhamza\LaravelEloquentMigration\Core\Attributes\AttributeEntity;
+
 
 
 #[Attribute(Attribute::IS_REPEATABLE | Attribute::TARGET_CLASS)]
 class ForeignId extends ForeignKeyMapper
 {
+    public function setType(): AttributeEntity
+    {
+        $this->type = 'foreignId';
+
+        return $this;
+    }
+
 }

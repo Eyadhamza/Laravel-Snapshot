@@ -3,55 +3,66 @@
 namespace Eyadhamza\LaravelEloquentMigration\Core\Formatters;
 
 use Eyadhamza\LaravelEloquentMigration\Core\Constants\MigrationOperationEnum;
+use Eyadhamza\LaravelEloquentMigration\Core\Mappers\ElementToCommandMapper;
 use Illuminate\Support\Fluent;
 
 class MigrationFormatter
 {
-    private Fluent $column;
-    private string|array|null $columnName;
+    private ElementToCommandMapper $element;
+    private string|array|null $elementName;
     private MigrationOperationEnum $operation;
     private array $rules;
+    private AddCommandFormatter $commandFormattter;
 
-    public function __construct(Fluent $column)
+    public function __construct(ElementToCommandMapper $element)
     {
-        $this->column = $column;
-        $this->columnName = $column->get('columns') ?? $column->get('name');
+        $this->element = $element;
+        $this->commandFormattter = new AddCommandFormatter();
+
+        $this->elementName = $element->get('elements') ?? $element->get('name');
     }
 
-    public static function make(Fluent $column): MigrationFormatter
+    public static function make(ElementToCommandMapper $element): MigrationFormatter
     {
-        return new self($column);
+        return new self($element);
     }
 
     public function run(): string|null
     {
-        return match ($this->operation) {
-            MigrationOperationEnum::Add => $this->generateAddCommand(),
-            MigrationOperationEnum::Remove => $this->generateRemoveCommand(),
-            MigrationOperationEnum::Modify => $this->generateModifyCommand(),
+        $formatter =  match ($this->operation) {
+            MigrationOperationEnum::Add => new AddCommandFormatter(),
+            MigrationOperationEnum::Remove => new RemoveCommandFormatter(),
+            MigrationOperationEnum::Modify => new ModifyCommandFormatter(),
         };
+
+        return $formatter
+            ->setNameOrNames($this->elementName)
+            ->setOperation($this->operation)
+            ->setType($this->element->getElementType())
+            ->setOptions($this->options)
+            ->format();
     }
 
     private function getGeneratedTypeAndNameWithOperation(): string
     {
-        $columnType = $this->column->get('type') ?? 'index';
+        $elementType = $this->element->getElementType();
 
         if ($this->operation === MigrationOperationEnum::Remove) {
-            $columnType = $this->generateDropCommand($columnType);
+            $elementType = $this->formatDropCommand($elementType);
         }
 
-        return "\$table" . "->$columnType" . "({$this->getColumnNameOrNames()})";
+        return "\$table" . "->$elementType" . "({$this->getColumnNameOrNames()})";
     }
 
     private function getColumnNameOrNames(): string
     {
-        if (is_string($this->columnName)) {
-            return "'$this->columnName'";
+        if (is_string($this->elementName)) {
+            return "'$this->elementName'";
         }
-        if (is_array($this->columnName)) {
-            return count($this->columnName) === 1
-                ? "'" . $this->columnName[0] . "'"
-                : "['" . implode("','", $this->columnName) . "']";
+        if (is_array($this->elementName)) {
+            return count($this->elementName) === 1
+                ? "'" . $this->elementName[0] . "'"
+                : "['" . implode("','", $this->elementName) . "']";
         }
 
         return "";
@@ -79,7 +90,7 @@ class MigrationFormatter
         return $this;
     }
 
-    public function setRules(array $rules): self
+    public function setOptions(array $rules): self
     {
         $this->rules = $rules;
 
@@ -96,43 +107,43 @@ class MigrationFormatter
         return in_array($rule, ['cascadeOnDelete', 'cascadeOnUpdate']);
     }
 
-    private function generateAddCommand(): string
+    private function formatAddCommand(): string
     {
-        $generatedCommand = $this->getGeneratedTypeAndNameWithOperation();
+        $formatdCommand = $this->getGeneratedTypeAndNameWithOperation();
 
         if (empty($this->rules)) {
-            return $generatedCommand . ";";
+            return $formatdCommand . ";";
         }
-        $generatedCommand = $generatedCommand . collect($this->rules)
+        $formatdCommand = $formatdCommand . collect($this->rules)
                 ->map(fn($value, $rule) => $this->addRule($rule, $value))
                 ->join('');
 
 
-        return $generatedCommand . ";";
+        return $formatdCommand . ";";
     }
 
-    private function generateRemoveCommand(): string
+    private function formatRemoveCommand(): string
     {
         return $this->getGeneratedTypeAndNameWithOperation() . ";";
     }
 
-    private function generateModifyCommand(): string|null
+    private function formatModifyCommand(): string|null
     {
-        $generatedCommand = $this->getGeneratedTypeAndNameWithOperation();
+        $formatdCommand = $this->getGeneratedTypeAndNameWithOperation();
 
-        if (empty($this->column->get('changes'))) {
+        if (empty($this->element->get('changes'))) {
             return null;
         }
-        $generatedCommand = $generatedCommand . collect($this->rules)
+        $formatdCommand = $formatdCommand . collect($this->rules)
                 ->map(fn($value, $rule) => $this->addRule($rule, $value))
                 ->join('');
 
-        return $generatedCommand . "->change();";
+        return $formatdCommand . "->change();";
     }
 
-    private function generateDropCommand(string|\Closure $columnType): \Closure|string
+    private function formatDropCommand(string|\Closure $elementType): \Closure|string
     {
-        return match ($columnType) {
+        return match ($elementType) {
             'index' => 'dropIndex',
             'foreign' => 'dropForeign',
             'unique' => 'dropUnique',
