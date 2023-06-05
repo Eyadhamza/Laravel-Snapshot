@@ -14,7 +14,7 @@ class Id extends ColumnMapper
     public function __construct(string $name = null, array $rules = [])
     {
         $rules = array_merge(['length' => null], $rules);
-        parent::__construct($name, $rules);
+        parent::__construct($name ?? 'id', $rules);
     }
 
     public function setDefinition(string $tableName): ColumnMapper

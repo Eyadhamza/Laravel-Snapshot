@@ -38,8 +38,9 @@ abstract class ColumnMapper extends AttributeEntity
 
     public function setOptions(array $options): AttributeEntity
     {
-        $this->options = array_merge(['length' => ColumnOption::DEFAULT_LENGTH], ColumnOption::map($options));
-
+        $this->options = array_merge([
+            'length' => ColumnOption::DEFAULT_LENGTH,
+        ], ColumnOption::map($options));
         return $this;
     }
 

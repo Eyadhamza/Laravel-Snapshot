@@ -49,14 +49,15 @@ class MigrationCommandGenerator extends Generator
 
     public function generateCommand(ElementToCommandMapper $element, MigrationOperationEnum $operation): self
     {
-        $commandFormatter = $this->commandFormatter
+        $formattedCommand = $this->commandFormatter
             ->setNameOrNames($element->getName())
             ->setOperation($operation)
             ->setType($element->getElementType())
             ->setOptions($element->toArray())
             ->format();
 
-        $this->generated->add($commandFormatter);
+        $this->generated->add($formattedCommand);
+
         return $this;
     }
 

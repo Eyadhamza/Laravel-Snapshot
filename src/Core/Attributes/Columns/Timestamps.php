@@ -14,7 +14,12 @@ class Timestamps extends ColumnMapper
 {
     public function __construct()
     {
-        parent::__construct();
+        parent::__construct('timestamps');
+    }
 
+    public function setType(): AttributeEntity
+    {
+        $this->type = 'timestamps';
+        return $this;
     }
 }

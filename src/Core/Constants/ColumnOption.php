@@ -31,6 +31,7 @@ abstract class ColumnOption
                 $key = $value;
                 $value = true;
             }
+
             return match ($key) {
                 ColumnOption::LENGTH => ['length' => $value],
                 ColumnOption::DEFAULT => ['default' => $value],

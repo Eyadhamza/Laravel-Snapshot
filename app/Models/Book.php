@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Eyadhamza\LaravelEloquentMigration\Core\Attributes\Columns\AsString;
 use Eyadhamza\LaravelEloquentMigration\Core\Attributes\Columns\Id;
+use Eyadhamza\LaravelEloquentMigration\Core\Attributes\Columns\Timestamps;
 use Eyadhamza\LaravelEloquentMigration\Core\Attributes\ForeignKeys\ForeignId;
 use Eyadhamza\LaravelEloquentMigration\Core\Attributes\Indexes\Index;
 use Eyadhamza\LaravelEloquentMigration\Core\Attributes\Indexes\Unique;
@@ -13,13 +14,14 @@ use Illuminate\Database\Eloquent\Model;
 
 
 #[Id]
-#[AsString('title', [ColumnOption::DEFAULT => 'Eyad Hamza', ColumnOption::NULLABLE])]
+#[AsString('title', [ColumnOption::DEFAULT => '111 Hamza', ColumnOption::NULLABLE])]
 #[AsString('footer', [ColumnOption::NULLABLE])]
 #[AsString('test', [ColumnOption::NULLABLE])]
 #[AsString('description', [ColumnOption::NULLABLE])]
 #[ForeignId('user_id', [ForeignKeyOption::CASCADE_ON_DELETE, ForeignKeyOption::CASCADE_ON_UPDATE])]
 #[Unique('title')]
 #[Index(['title', 'description'])]
+#[Timestamps]
 class Book extends Model
 {
 

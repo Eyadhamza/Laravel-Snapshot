@@ -51,16 +51,20 @@ class ModelMapper extends Mapper
                     ->newInstance()
                     ->setDefinition($modelInfo->tableName);
 
+                $attribute->getDefinition()->laravelType = $attribute->getType();
+
                 return [
-                    $attribute->getName() => ElementToCommandMapper::make($attribute->getDefinition())
-                        ->setElementType($attribute->getType())
+                    $attribute->getName() => $attribute->getDefinition()
                 ];
             });
     }
 
     public function runGenerator(): MigrationGenerator
     {
-        dd($this->columns, $this->indexes, $this->foreignKeys);
+        $this->columns = ElementToCommandMapper::collection($this->columns);
+        $this->indexes = ElementToCommandMapper::collection($this->indexes);
+        $this->foreignKeys = ElementToCommandMapper::collection($this->foreignKeys);
+
         $this->generator
             ->run($this->columns, MigrationOperationEnum::Add)
             ->run($this->indexes, MigrationOperationEnum::Add)

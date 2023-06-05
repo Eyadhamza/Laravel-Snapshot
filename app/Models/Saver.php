@@ -11,14 +11,13 @@ use Eyadhamza\LaravelEloquentMigration\Core\Attributes\Indexes\Unique;
 use Eyadhamza\LaravelEloquentMigration\Core\Constants\ColumnOption;
 use Illuminate\Database\Eloquent\Model;
 
-#[Id('id')]
+#[Id]
 #[AsString('name', [ColumnOption::DEFAULT => 'Eyad Hamza'])]
 #[AsString('description')]
 #[AsString('test', [ColumnOption::NULLABLE])]
 #[AsString('email')]
 #[AsString('password')]
-#[Timestamp('created_at')]
-#[Timestamp('updated_at')]
+#[Timestamps]
 #[Unique('email')]
 class Saver extends Model
 {

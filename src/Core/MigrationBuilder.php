@@ -96,8 +96,8 @@ class MigrationBuilder
 
         while ($this->modelMappers->isNotEmpty()) {
             $this->modelMappers->each(function (ModelMapper $model) use ($modelMappers, $processed) {
-                if ($model->getForeignKeys()->isEmpty() || $model->getForeignKeys()->every(function (ElementToCommandMapper $key) use ($processed) {
-                        return $processed->contains($key->getDefinition()->getForeignTableName()) || $key->getDefinition()->getForeignTableName() === null;
+                if ($model->getForeignKeys()->isEmpty() || $model->getForeignKeys()->every(function (ForeignKeyConstraint $key) use ($processed) {
+                        return $processed->contains($key->getForeignTableName()) || $key->getForeignTableName() === null;
                     })) {
                     $modelMappers->push($model);
                     $processed->push($model->getTableName());

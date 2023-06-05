@@ -15,8 +15,9 @@ abstract class AttributeEntity
     public function __construct(string $name = null, array $rules = [])
     {
         $this->name = $name;
-        $this->setOptions($rules);
-        $this->setType();
+        $this
+            ->setOptions($rules)
+            ->setType();
     }
 
     public function getName(): ?string

@@ -3,13 +3,15 @@
 namespace Eyadhamza\LaravelEloquentMigration\Core\Mappers;
 
 use Doctrine\DBAL\Schema\AbstractAsset;
+use Doctrine\DBAL\Schema\Column;
+use Doctrine\DBAL\Schema\ForeignKeyConstraint;
+use Doctrine\DBAL\Schema\Index;
 use Illuminate\Support\Collection;
 
 class ElementToCommandMapper
 {
     private AbstractAsset $element;
     private Collection $changedAttributes;
-    private string $elementType;
 
     public function __construct(AbstractAsset $element, Collection $changedAttributes = null)
     {
@@ -27,20 +29,10 @@ class ElementToCommandMapper
         return $elements->map(fn($element) => ElementToCommandMapper::make($element));
     }
 
-    public function getChangedAttributes(): Collection
-    {
-        return $this->changedAttributes;
-    }
-
-    public function setElementType(string $elementType): ElementToCommandMapper
-    {
-        $this->elementType = $elementType;
-        return $this;
-    }
 
     public function getElementType(): string
     {
-        return $this->elementType;
+        return $this->getDefinition()->laravelType;
     }
 
     public function getDefinition(): AbstractAsset
@@ -48,13 +40,22 @@ class ElementToCommandMapper
         return $this->element;
     }
 
-    public function getName(): string
+    public function getName(): string|array|null
     {
-        return $this->element->getName();
+        return match (get_class($this->element)) {
+            Column::class => $this->element->getName(),
+            Index::class => $this->element->getColumns(),
+            ForeignKeyConstraint::class => $this->element->getForeignColumns(),
+            default => null,
+        };
     }
 
     public function toArray()
     {
-        return $this->element->toArray();
+        return match (get_class($this->element)) {
+            Column::class => $this->element->toArray(),
+            Index::class, ForeignKeyConstraint::class => $this->element->getOptions(),
+            default => [],
+        };
     }
 }

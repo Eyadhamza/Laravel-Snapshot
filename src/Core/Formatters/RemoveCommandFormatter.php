@@ -7,49 +7,19 @@ use Eyadhamza\LaravelEloquentMigration\Core\Constants\MigrationOperationEnum;
 class RemoveCommandFormatter extends Formatter
 {
 
-    public function format() : string
-    {
-        $this
-            ->formatStart()
-            ->formatName()
-            ->formatOperation()
-            ->formatType()
-            ->formatOptions()
-            ->formatEnd();
-
-
-        return $this->formattedCommand;
-    }
-
-    private function formatName(): self
+    protected function formatOperation(): self
     {
         return $this;
     }
 
-    private function formatStart(): self
-    {
-        $this->formattedCommand = "\$table->";
-
-        return $this;
-    }
-
-    private function formatOperation(): self
+    protected function formatOptions(): self
     {
         return $this;
     }
 
-    private function formatType(): self
+    protected function formatEnd(): self
     {
         return $this;
     }
 
-    private function formatOptions(): self
-    {
-        return $this;
-    }
-
-    private function formatEnd(): self
-    {
-        return $this;
-    }
 }
