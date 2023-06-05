@@ -3,38 +3,15 @@
 namespace Eyadhamza\LaravelEloquentMigration\Core\Formatters;
 
 use Eyadhamza\LaravelEloquentMigration\Core\Constants\MigrationOperationEnum;
+use Eyadhamza\LaravelEloquentMigration\Core\Mappers\ElementToCommandMapper;
 
 abstract class Formatter
 {
+    protected ElementToCommandMapper $element;
     protected string $formattedCommand = '';
-    protected string|array|null $name;
     protected MigrationOperationEnum $operation;
-    protected string $type;
     protected array $options;
 
-    public function setNameOrNames(array|string|null $elementName): static
-    {
-        $this->name = $elementName;
-        return $this;
-    }
-
-    public function setOperation(MigrationOperationEnum $operation): static
-    {
-        $this->operation = $operation;
-        return $this;
-    }
-
-    public function setType(string $type): static
-    {
-        $this->type = $type;
-        return $this;
-    }
-
-    public function setOptions($options): static
-    {
-        $this->options = $options;
-        return $this;
-    }
 
     public function format(): string
     {
@@ -81,25 +58,25 @@ abstract class Formatter
 
     protected function formatType(): self
     {
-        $this->append($this->type);
+        $this->append($this->element->getType());
 
         return $this;
     }
 
     protected function formatName(): self
     {
-        if (!$this->name || $this->specialColumnName()) {
+        if (!$this->element->getName() || $this->specialColumnName()) {
             $this->append("()");
             return $this;
         }
 
-        if (is_array($this->name)) {
-            $name = count($this->name) === 1 ? "'{$this->name[0]}'" : "['" . implode("','", $this->name) . "']";
+        if (is_array($this->element->getName())) {
+            $name = count($this->element->getName()) === 1 ? "'{$this->element->getName()[0]}'" : "['" . implode("','", $this->element->getName()) . "']";
             $this->append("($name)");
             return $this;
         }
 
-        $this->append("('$this->name')");
+        $this->append("('{$this->element->getName()}')");
 
         return $this;
     }
@@ -145,13 +122,31 @@ abstract class Formatter
 
     private function specialColumnName(): bool
     {
-        return in_array($this->name, ['rememberToken', 'softDeletes', 'timestamps', 'id']);
+        return in_array($this->element->getName(), ['rememberToken', 'softDeletes', 'timestamps', 'id']);
     }
 
 
     private function hasSpecialName(): bool
     {
-        return in_array($this->name, ['id']);
+        return in_array($this->element->getName(), ['id']);
+    }
+
+    public function setElement(ElementToCommandMapper $element): static
+    {
+        $this->element = $element;
+        return $this;
+    }
+
+    public function setOperation(MigrationOperationEnum $operation): static
+    {
+        $this->operation = $operation;
+        return $this;
+    }
+
+    public function setOptions($options): static
+    {
+        $this->options = $options;
+        return $this;
     }
 
 }

@@ -30,7 +30,7 @@ class ElementToCommandMapper
     }
 
 
-    public function getElementType(): string
+    public function getType(): string
     {
         return $this->getDefinition()->laravelType;
     }
