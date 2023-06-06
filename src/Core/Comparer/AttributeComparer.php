@@ -85,8 +85,6 @@ class AttributeComparer
             return $this;
         }
 
-        $this->isChanged = true;
-
         $this->allAttributes = collect([
             MigrationOperationEnum::Add->value => $this->addedAttributes,
             MigrationOperationEnum::Modify->value => [
@@ -101,7 +99,7 @@ class AttributeComparer
 
     public function isChanged(): bool
     {
-        return $this->isChanged;
+        return $this->allAttributes->flatten()->isNotEmpty();
     }
 
     public function getAllAttributes(): Collection

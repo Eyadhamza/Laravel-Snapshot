@@ -33,7 +33,6 @@ class ComparerManager extends Mapper
         $this->foreignKeys = $this->compareElements($this->modelMapper->getForeignKeys(), $this->doctrineMapper->getForeignKeys());
 
         $this->indexes = $this->compareElements($this->modelMapper->getIndexes(), $this->doctrineMapper->getIndexes());
-
         return $this;
     }
     public static function make(DoctrineMapper $doctrineMapper, ModelMapper $modelMapper): ComparerManager

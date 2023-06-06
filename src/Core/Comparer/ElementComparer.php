@@ -45,6 +45,7 @@ class ElementComparer
     {
         $this->addedElements = $this->modelElements
             ->diffKeys($this->doctrineElements)
+            ->filter(fn(AbstractAsset $modelElement) => ! $this->isSpecialElement($modelElement))
             ->map(fn(AbstractAsset $doctrineElement) => ElementToCommandMapper::make($doctrineElement));
 
         return $this;
@@ -54,6 +55,7 @@ class ElementComparer
     {
         $this->removedElements = $this->doctrineElements
             ->diffKeys($this->modelElements)
+            ->filter(fn(AbstractAsset $modelElement) => ! $this->isSpecialElement($modelElement))
             ->map(fn(AbstractAsset $doctrineElement) => ElementToCommandMapper::make($doctrineElement));
 
         return $this;
@@ -97,6 +99,11 @@ class ElementComparer
             MigrationOperationEnum::Remove->value => $this->removedElements,
             MigrationOperationEnum::Remove->value => $this->modifiedElements,
         ]);
+    }
+
+    private function isSpecialElement(AbstractAsset $modelElement): bool
+    {
+        return in_array($modelElement->getName(), ['id', 'timestamps','created_at','updated_at']);
     }
 
 }
