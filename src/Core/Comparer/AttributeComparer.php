@@ -2,10 +2,9 @@
 
 namespace Eyadhamza\LaravelEloquentMigration\Core\Comparer;
 
-use Doctrine\DBAL\Schema\AbstractAsset;
-use Doctrine\DBAL\Schema\Column;
+
 use Eyadhamza\LaravelEloquentMigration\Core\Constants\MigrationOperationEnum;
-use Illuminate\Support\Arr;
+use Eyadhamza\LaravelEloquentMigration\Core\Mappers\ElementToCommandMapper;
 use Illuminate\Support\Collection;
 
 class AttributeComparer
@@ -21,7 +20,7 @@ class AttributeComparer
     private Collection $allAttributes;
     private bool $isChanged = false;
 
-    public function __construct(AbstractAsset $modelColumn, AbstractAsset $doctrineColumn)
+    public function __construct(ElementToCommandMapper $modelColumn, ElementToCommandMapper $doctrineColumn)
     {
         $this->modelAttributes = collect($modelColumn->toArray());
         $this->doctrineAttributes = collect($doctrineColumn->toArray());
@@ -32,7 +31,7 @@ class AttributeComparer
         $this->allAttributes = new Collection;
     }
 
-    public static function make(AbstractAsset $modelColumn, AbstractAsset $doctrineColumn): AttributeComparer
+    public static function make(ElementToCommandMapper $modelColumn, ElementToCommandMapper $doctrineColumn): AttributeComparer
     {
         return new self($modelColumn, $doctrineColumn);
     }

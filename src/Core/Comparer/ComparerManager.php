@@ -27,6 +27,7 @@ class ComparerManager extends Mapper
 
     public function map(): Mapper
     {
+        // TODO: Error is here
         $this->columns = $this->compareElements($this->modelMapper->getColumns(), $this->doctrineMapper->getColumns());
 
         $this->foreignKeys = $this->compareElements($this->modelMapper->getForeignKeys(), $this->doctrineMapper->getForeignKeys());

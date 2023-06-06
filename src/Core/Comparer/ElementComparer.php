@@ -64,12 +64,14 @@ class ElementComparer
         $this->modifiedElements = $this->modelElements
             ->intersectByKeys($this->doctrineElements)
             ->map(function (AbstractAsset $modelElement, $key) {
-                $comparer = AttributeComparer::make(
-                    $modelElement,
-                    $this->doctrineElements->get($key)
-                )->run();
+                $modelElementCommandMapper = ElementToCommandMapper::make($modelElement);
+                $doctrineElementCommandMapper = ElementToCommandMapper::make($this->doctrineElements->get($key));
 
-                return $comparer->isChanged() ? ElementToCommandMapper::make($modelElement, $comparer->getAllAttributes()): null;
+                $comparer = AttributeComparer::make($modelElementCommandMapper, $doctrineElementCommandMapper)->run();
+
+                return $comparer->isChanged()
+                    ? $modelElementCommandMapper->setChangedAttributes($comparer->getAllAttributes())
+                    : null;
             })
             ->filter();
 

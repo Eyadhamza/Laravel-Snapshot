@@ -10,13 +10,14 @@ use Illuminate\Support\Collection;
 
 class ElementToCommandMapper
 {
+    private string $elementDefinitionName;
     private AbstractAsset $element;
     private Collection $changedAttributes;
 
-    public function __construct(AbstractAsset $element, Collection $changedAttributes = null)
+    public function __construct(AbstractAsset $element)
     {
         $this->element = $element;
-        $this->changedAttributes = $changedAttributes ?? new Collection;
+        $this->elementDefinitionName = get_class($element);
     }
 
     public static function make(AbstractAsset $modelElement, Collection $changedAttributes = null): ElementToCommandMapper
@@ -42,7 +43,7 @@ class ElementToCommandMapper
 
     public function getName(): string|array|null
     {
-        return match (get_class($this->element)) {
+        return match ($this->elementDefinitionName) {
             Column::class => $this->element->getName(),
             Index::class => $this->element->getColumns(),
             ForeignKeyConstraint::class => $this->element->getForeignColumns(),
@@ -52,10 +53,17 @@ class ElementToCommandMapper
 
     public function toArray()
     {
-        return match (get_class($this->element)) {
+        return match ($this->elementDefinitionName) {
             Column::class => $this->element->toArray(),
             Index::class, ForeignKeyConstraint::class => $this->element->getOptions(),
             default => [],
         };
+    }
+
+    public function setChangedAttributes(Collection $changedAttributes): self
+    {
+        $this->changedAttributes = $changedAttributes;
+
+        return $this;
     }
 }
