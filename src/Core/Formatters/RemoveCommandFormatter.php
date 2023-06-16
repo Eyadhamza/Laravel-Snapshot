@@ -2,24 +2,22 @@
 
 namespace PiSpace\LaravelSnapshot\Core\Formatters;
 
-use PiSpace\LaravelSnapshot\Core\Constants\MigrationOperationEnum;
+use Doctrine\DBAL\Schema\ForeignKeyConstraint;
+use Doctrine\DBAL\Schema\Index;
 
 class RemoveCommandFormatter extends Formatter
 {
-
-    protected function formatOperation(): self
-    {
-        return $this;
-    }
-
     protected function formatOptions(): self
     {
         return $this;
     }
-
-    protected function formatEnd(): self
+    protected function formatType(): self
     {
-        return $this;
+        return match ($this->element->getDefinitionName()){
+            Index::class => $this->append('dropIndex'),
+            ForeignKeyConstraint::class => $this->append('dropForeign'),
+            default => $this->append('dropColumn'),
+        };
     }
 
 }

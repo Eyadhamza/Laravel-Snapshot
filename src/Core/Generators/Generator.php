@@ -6,7 +6,6 @@ use Illuminate\Support\Collection;
 
 abstract class Generator
 {
-
     protected Collection $generated;
     protected string $tableName;
 

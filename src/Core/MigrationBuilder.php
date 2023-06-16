@@ -5,7 +5,6 @@ namespace PiSpace\LaravelSnapshot\Core;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use PiSpace\LaravelSnapshot\Core\Comparer\ComparerManager;
 use PiSpace\LaravelSnapshot\Core\Mappers\DoctrineMapper;
-use PiSpace\LaravelSnapshot\Core\Mappers\ElementToCommandMapper;
 use PiSpace\LaravelSnapshot\Core\Mappers\ModelMapper;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;

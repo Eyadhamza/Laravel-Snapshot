@@ -1,14 +1,12 @@
 <?php
 
-namespace PiSpace\LaravelSnapshot\Core\Comparer;
+namespace PiSpace\LaravelSnapshot\Core\Comparer\Elements;
 
 use Doctrine\DBAL\Schema\AbstractAsset;
+use Illuminate\Support\Collection;
+use PiSpace\LaravelSnapshot\Core\Comparer\Attributes\AttributeComparer;
 use PiSpace\LaravelSnapshot\Core\Constants\MigrationOperationEnum;
 use PiSpace\LaravelSnapshot\Core\Mappers\ElementToCommandMapper;
-use Illuminate\Database\Schema\ColumnDefinition;
-use Illuminate\Database\Schema\ForeignKeyDefinition;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Fluent;
 
 class ElementComparer
 {
@@ -20,16 +18,18 @@ class ElementComparer
     private Collection $modelElements;
     private Collection $doctrineElements;
 
-    public function __construct()
+    public function __construct(Collection $modelElements, Collection $doctrineElements)
     {
+        $this->modelElements = $modelElements;
+        $this->doctrineElements = $doctrineElements;
         $this->addedElements = new Collection;
         $this->removedElements = new Collection;
         $this->modifiedElements = new Collection;
     }
 
-    public static function make(): ElementComparer
+    public static function make(Collection $modelElements, Collection $doctrineElements): ElementComparer
     {
-        return new self();
+        return new self($modelElements, $doctrineElements);
     }
 
     public function run(): self
@@ -69,7 +69,8 @@ class ElementComparer
                 $modelElementCommandMapper = ElementToCommandMapper::make($modelElement);
                 $doctrineElementCommandMapper = ElementToCommandMapper::make($this->doctrineElements->get($key));
 
-                $comparer = AttributeComparer::make($modelElementCommandMapper, $doctrineElementCommandMapper)->run();
+                $comparer = AttributeComparer::make($modelElementCommandMapper, $doctrineElementCommandMapper)
+                    ->run();
 
                 return $comparer->isChanged()
                     ? $modelElementCommandMapper->setChangedAttributes($comparer->getAllAttributes())
@@ -80,24 +81,12 @@ class ElementComparer
         return $this;
     }
 
-    public function setModelElements(Collection $modelElements): ElementComparer
-    {
-        $this->modelElements = $modelElements;
-        return $this;
-    }
-
-    public function setDoctrineElements(Collection $doctrineElements): ElementComparer
-    {
-        $this->doctrineElements = $doctrineElements;
-        return $this;
-    }
-
     public function getElements(): Collection
     {
         return collect([
             MigrationOperationEnum::Add->value => $this->addedElements,
             MigrationOperationEnum::Remove->value => $this->removedElements,
-            MigrationOperationEnum::Remove->value => $this->modifiedElements,
+            MigrationOperationEnum::Modify->value => $this->modifiedElements,
         ]);
     }
 

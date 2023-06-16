@@ -66,4 +66,9 @@ class ElementToCommandMapper
 
         return $this;
     }
+
+    public function getDefinitionName()
+    {
+        return $this->elementDefinitionName;
+    }
 }

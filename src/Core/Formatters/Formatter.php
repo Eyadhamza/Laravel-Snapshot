@@ -17,7 +17,6 @@ abstract class Formatter
     {
         $this
             ->reset()
-            ->formatOperation()
             ->addTablePrefix()
             ->formatType()
             ->formatName()
@@ -26,9 +25,6 @@ abstract class Formatter
 
         return $this->formattedCommand;
     }
-
-    abstract protected function formatOperation(): self;
-
     protected function formatOptions(): self
     {
         $this->append(
@@ -103,16 +99,19 @@ abstract class Formatter
             'default' => $this->addRule('default', $value),
             'unsigned' => $this->addRule('unsigned', (bool)$value),
             'comment' => $this->addRule('comment', $value),
+            'constrained' => $this->addRule('constrained'),
+            'cascadeOnDelete' => $this->addRule('cascadeOnDelete'),
+            'cascadeOnUpdate' => $this->addRule('cascadeOnUpdate'),
             default => null,
         };
     }
     private function addRule(string $rule, string|bool $value = null): string
     {
-        if ($this->hasSpecialName($rule)) {
+        if ($this->hasSpecialName()) {
             return '';
         }
         if (is_bool($value)) {
-            return  $value === false ? '' : "->$rule()";
+            return $value === false ? '' : "->$rule()";
         }
 
         $methodParameters = is_string($value) ? "'$value'" : '';

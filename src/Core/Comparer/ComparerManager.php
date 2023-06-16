@@ -2,13 +2,14 @@
 
 namespace PiSpace\LaravelSnapshot\Core\Comparer;
 
+use Illuminate\Support\Collection;
+use PiSpace\LaravelSnapshot\Core\Comparer\Elements\ElementComparer;
 use PiSpace\LaravelSnapshot\Core\Constants\MigrationOperationEnum;
 use PiSpace\LaravelSnapshot\Core\Generators\MigrationCommandGenerator;
-use PiSpace\LaravelSnapshot\Core\Generators\MigrationGenerator;
+use PiSpace\LaravelSnapshot\Core\Generators\MigrationFileGenerator;
 use PiSpace\LaravelSnapshot\Core\Mappers\DoctrineMapper;
 use PiSpace\LaravelSnapshot\Core\Mappers\Mapper;
 use PiSpace\LaravelSnapshot\Core\Mappers\ModelMapper;
-use Illuminate\Support\Collection;
 
 class ComparerManager extends Mapper
 {
@@ -27,7 +28,6 @@ class ComparerManager extends Mapper
 
     public function map(): Mapper
     {
-        // TODO: Error is here
         $this->columns = $this->compareElements($this->modelMapper->getColumns(), $this->doctrineMapper->getColumns());
 
         $this->foreignKeys = $this->compareElements($this->modelMapper->getForeignKeys(), $this->doctrineMapper->getForeignKeys());
@@ -40,7 +40,7 @@ class ComparerManager extends Mapper
         return new self($doctrineMapper, $modelMapper);
     }
 
-    public function runGenerator(): MigrationGenerator
+    public function runGenerator(): MigrationFileGenerator
     {
         $this->columns->each(fn($columns, $operation) => $this->generator->run($columns, MigrationOperationEnum::from($operation)));
 
@@ -48,16 +48,14 @@ class ComparerManager extends Mapper
 
         $this->indexes->each(fn($indexes, $operation) => $this->generator->run($indexes, MigrationOperationEnum::from($operation)));
 
-        return MigrationGenerator::make($this->tableName)
+        return MigrationFileGenerator::make($this->tableName)
             ->setGeneratedCommands($this->generator->getGenerated());
     }
 
 
     private function compareElements(Collection $modelElements, Collection $doctrineElements): Collection
     {
-        return ElementComparer::make()
-            ->setModelElements($modelElements)
-            ->setDoctrineElements($doctrineElements)
+        return ElementComparer::make($modelElements, $doctrineElements)
             ->run()
             ->getElements();
     }

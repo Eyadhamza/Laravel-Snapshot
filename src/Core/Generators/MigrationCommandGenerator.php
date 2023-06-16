@@ -11,11 +11,6 @@ use Illuminate\Support\Collection;
 
 class MigrationCommandGenerator extends Generator
 {
-    public function __construct($tableName)
-    {
-        parent::__construct($tableName);
-    }
-
     public function run(Collection $elements, MigrationOperationEnum $operation): self
     {
         $elements->each(function (ElementToCommandMapper $element) use ($operation) {

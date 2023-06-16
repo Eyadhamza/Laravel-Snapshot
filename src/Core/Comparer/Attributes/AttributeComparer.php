@@ -1,15 +1,14 @@
 <?php
 
-namespace PiSpace\LaravelSnapshot\Core\Comparer;
+namespace PiSpace\LaravelSnapshot\Core\Comparer\Attributes;
 
 
+use Illuminate\Support\Collection;
 use PiSpace\LaravelSnapshot\Core\Constants\MigrationOperationEnum;
 use PiSpace\LaravelSnapshot\Core\Mappers\ElementToCommandMapper;
-use Illuminate\Support\Collection;
 
 class AttributeComparer
 {
-
     private Collection $modelAttributes;
     private Collection $doctrineAttributes;
     protected Collection $addedAttributes;
@@ -22,8 +21,8 @@ class AttributeComparer
 
     public function __construct(ElementToCommandMapper $modelColumn, ElementToCommandMapper $doctrineColumn)
     {
-        $this->modelAttributes = collect($modelColumn->toArray());
-        $this->doctrineAttributes = collect($doctrineColumn->toArray());
+        $this->modelAttributes = collect($modelColumn->toArray())->filter();
+        $this->doctrineAttributes = collect($doctrineColumn->toArray())->filter();
         $this->addedAttributes = new Collection;
         $this->changedAttributesFromModel = new Collection;
         $this->changedAttributesFromDoctrine = new Collection;
@@ -50,7 +49,9 @@ class AttributeComparer
 
     protected function compareAddedAttributes(): self
     {
-        $this->addedAttributes = $this->modelAttributes->diffKeys($this->doctrineAttributes);
+        $this->addedAttributes = $this->modelAttributes
+            ->diffKeys($this->doctrineAttributes)
+            ->filter(fn($value, $key) => $value === null);
 
         return $this;
     }
@@ -59,7 +60,8 @@ class AttributeComparer
     {
         $this->changedAttributesFromModel = $this->modelAttributes
             ->diffAssoc($this->doctrineAttributes)
-            ->diffKeys($this->deletedAttributes);
+            ->diffKeys($this->deletedAttributes)
+            ->filter(fn($value, $key) => $value === null);
 
         return $this;
     }
@@ -68,14 +70,18 @@ class AttributeComparer
     {
         $this->changedAttributesFromDoctrine = $this->doctrineAttributes
             ->diffAssoc($this->modelAttributes)
-            ->diffKeys($this->addedAttributes);
+            ->diffKeys($this->addedAttributes)
+            ->filter(fn($value, $key) => $value === null);
 
         return $this;
     }
 
     protected function compareDeletedAttributes(): self
     {
-        $this->deletedAttributes = $this->doctrineAttributes->diffKeys($this->modelAttributes);
+        $this->deletedAttributes = $this->doctrineAttributes
+            ->diffKeys($this->modelAttributes)
+            ->filter(fn($value, $key) => $value === null);
+
         return $this;
     }
 

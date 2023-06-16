@@ -18,8 +18,7 @@ use Illuminate\Database\Eloquent\Model;
 #[AsString('footer', [ColumnOption::NULLABLE])]
 #[AsString('test', [ColumnOption::NULLABLE])]
 #[AsString('description', [ColumnOption::NULLABLE])]
-#[ForeignId('user_id', [ForeignKeyOption::CASCADE_ON_DELETE, ForeignKeyOption::CASCADE_ON_UPDATE])]
-#[Unique('title')]
+#[ForeignId('user_id', [ForeignKeyOption::CONSTRAINED, ForeignKeyOption::CASCADE_ON_DELETE, ForeignKeyOption::CASCADE_ON_UPDATE])]
 #[Index(['title', 'description'])]
 #[Timestamps]
 class Book extends Model

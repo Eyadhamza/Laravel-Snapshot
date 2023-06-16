@@ -4,7 +4,7 @@ namespace PiSpace\LaravelSnapshot\Core\Generators;
 
 use Illuminate\Support\Str;
 
-class MigrationGenerator extends Generator
+class MigrationFileGenerator extends Generator
 {
     // TODO: Generate Meaningful Migration File Name
     public function generateMigrationFile(string $migrationFilePath, string $operation): void

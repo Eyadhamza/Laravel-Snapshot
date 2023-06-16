@@ -7,7 +7,7 @@ use PiSpace\LaravelSnapshot\Core\Attributes\ForeignKeys\ForeignKeyMapper;
 use PiSpace\LaravelSnapshot\Core\Attributes\Indexes\IndexMapper;
 use PiSpace\LaravelSnapshot\Core\Constants\MigrationOperationEnum;
 use PiSpace\LaravelSnapshot\Core\Generators\MigrationCommandGenerator;
-use PiSpace\LaravelSnapshot\Core\Generators\MigrationGenerator;
+use PiSpace\LaravelSnapshot\Core\Generators\MigrationFileGenerator;
 use ReflectionAttribute;
 use ReflectionClass;
 use Spatie\ModelInfo\ModelInfo;
@@ -59,7 +59,7 @@ class ModelMapper extends Mapper
             });
     }
 
-    public function runGenerator(): MigrationGenerator
+    public function runGenerator(): MigrationFileGenerator
     {
         $this->columns = ElementToCommandMapper::collection($this->columns);
         $this->indexes = ElementToCommandMapper::collection($this->indexes);
@@ -70,7 +70,7 @@ class ModelMapper extends Mapper
             ->run($this->indexes, MigrationOperationEnum::Add)
             ->run($this->foreignKeys, MigrationOperationEnum::Add);
 
-        return MigrationGenerator::make($this->tableName)
+        return MigrationFileGenerator::make($this->tableName)
             ->setGeneratedCommands($this->generator->getGenerated());
     }
 }

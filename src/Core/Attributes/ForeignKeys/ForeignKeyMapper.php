@@ -23,6 +23,7 @@ abstract class ForeignKeyMapper extends AttributeEntity
     }
     public function setDefinition(string $tableName): self
     {
+
         $this->columns = is_array($this->columns) ? $this->columns : [$this->columns];
         $foreignKeyName = (new Blueprint($tableName))->foreign($this->columns);
         $foreignTable = Str::before(Str::singular($foreignKeyName->get('columns')[0]),'_') . 's';
@@ -31,10 +32,7 @@ abstract class ForeignKeyMapper extends AttributeEntity
             $foreignTable,
             $this->columns,
             $foreignKeyName->get('index'),
-            [
-                'onDelete' => 'cascade',
-                'onUpdate' => 'cascade',
-            ]
+            $this->options
         );
 
         $this->setName($foreignKeyName->get('index'));
@@ -59,7 +57,9 @@ abstract class ForeignKeyMapper extends AttributeEntity
 
     public function setOptions(array $options): AttributeEntity
     {
-        $this->options = $options;
+        foreach ($options as $value) {
+            $this->options[$value] = true;
+        }
 
         return $this;
     }

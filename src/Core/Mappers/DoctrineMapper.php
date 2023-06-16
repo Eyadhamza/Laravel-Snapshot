@@ -3,6 +3,7 @@
 namespace PiSpace\LaravelSnapshot\Core\Mappers;
 
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
+use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Index;
 use Doctrine\DBAL\Schema\Table;
 use Illuminate\Support\Facades\Schema;
@@ -55,13 +56,14 @@ class DoctrineMapper extends Mapper
 
     private function initializeMapper(): self
     {
-        $this->columns = collect($this->doctrineTableDetails->getColumns());
-
         $this->indexes = collect($this->doctrineTableDetails->getIndexes())
             ->reject(fn(Index $index) => $index->isPrimary())
             ->reject(fn(Index $index) => Str::contains($index->getName(), 'foreign'));
 
         $this->foreignKeys = collect($this->doctrineTableDetails->getForeignKeys());
+
+        $this->columns = collect($this->doctrineTableDetails->getColumns())
+            ->reject(fn($column) => $this->foreignKeys->contains(fn(ForeignKeyConstraint $foreignKey) => $foreignKey->getLocalColumns()[0] === $column->getName()));
 
         return $this;
     }
