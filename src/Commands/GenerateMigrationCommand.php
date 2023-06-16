@@ -1,8 +1,8 @@
 <?php
 
-namespace Eyadhamza\LaravelEloquentMigration\Commands;
+namespace PiSpace\LaravelSnapshot\Commands;
 
-use Eyadhamza\LaravelEloquentMigration\Core\MigrationBuilder;
+use PiSpace\LaravelSnapshot\Core\MigrationBuilder;
 use Illuminate\Console\Command;
 use Spatie\ModelInfo\ModelInfo;
 

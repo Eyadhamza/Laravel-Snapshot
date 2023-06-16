@@ -1,13 +1,13 @@
 <?php
 
-namespace Eyadhamza\LaravelEloquentMigration\Core\Comparer;
+namespace PiSpace\LaravelSnapshot\Core\Comparer;
 
-use Eyadhamza\LaravelEloquentMigration\Core\Constants\MigrationOperationEnum;
-use Eyadhamza\LaravelEloquentMigration\Core\Generators\MigrationCommandGenerator;
-use Eyadhamza\LaravelEloquentMigration\Core\Generators\MigrationGenerator;
-use Eyadhamza\LaravelEloquentMigration\Core\Mappers\DoctrineMapper;
-use Eyadhamza\LaravelEloquentMigration\Core\Mappers\Mapper;
-use Eyadhamza\LaravelEloquentMigration\Core\Mappers\ModelMapper;
+use PiSpace\LaravelSnapshot\Core\Constants\MigrationOperationEnum;
+use PiSpace\LaravelSnapshot\Core\Generators\MigrationCommandGenerator;
+use PiSpace\LaravelSnapshot\Core\Generators\MigrationGenerator;
+use PiSpace\LaravelSnapshot\Core\Mappers\DoctrineMapper;
+use PiSpace\LaravelSnapshot\Core\Mappers\Mapper;
+use PiSpace\LaravelSnapshot\Core\Mappers\ModelMapper;
 use Illuminate\Support\Collection;
 
 class ComparerManager extends Mapper

@@ -1,9 +1,9 @@
 <?php
 
-namespace Eyadhamza\LaravelEloquentMigration\Core\Attributes\Indexes;
+namespace PiSpace\LaravelSnapshot\Core\Attributes\Indexes;
 
 use Attribute;
-use Eyadhamza\LaravelEloquentMigration\Core\Attributes\AttributeEntity;
+use PiSpace\LaravelSnapshot\Core\Attributes\AttributeEntity;
 
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Schema\IndexDefinition;

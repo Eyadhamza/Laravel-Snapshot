@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
-use Eyadhamza\LaravelEloquentMigration\Core\Attributes\Columns\AsString;
-use Eyadhamza\LaravelEloquentMigration\Core\Attributes\Columns\Id;
-use Eyadhamza\LaravelEloquentMigration\Core\Attributes\Columns\Timestamps;
-use Eyadhamza\LaravelEloquentMigration\Core\Attributes\Indexes\Index;
-use Eyadhamza\LaravelEloquentMigration\Core\Constants\ColumnOption;
+use PiSpace\LaravelSnapshot\Core\Attributes\Columns\AsString;
+use PiSpace\LaravelSnapshot\Core\Attributes\Columns\Id;
+use PiSpace\LaravelSnapshot\Core\Attributes\Columns\Timestamps;
+use PiSpace\LaravelSnapshot\Core\Attributes\Indexes\Index;
+use PiSpace\LaravelSnapshot\Core\Constants\ColumnOption;
 use Illuminate\Database\Eloquent\Model;
 
 

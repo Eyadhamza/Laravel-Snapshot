@@ -1,6 +1,6 @@
 <?php
 
-namespace Eyadhamza\LaravelEloquentMigration\Core\Mappers;
+namespace PiSpace\LaravelSnapshot\Core\Mappers;
 
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\Schema\Index;

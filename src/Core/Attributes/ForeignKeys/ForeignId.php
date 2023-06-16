@@ -1,9 +1,9 @@
 <?php
 
-namespace Eyadhamza\LaravelEloquentMigration\Core\Attributes\ForeignKeys;
+namespace PiSpace\LaravelSnapshot\Core\Attributes\ForeignKeys;
 
 use Attribute;
-use Eyadhamza\LaravelEloquentMigration\Core\Attributes\AttributeEntity;
+use PiSpace\LaravelSnapshot\Core\Attributes\AttributeEntity;
 
 
 

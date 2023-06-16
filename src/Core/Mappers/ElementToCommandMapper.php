@@ -1,6 +1,6 @@
 <?php
 
-namespace Eyadhamza\LaravelEloquentMigration\Core\Mappers;
+namespace PiSpace\LaravelSnapshot\Core\Mappers;
 
 use Doctrine\DBAL\Schema\AbstractAsset;
 use Doctrine\DBAL\Schema\Column;

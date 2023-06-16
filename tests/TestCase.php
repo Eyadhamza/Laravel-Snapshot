@@ -1,11 +1,12 @@
 <?php
 
-namespace Eyadhamza\LaravelEloquentMigration\Tests;
+namespace PiSpace\LaravelSnapshot\Tests;
 
-use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Orchestra\Testbench\TestCase as Orchestra;
-use Eyadhamza\LaravelEloquentMigration\LaravelEloquentMigrationServiceProvider;
+use PiSpace\LaravelSnapshot\LaravelSnapshotServiceProvider;
+
 
 class TestCase extends Orchestra
 {
@@ -15,7 +16,7 @@ class TestCase extends Orchestra
         parent::setUp();
 
         Factory::guessFactoryNamesUsing(
-            fn(string $modelName) => 'Eyadhamza\\LaravelEloquentMigration\\Database\\Factories\\' . class_basename($modelName) . 'Factory'
+            fn(string $modelName) => 'PiSpace\\LaravelSnapshot\\Database\\Factories\\' . class_basename($modelName) . 'Factory'
         );
     }
 
@@ -27,7 +28,7 @@ class TestCase extends Orchestra
     protected function getPackageProviders($app)
     {
         return [
-            LaravelEloquentMigrationServiceProvider::class,
+            LaravelSnapshotServiceProvider::class,
         ];
     }
 

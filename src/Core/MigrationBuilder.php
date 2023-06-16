@@ -1,12 +1,12 @@
 <?php
 
-namespace Eyadhamza\LaravelEloquentMigration\Core;
+namespace PiSpace\LaravelSnapshot\Core;
 
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
-use Eyadhamza\LaravelEloquentMigration\Core\Comparer\ComparerManager;
-use Eyadhamza\LaravelEloquentMigration\Core\Mappers\DoctrineMapper;
-use Eyadhamza\LaravelEloquentMigration\Core\Mappers\ElementToCommandMapper;
-use Eyadhamza\LaravelEloquentMigration\Core\Mappers\ModelMapper;
+use PiSpace\LaravelSnapshot\Core\Comparer\ComparerManager;
+use PiSpace\LaravelSnapshot\Core\Mappers\DoctrineMapper;
+use PiSpace\LaravelSnapshot\Core\Mappers\ElementToCommandMapper;
+use PiSpace\LaravelSnapshot\Core\Mappers\ModelMapper;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 use Spatie\ModelInfo\ModelInfo;

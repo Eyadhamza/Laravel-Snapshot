@@ -1,6 +1,6 @@
 <?php
 
-namespace Eyadhamza\LaravelEloquentMigration\Core\Generators;
+namespace PiSpace\LaravelSnapshot\Core\Generators;
 
 use Illuminate\Support\Str;
 

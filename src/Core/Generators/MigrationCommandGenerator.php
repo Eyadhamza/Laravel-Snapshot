@@ -1,12 +1,12 @@
 <?php
 
-namespace Eyadhamza\LaravelEloquentMigration\Core\Generators;
+namespace PiSpace\LaravelSnapshot\Core\Generators;
 
-use Eyadhamza\LaravelEloquentMigration\Core\Constants\MigrationOperationEnum;
-use Eyadhamza\LaravelEloquentMigration\Core\Formatters\AddCommandFormatter;
-use Eyadhamza\LaravelEloquentMigration\Core\Formatters\ModifyCommandFormatter;
-use Eyadhamza\LaravelEloquentMigration\Core\Formatters\RemoveCommandFormatter;
-use Eyadhamza\LaravelEloquentMigration\Core\Mappers\ElementToCommandMapper;
+use PiSpace\LaravelSnapshot\Core\Constants\MigrationOperationEnum;
+use PiSpace\LaravelSnapshot\Core\Formatters\AddCommandFormatter;
+use PiSpace\LaravelSnapshot\Core\Formatters\ModifyCommandFormatter;
+use PiSpace\LaravelSnapshot\Core\Formatters\RemoveCommandFormatter;
+use PiSpace\LaravelSnapshot\Core\Mappers\ElementToCommandMapper;
 use Illuminate\Support\Collection;
 
 class MigrationCommandGenerator extends Generator

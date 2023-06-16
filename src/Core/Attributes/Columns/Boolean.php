@@ -1,9 +1,9 @@
 <?php
 
-namespace Eyadhamza\LaravelEloquentMigration\Core\Attributes\Columns;
+namespace PiSpace\LaravelSnapshot\Core\Attributes\Columns;
 
 use Attribute;
-use Eyadhamza\LaravelEloquentMigration\Core\Attributes\AttributeEntity;
+use PiSpace\LaravelSnapshot\Core\Attributes\AttributeEntity;
 #[Attribute(Attribute::IS_REPEATABLE | Attribute::TARGET_CLASS)]
 class Boolean extends ColumnMapper
 {

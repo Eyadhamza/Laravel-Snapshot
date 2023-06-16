@@ -6,13 +6,13 @@ Why do we write migrations? I mean seriously?
 You can install the package via composer:
 
 ```bash
-composer require eyadhamza/laravel-eloquent-migration
+composer require eyadhamza/laravel-snapshot
 ```
 
 ## Usage
 
 ```php
-$LaravelEloquentMigration = new Eyadhamza\LaravelEloquentMigration();
+$LaravelSnapshot = new PiSpace\LaravelSnapshot();
 ```
 
 ## Testing
@@ -35,7 +35,7 @@ Please review [our security policy](../../security/policy) on how to report secu
 
 ## Credits
 
-- [Eyad Hamza](https://github.com/Eyadhamza)
+- [Eyad Hamza](https://github.com/PiSpace)
 - [All Contributors](../../contributors)
 
 ## License

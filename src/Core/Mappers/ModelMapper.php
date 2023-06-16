@@ -1,13 +1,13 @@
 <?php
 
-namespace Eyadhamza\LaravelEloquentMigration\Core\Mappers;
+namespace PiSpace\LaravelSnapshot\Core\Mappers;
 
-use Eyadhamza\LaravelEloquentMigration\Core\Attributes\Columns\ColumnMapper;
-use Eyadhamza\LaravelEloquentMigration\Core\Attributes\ForeignKeys\ForeignKeyMapper;
-use Eyadhamza\LaravelEloquentMigration\Core\Attributes\Indexes\IndexMapper;
-use Eyadhamza\LaravelEloquentMigration\Core\Constants\MigrationOperationEnum;
-use Eyadhamza\LaravelEloquentMigration\Core\Generators\MigrationCommandGenerator;
-use Eyadhamza\LaravelEloquentMigration\Core\Generators\MigrationGenerator;
+use PiSpace\LaravelSnapshot\Core\Attributes\Columns\ColumnMapper;
+use PiSpace\LaravelSnapshot\Core\Attributes\ForeignKeys\ForeignKeyMapper;
+use PiSpace\LaravelSnapshot\Core\Attributes\Indexes\IndexMapper;
+use PiSpace\LaravelSnapshot\Core\Constants\MigrationOperationEnum;
+use PiSpace\LaravelSnapshot\Core\Generators\MigrationCommandGenerator;
+use PiSpace\LaravelSnapshot\Core\Generators\MigrationGenerator;
 use ReflectionAttribute;
 use ReflectionClass;
 use Spatie\ModelInfo\ModelInfo;

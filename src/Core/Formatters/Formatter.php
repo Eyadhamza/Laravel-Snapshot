@@ -1,9 +1,9 @@
 <?php
 
-namespace Eyadhamza\LaravelEloquentMigration\Core\Formatters;
+namespace PiSpace\LaravelSnapshot\Core\Formatters;
 
-use Eyadhamza\LaravelEloquentMigration\Core\Constants\MigrationOperationEnum;
-use Eyadhamza\LaravelEloquentMigration\Core\Mappers\ElementToCommandMapper;
+use PiSpace\LaravelSnapshot\Core\Constants\MigrationOperationEnum;
+use PiSpace\LaravelSnapshot\Core\Mappers\ElementToCommandMapper;
 
 abstract class Formatter
 {

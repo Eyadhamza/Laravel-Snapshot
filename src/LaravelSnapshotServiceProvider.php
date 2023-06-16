@@ -1,12 +1,12 @@
 <?php
 
-namespace Eyadhamza\LaravelEloquentMigration;
+namespace PiSpace\LaravelSnapshot;
 
-use Eyadhamza\LaravelEloquentMigration\Commands\GenerateMigrationCommand;
+use PiSpace\LaravelSnapshot\Commands\GenerateMigrationCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
-class LaravelEloquentMigrationServiceProvider extends PackageServiceProvider
+class LaravelSnapshotServiceProvider extends PackageServiceProvider
 {
     public function configurePackage(Package $package): void
     {
@@ -16,7 +16,7 @@ class LaravelEloquentMigrationServiceProvider extends PackageServiceProvider
          * More info: https://github.com/spatie/laravel-package-tools
          */
         $package
-            ->name('laravel-eloquent-migration')
+            ->name('laravel-snapshot')
             ->hasConfigFile()
             ->hasViews()
             ->hasCommands([

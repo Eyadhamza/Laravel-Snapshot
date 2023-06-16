@@ -1,6 +1,6 @@
 <?php
 
-namespace Eyadhamza\LaravelEloquentMigration\Core\Attributes;
+namespace PiSpace\LaravelSnapshot\Core\Attributes;
 
 use Attribute;
 

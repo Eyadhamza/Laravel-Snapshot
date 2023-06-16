@@ -1,8 +1,8 @@
 <?php
 
-namespace Eyadhamza\LaravelEloquentMigration\Core\Formatters;
+namespace PiSpace\LaravelSnapshot\Core\Formatters;
 
-use Eyadhamza\LaravelEloquentMigration\Core\Constants\MigrationOperationEnum;
+use PiSpace\LaravelSnapshot\Core\Constants\MigrationOperationEnum;
 
 class ModifyCommandFormatter extends Formatter
 {

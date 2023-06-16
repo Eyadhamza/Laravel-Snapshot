@@ -1,10 +1,10 @@
 <?php
 
-namespace Eyadhamza\LaravelEloquentMigration\Core\Comparer;
+namespace PiSpace\LaravelSnapshot\Core\Comparer;
 
 
-use Eyadhamza\LaravelEloquentMigration\Core\Constants\MigrationOperationEnum;
-use Eyadhamza\LaravelEloquentMigration\Core\Mappers\ElementToCommandMapper;
+use PiSpace\LaravelSnapshot\Core\Constants\MigrationOperationEnum;
+use PiSpace\LaravelSnapshot\Core\Mappers\ElementToCommandMapper;
 use Illuminate\Support\Collection;
 
 class AttributeComparer

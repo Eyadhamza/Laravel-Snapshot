@@ -1,6 +1,6 @@
 <?php
 
-namespace Eyadhamza\LaravelEloquentMigration\Core\Constants;
+namespace PiSpace\LaravelSnapshot\Core\Constants;
 
 abstract class ColumnOption
 {
